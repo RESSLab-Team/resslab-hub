@@ -14,9 +14,8 @@ import {
   useDictionaryStore,
   type DictColumn
 } from '@/stores/dictionary'
-import { useNotificationStore } from '@/stores/notification'
 import type { ColorScale } from '@/utils/categoryColors'
-import { isStructuredFilterValue, shareCurrentUrl, type Searches, type Value } from '@/utils/common'
+import { isStructuredFilterValue, type Searches, type Value } from '@/utils/common'
 import { isUnverified } from '@/utils/curationStatus'
 import type { FilterDescriptor } from '@/utils/filterProfile'
 import { formatValue } from '@/utils/queryEngine'
@@ -28,16 +27,13 @@ import {
   mdiClose,
   mdiDownload,
   mdiFilterRemoveOutline,
-  mdiMagnify,
   mdiMenuDown,
   mdiMenuUp,
-  mdiShare,
   mdiSortAscending,
   mdiSortDescending
 } from '@mdi/js'
 import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
 
 interface TableHeader {
   type: ColumnType
@@ -61,7 +57,6 @@ interface TableHeader {
 
 const props = withDefaults(
   defineProps<{
-    title?: string
     columns?: Column[]
     totalCount?: number
     loading?: boolean
@@ -70,11 +65,6 @@ const props = withDefaults(
     prefix?: string
     query?: string
     searches?: Searches
-    search?: string
-    /** Hide the filter-only inputs row above the table (when a filter rail covers them) */
-    hideFilterOnly?: boolean
-    /** Hide the title/search toolbar (when the dashboard provides its own toolbar) */
-    hideToolbar?: boolean
     /** In-browser filtering is instant — skip the loading bar that reads as a fetch. */
     instant?: boolean
     /** Provisional filtered count shown live during a crossfilter drag. Display-only:
@@ -93,7 +83,6 @@ const props = withDefaults(
     colorFor?: (field: string) => ColorScale
   }>(),
   {
-    title: undefined,
     columns: () => [],
     totalCount: undefined,
     loading: false,
@@ -102,9 +91,6 @@ const props = withDefaults(
     prefix: undefined,
     query: undefined,
     searches: () => ({}),
-    search: '',
-    hideFilterOnly: false,
-    hideToolbar: false,
     instant: false,
     liveCount: undefined,
     liveItems: undefined,
@@ -116,7 +102,6 @@ const emit = defineEmits<{
   (e: 'click:row', value: M): void
   (e: 'download', items: M[], types: DownloadType[]): void
   (e: 'update:options', value?: DataOptions): void
-  (e: 'update:search', value: string): void
   (e: 'update:searches', value: Searches): void
 }>()
 
@@ -144,8 +129,6 @@ const checkboxDialogItems: CheckBoxDialogItem<DownloadType>[] = [
   }
 ]
 
-const route = useRoute()
-const notificationStore = useNotificationStore()
 // The data dictionary powers the adaptive short header labels; the store
 // dedupes, so this kicks at most one fetch per session. Until it resolves
 // (or without a databaseId) headers simply never shorten.
@@ -381,17 +364,7 @@ const columnSearches = computed<Searches>({
   get: () => props.searches,
   set: (value) => emit('update:searches', value)
 })
-const globalSearch = computed<string>({
-  get: () => props.search,
-  set: (value) => emit('update:search', value)
-})
-const tableHeaders = computed<TableHeader[]>(() =>
-  props.columns.filter((column) => !column.filterOnly).map(getTableHeader)
-)
-const filterHeaders = computed<TableHeader[]>(() =>
-  props.columns.filter((column) => column.filterOnly).map(getTableHeader)
-)
-const hasFilters = computed<boolean>(() => !!props.query && props.query?.length != 0)
+const tableHeaders = computed<TableHeader[]>(() => props.columns.map(getTableHeader))
 
 // Content-measured column widths (see useColumnWidths): each column is sized to
 // its widest header/value; leftover space goes to the text columns, and when the
@@ -635,18 +608,8 @@ function categoryColor(header: TableHeader, item: M): string | undefined {
   return props.colorFor(header.key)(formatValue(value))
 }
 
-function resetFilters(): void {
-  globalSearch.value = ''
-  columnSearches.value = {}
-}
-
 function rowClick(item: M): void {
   emit('click:row', item)
-}
-
-function shareUrl(): void {
-  // the URL query is added automatically via vue-router
-  shareCurrentUrl(route.fullPath, notificationStore.notify)
 }
 
 // Adaptive short label candidate, by precedence: an explicit `shortTitle`
@@ -733,71 +696,6 @@ function downloadZip(): void {
     flat
     :style="{ '--stbl-rows': String(heightRows), '--stbl-head-h': headHeight }"
   >
-    <div v-if="!hideToolbar" class="stbl-toolbar">
-      <div class="stbl-title">
-        <slot name="title">
-          {{ title }}
-        </slot>
-      </div>
-      <v-spacer />
-      <v-responsive class="stbl-search" max-width="280">
-        <v-text-field
-          v-model="globalSearch"
-          clearable
-          density="compact"
-          hide-details
-          single-line
-          :prepend-inner-icon="mdiMagnify"
-          :label="$t('commons.search')"
-          variant="outlined"
-        />
-      </v-responsive>
-      <button class="btn btn-ghost btn-sm" :disabled="!hasFilters" @click="resetFilters">
-        {{ $t('commons.reset_filters') }}
-      </button>
-    </div>
-
-    <!-- Filter-only inputs (columns not shown in the table body) -->
-    <div v-if="!hideFilterOnly && filterHeaders.length" class="stbl-filteronly">
-      <v-row class="px-4 pb-4">
-        <v-col v-for="header in filterHeaders" :key="header.key">
-          <v-select
-            v-if="header.options"
-            v-bind="vInputBind"
-            :model-value="(columnSearches[header.key] as string)"
-            :multiple="header.multiple"
-            :items="header.options"
-            @update:model-value="columnSearches[header.key] = $event"
-          >
-            <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-          </v-select>
-          <v-text-field
-            v-else-if="header.type === 'text'"
-            v-bind="vInputBind"
-            v-model="columnSearches[header.key]"
-          >
-            <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-          </v-text-field>
-          <v-select
-            v-else-if="header.type === 'boolean'"
-            v-bind="vInputBind"
-            v-model="columnSearches[header.key]"
-            :items="booleanOptions"
-          >
-            <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-          </v-select>
-          <v-text-field
-            v-else-if="header.type === 'number'"
-            v-bind="vInputBind"
-            v-model="columnSearches[header.key]"
-            type="number"
-          >
-            <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-          </v-text-field>
-        </v-col>
-      </v-row>
-    </div>
-
     <div class="stbl-body">
       <!-- One shared horizontal scroller around BOTH tables: when the measured
            column mins outgrow the viewport, head and body overflow together and
@@ -1144,15 +1042,6 @@ function downloadZip(): void {
           <v-icon :icon="mdiDownload" size="14" />
           {{ $t('commons.download_n', { n: selectedItems.length, m: totalCount }) }}
         </button>
-        <button
-          v-if="!hideToolbar"
-          class="btn btn-secondary btn-sm"
-          :disabled="!hasFilters"
-          @click="shareUrl"
-        >
-          <v-icon :icon="mdiShare" size="14" />
-          {{ $t('commons.share') }}
-        </button>
       </div>
       <div class="dash-pager-info">
         <i18n-t keypath="commons.table_showing" tag="span" scope="global">
@@ -1216,26 +1105,6 @@ function downloadZip(): void {
   /* Isolate the table's internal reflow/repaint from the rest of the page, so a
      filter-driven re-render here doesn't invalidate the chart strips below. */
   contain: layout;
-}
-
-.stbl-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-}
-.stbl-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--title-card-size);
-  font-weight: var(--title-card-weight);
-  letter-spacing: var(--title-card-tracking);
-}
-.stbl-search :deep(.v-field) {
-  border-radius: var(--radius);
-  font-size: 14px;
 }
 
 /* Horizontal scroll wrapper around BOTH tables. On wide screens the columns sum

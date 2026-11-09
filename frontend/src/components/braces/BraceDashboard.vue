@@ -2,12 +2,12 @@
 import { BraceField, type BraceModel } from '@/backend'
 import BraceDetail from '@/components/braces/BraceDetail.vue'
 import BraceTable from '@/components/braces/BraceTable.vue'
-import BraceDoubleChart from '@/components/braces/charts/BraceDoubleChart.vue'
-import BraceParallelChart from '@/components/braces/charts/BraceParallelChart.vue'
-import BraceSingleChart from '@/components/braces/charts/BraceSingleChart.vue'
+import DatasetDoubleChart from '@/components/commons/charts/DatasetDoubleChart.vue'
+import DatasetParallelChart from '@/components/commons/charts/DatasetParallelChart.vue'
+import DatasetSingleChart from '@/components/commons/charts/DatasetSingleChart.vue'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import { BRACE_KEY, PARALLEL_FIELDS, fetchBraces } from '@/components/braces/data'
+import { BRACE_KEY, BRACE_SOURCE, PARALLEL_FIELDS, fetchBraces } from '@/components/braces/data'
 import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
@@ -93,7 +93,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <brace-double-chart
+          <dataset-double-chart
+            :source="BRACE_SOURCE"
             :fields="boundaryConditionFields"
             type="line"
             @change:searches="changeSearches"
@@ -107,7 +108,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <brace-single-chart
+          <dataset-single-chart
+            :source="BRACE_SOURCE"
             :field="BraceField.LoadingProtocol"
             :show-reset="false"
             flat
@@ -122,7 +124,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <brace-single-chart
+          <dataset-single-chart
+            :source="BRACE_SOURCE"
             :field="BraceField.Steel"
             :show-reset="false"
             flat
@@ -139,7 +142,11 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <brace-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
+          <dataset-parallel-chart
+            :source="BRACE_SOURCE"
+            :fields="parallelFields"
+            @change:searches="changeSearches"
+          />
         </chart-cell>
       </div>
     </template>

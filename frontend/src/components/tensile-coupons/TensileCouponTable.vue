@@ -34,9 +34,7 @@ const columns: Column[] = [
 ]
 
 const props = defineProps(tableProps)
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface Emits extends TableEmits<TensileCouponModel> {}
-const emit = defineEmits<Emits>()
+const emit = defineEmits<TableEmits<TensileCouponModel>>()
 
 const notificationStore = useNotificationStore()
 const { getTotal, getPage, countRowsSync, pageSync, colorFor } = useDataset<TensileCouponModel>(
@@ -51,7 +49,6 @@ const {
   liveItems,
   loading,
   options,
-  search,
   searches,
   totalCount,
   totalFilteredCount
@@ -79,12 +76,10 @@ const {
 <template>
   <simple-table
     v-model:options="options"
-    v-model:search="search"
     v-model:searches="searches"
     :color-for="colorFor"
     database-id="tensile"
     :columns="columns"
-    hide-toolbar
     :live-count="liveCount"
     :live-items="liveItems"
     :items="items"
@@ -92,7 +87,6 @@ const {
     :loading="loading"
     prefix="tensile_coupon."
     :query="query"
-    :title="$t('table.tensile_coupon.title')"
     :total-count="totalCount"
     :total-filtered-count="totalFilteredCount"
     @click:row="clickRow"

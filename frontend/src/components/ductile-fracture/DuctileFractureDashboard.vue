@@ -2,13 +2,18 @@
 import { DuctileFractureField, type DuctileFractureModel } from '@/backend'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import DuctileFractureDoubleChart from '@/components/ductile-fracture/charts/DuctileFractureDoubleChart.vue'
-import DuctileFractureParallelChart from '@/components/ductile-fracture/charts/DuctileFractureParallelChart.vue'
-import DuctileFractureSingleChart from '@/components/ductile-fracture/charts/DuctileFractureSingleChart.vue'
+import DatasetDoubleChart from '@/components/commons/charts/DatasetDoubleChart.vue'
+import DatasetParallelChart from '@/components/commons/charts/DatasetParallelChart.vue'
+import DatasetSingleChart from '@/components/commons/charts/DatasetSingleChart.vue'
 import DuctileFractureDetail from '@/components/ductile-fracture/DuctileFractureDetail.vue'
 import DuctileFractureTable from '@/components/ductile-fracture/DuctileFractureTable.vue'
 import type { DoubleFields, ParallelField } from '@/composables/chart'
-import { DUCTILE_FRACTURE_KEY, fetchDuctileFractures } from '@/components/ductile-fracture/data'
+import { getDuctileFractureSpecimenImage } from '@/utils/component'
+import {
+  DUCTILE_FRACTURE_KEY,
+  DUCTILE_FRACTURE_SOURCE,
+  fetchDuctileFractures
+} from '@/components/ductile-fracture/data'
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
@@ -129,7 +134,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <ductile-fracture-double-chart
+          <dataset-double-chart
+            :source="DUCTILE_FRACTURE_SOURCE"
             :fields="dateSpecimenFields"
             type="bar"
             @change:searches="changeSearches"
@@ -143,8 +149,10 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <ductile-fracture-single-chart
+          <dataset-single-chart
+            :source="DUCTILE_FRACTURE_SOURCE"
             :field="DuctileFractureField.SpecimenType"
+            :image-for="getDuctileFractureSpecimenImage"
             :show-reset="false"
             flat
             @change:searches="changeSearches"
@@ -158,7 +166,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <ductile-fracture-single-chart
+          <dataset-single-chart
+            :source="DUCTILE_FRACTURE_SOURCE"
             :field="DuctileFractureField.SteelType"
             :show-reset="false"
             flat
@@ -175,7 +184,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <ductile-fracture-double-chart
+          <dataset-double-chart
+            :source="DUCTILE_FRACTURE_SOURCE"
             :fields="triaxSpecimenFields"
             type="bar"
             @change:searches="changeSearches"
@@ -188,7 +198,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <ductile-fracture-double-chart
+          <dataset-double-chart
+            :source="DUCTILE_FRACTURE_SOURCE"
             :fields="lodeSpecimenFields"
             type="bar"
             @change:searches="changeSearches"
@@ -204,7 +215,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <ductile-fracture-parallel-chart
+          <dataset-parallel-chart
+            :source="DUCTILE_FRACTURE_SOURCE"
             :fields="parallelFields"
             @change:searches="changeSearches"
           />

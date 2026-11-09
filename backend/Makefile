@@ -146,9 +146,6 @@ transform-data:         ## regenerate the frontend section CSVs from the data re
 	uv run python data/hss_csv_transformer.py european $(RESSLAB_DATA_DIR)/hss_columns/sections/european.csv ../frontend/src/assets/hss/hss-european-sections.csv
 	uv run python data/hss_csv_transformer.py japanese $(RESSLAB_DATA_DIR)/hss_columns/sections/japanese.csv ../frontend/src/assets/hss/hss-japanese-sections.csv
 
-analyze-data:           ## old CSV analyzer from before the data dictionaries, kept for local checks
-	uv run python -m data.analyzer $(RESSLAB_DATA_DIR)/connections/connections.csv $(RESSLAB_DATA_DIR)/material/cyclic_coupons/steel_material.csv $(RESSLAB_DATA_DIR)/columns/steel_columns.csv $(RESSLAB_DATA_DIR)/braces/steel_braces.csv $(RESSLAB_DATA_DIR)/residual_stresses/residual_stresses.csv $(RESSLAB_DATA_DIR)/hss_columns/hss_columns.csv
-
 generate-model:         ## regenerate ORM models and Pydantic schemas from the data dictionaries
 	uv run python data/generate_model.py \
 		$(RESSLAB_DATA_DIR)/braces/steel_braces_data_dictionary.csv \

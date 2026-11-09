@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { BraceField, type BraceModel } from '@/backend'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
 import { useDataset } from '@/composables/useDataset'
@@ -38,9 +37,7 @@ const columns: Column[] = [
 ]
 
 const props = defineProps(tableProps)
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface Emits extends TableEmits<BraceModel> {}
-const emit = defineEmits<Emits>()
+const emit = defineEmits<TableEmits<BraceModel>>()
 
 const notificationStore = useNotificationStore()
 const { getTotal, getPage, countRowsSync, pageSync, colorFor } = useDataset<BraceModel>(
@@ -55,7 +52,6 @@ const {
   liveItems,
   loading,
   options,
-  search,
   searches,
   totalCount,
   totalFilteredCount
@@ -83,12 +79,10 @@ const {
 <template>
   <simple-table
     v-model:options="options"
-    v-model:search="search"
     v-model:searches="searches"
     :color-for="colorFor"
     database-id="braces"
     :columns="columns"
-    hide-toolbar
     :live-count="liveCount"
     :live-items="liveItems"
     :items="items"
@@ -101,18 +95,5 @@ const {
     @click:row="clickRow"
     @download="downloadFiles"
   >
-    <template #title>
-      {{ $t('table.brace.title') }}
-      <info-tooltip>
-        <p>{{ $t('table.brace.tooltip.intro') }}</p>
-        {{ $t('table.brace.tooltip.howToUse') }}
-        <ul>
-          <li>{{ $t('table.brace.tooltip.bulletFilter') }}</li>
-          <li>{{ $t('table.brace.tooltip.bulletClick') }}</li>
-          <li>{{ $t('table.brace.tooltip.bulletDownload') }}</li>
-          <li>{{ $t('table.brace.tooltip.bulletShare') }}</li>
-        </ul>
-      </info-tooltip>
-    </template>
   </simple-table>
 </template>

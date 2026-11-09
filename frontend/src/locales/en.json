@@ -491,7 +491,6 @@
     "reset_filters": "Reset filters",
     "download": "Download",
     "download_n": "Download ({n}/{m})",
-    "share": "Share",
     "share_specimen": "Share a link to this specimen",
     "specimen_not_found": "Specimen {id} was not found.",
     "table_showing": "Showing {from}–{to} of {total}",
@@ -666,8 +665,6 @@
       "measured_yield_stress": "Measured yield stress",
       "ultimate_tensile_stress": "Ultimate tensile stress",
       "no_gusset_plates": "The configuration does not include gusset plates",
-      "not_reported": "Not Reported",
-      "no": "No",
       "chart_force_displacement": "Force Displacement",
       "axis_displacement": "Displacement [mm]",
       "axis_force": "Force [kN]"
@@ -801,9 +798,6 @@
     "continuousLink": "Continuous link",
     "connectionConfiguration1": "Connection Configuration 1",
     "connectionConfiguration5": "Connection Configuration 5",
-    "short": "Short",
-    "intermediate": "Intermediate",
-    "long": "Long",
     "hotRolled": "Hot-Rolled",
     "builtUp": "Built-up",
     "threePointBending": "3 Point Bending",
@@ -925,55 +919,12 @@
     "residual_stresses_desc": "Cross-sectional residual stresses"
   },
   "table": {
-    "connection": {
-      "title": "Connections",
-      "tooltip": {
-        "intro": "The Connections Database presents data from early 1970s on beam-to-column connections under reversed cyclic and monotonic loading. The primary data involve the global behavior of the connection and the decomposed panel zone shear versus shear distortion, deduced beam end moment versus chord rotation, whenever available.",
-        "howToUse": "How to use?",
-        "bulletFilter": "Filter the table by making selections in the various plots around the table, or by using the filters and dropdowns above the table headers.",
-        "bulletClick": "Click on a row to see the data of a single test.",
-        "bulletDownload": "Download specific tests results by selecting the test (left-most column) and click \"Download\" below.",
-        "bulletShare": "Share specific tests results by selecting the test (left-most column) and click \"Share\" below."
-      }
-    },
-    "column": {
-      "title": "Columns",
-      "tooltip": {
-        "intro": "The Columns Database presents data from early 1970s on columns under reversed cyclic and monotonic loading. The primary data involve the deduced moment chord rotation of the column and deduced column axial shortening versus chord rotation.",
-        "howToUse": "How to use?",
-        "bulletFilter": "Filter the table by making selections in the various plots around the table, or by using the filters and dropdowns above the table headers.",
-        "bulletClick": "Click on a row to see the data of a single test.",
-        "bulletDownload": "Download specific tests results by selecting the test (left-most column) and click \"Download\" below.",
-        "bulletShare": "Share specific tests results by selecting the test (left-most column) and click \"Share\" below."
-      }
-    },
-    "brace": {
-      "title": "Braces",
-      "tooltip": {
-        "intro": "The Brace Database presents data from mid 1970s on steel braces of various configurations. The braces are subjected to monotonic, symmetric cyclic and other loading histories. The primary data involve the brace axial load versus axial displacement.",
-        "howToUse": "How to use?",
-        "bulletFilter": "Filter the table by making selections in the various plots around the table, or by using the filters and dropdowns above the table headers.",
-        "bulletClick": "Click on a row to see the data of a single test.",
-        "bulletDownload": "Download specific tests results by selecting the test (left-most column) and click \"Download\" below.",
-        "bulletShare": "Share specific tests results by selecting the test (left-most column) and click \"Share\" below."
-      }
-    },
     "hss": {
-      "title": "HSS Columns",
       "columns": {
         "experimentalProgram": "Experimental Program"
-      },
-      "tooltip": {
-        "intro": "The HSS Columns Database presents data from early 1975 on columns under reversed cyclic and monotonic loading. The primary data involve the deduced moment chord rotation of the column.",
-        "howToUse": "How to use?",
-        "bulletFilter": "Filter the table by making selections in the various plots around the table, or by using the filters and dropdowns above the table headers.",
-        "bulletClick": "Click on a row to see the data of a single test.",
-        "bulletDownload": "Download specific tests results by selecting the test (left-most column) and click \"Download\" below.",
-        "bulletShare": "Share specific tests results by selecting the test (left-most column) and click \"Share\" below."
       }
     },
     "ebf": {
-      "title": "EBF Links",
       "columns": {
         "experimentalProgram": "Experimental Program",
         "experimentalProgram_short": "Program",
@@ -987,31 +938,13 @@
         "linkLength_short": "Length [mm]",
         "steelMaterial": "Steel material [MPa]",
         "steelMaterial_short": "Steel [MPa]"
-      },
-      "tooltip": {
-        "intro": "The database on eccentric braced frame (EBF) links presents data from early 1977s on EBF Links under reversed cyclic and monotonic loading. The primary data involve the deduced shear-link angle of the EBF link.",
-        "howToUse": "How to use?",
-        "bulletFilter": "Filter the table by making selections in the various plots around the table, or by using the filters and dropdowns above the table headers.",
-        "bulletClick": "Click on a row to see the data of a single test.",
-        "bulletDownload": "Download specific tests results by selecting the test (left-most column) and click \"Download\" below.",
-        "bulletShare": "Share specific tests results by selecting the test (left-most column) and click \"Share\" below."
       }
     },
     "ductile_fracture": {
-      "title": "Ductile Fracture",
       "columns": {
         "profileType": "Profile Type",
         "profileType_short": "Profile"
       }
-    },
-    "material": {
-      "title": "Cyclic Coupons"
-    },
-    "residual": {
-      "title": "Residual Stress"
-    },
-    "tensile_coupon": {
-      "title": "Tensile Coupons"
     }
   },
   "home": {

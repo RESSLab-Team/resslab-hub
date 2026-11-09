@@ -34,5 +34,3 @@ const props = withDefaults(
 
 const snackbarVisible = ref(true)
 </script>
-
-<style scoped lang="scss"></style>

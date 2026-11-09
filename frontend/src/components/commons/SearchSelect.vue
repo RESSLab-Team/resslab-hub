@@ -1,12 +1,9 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="V extends string | number | object">
 import type { SelectItem } from '@/utils/vuetify'
 import { mdiMagnify } from '@mdi/js'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-// TODO add genericity https://github.com/vuejs/rfcs/discussions/436
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type V = string | number | object
 const props = withDefaults(
   defineProps<{
     modelValue?: V

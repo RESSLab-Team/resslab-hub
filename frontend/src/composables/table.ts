@@ -35,7 +35,6 @@ export interface Column {
    *  dictionary symbol. */
   shortTitle?: string | false
   options?: string[]
-  filterOnly?: boolean
   format?: (value: any) => string
   /** Design-system cell treatment: 'mono' = smaller section-name text, tag pill, bold identifier */
   cellVariant?: 'mono' | 'tag' | 'strong'

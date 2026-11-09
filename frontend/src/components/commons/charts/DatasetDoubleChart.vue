@@ -1,29 +1,41 @@
-<script setup lang="ts">
-import { BraceField, BraceNumberField, type BraceModel, type CountModel } from '@/backend'
+<script setup lang="ts" generic="F extends string">
+// A dashboard histogram (bar or line) bound to its dataset, with the number or
+// date brush on its first field. `source` says which dataset, from
+// `components/{type}/data.ts`.
+import type { CountModel } from '@/backend'
 import DoubleChart from '@/components/commons/charts/DoubleChart.vue'
 import {
-  doubleChartProps,
   getRequestFields,
   useDoubleChart,
-  type ChartEmits
+  type ChartEmits,
+  type DatasetSource,
+  type DoubleFields
 } from '@/composables/chart'
 import { dashboardQueryKey } from '@/composables/dashboard'
 import { useDataset } from '@/composables/useDataset'
-import { BRACE_KEY, fetchBraces } from '@/components/braces/data'
 import { inject, toRef } from 'vue'
 
-const props = defineProps(doubleChartProps<BraceField>())
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface Emits extends ChartEmits {}
-const emit = defineEmits<Emits>()
+const props = defineProps<{
+  source: DatasetSource<F>
+  fields: NoInfer<DoubleFields<F>>
+  type?: 'bar' | 'line'
+  query?: string
+}>()
+const emit = defineEmits<ChartEmits>()
 
 // query via inject (not prop) so a filter change doesn't re-render this chart.
-const query = inject(dashboardQueryKey, toRef(props, 'query'))
-const { getCounts, countsSync, colorFor, getRange } = useDataset<BraceModel>(BRACE_KEY, fetchBraces)
+const query = inject(
+  dashboardQueryKey,
+  toRef(() => props.query)
+)
+const { getCounts, countsSync, colorFor, getRange, getDateRange } = useDataset(
+  props.source.key,
+  props.source.fetchAll
+)
 // Stable reference: a fresh closure per render would re-render the chart for nothing.
 const colorForSecond = colorFor(getRequestFields(props.fields)[1])
 
-// Synchronous counts for the crossfilter drag path — bound to this chart's request
+// Synchronous counts for the crossfilter drag path, bound to this chart's request
 // fields so DoubleChart can repaint imperatively (off Vue's reactivity) mid-drag.
 const getLiveCounts = (liveQuery?: string): CountModel[] =>
   countsSync(getRequestFields(props.fields), liveQuery)
@@ -37,10 +49,14 @@ const {
   numberMax,
   numberMin,
   numberRange
-} = useDoubleChart<BraceField, BraceNumberField>(emit, props.fields, query, getCounts, {
-  field: BraceNumberField,
-  getRange
-})
+} = useDoubleChart<F, string, string>(
+  emit,
+  props.fields,
+  query,
+  getCounts,
+  { field: props.source.numberFields, getRange },
+  props.source.dateFields ? { field: props.source.dateFields, getRange: getDateRange } : undefined
+)
 </script>
 
 <template>
@@ -55,10 +71,10 @@ const {
     :date-max="dateMax"
     :date-min="dateMin"
     :fields="fields"
-    label-prefix="brace."
+    :label-prefix="source.labelPrefix"
     :number-max="numberMax"
     :number-min="numberMin"
-    :type="props.type"
+    :type="type"
     @change:searches="changeSearches"
   />
 </template>

@@ -2,12 +2,17 @@
 import { ResidualStressField, type ResidualStressModel } from '@/backend'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import ResidualDoubleChart from '@/components/residuals/charts/ResidualDoubleChart.vue'
-import ResidualParallelChart from '@/components/residuals/charts/ResidualParallelChart.vue'
-import ResidualSingleChart from '@/components/residuals/charts/ResidualSingleChart.vue'
+import DatasetDoubleChart from '@/components/commons/charts/DatasetDoubleChart.vue'
+import DatasetParallelChart from '@/components/commons/charts/DatasetParallelChart.vue'
+import DatasetSingleChart from '@/components/commons/charts/DatasetSingleChart.vue'
 import ResidualDetail from '@/components/residuals/ResidualDetail.vue'
 import ResidualTable from '@/components/residuals/ResidualTable.vue'
-import { PARALLEL_FIELDS, RESIDUAL_KEY, fetchResiduals } from '@/components/residuals/data'
+import {
+  PARALLEL_FIELDS,
+  RESIDUAL_KEY,
+  RESIDUAL_SOURCE,
+  fetchResiduals
+} from '@/components/residuals/data'
 import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
@@ -94,7 +99,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <residual-double-chart
+          <dataset-double-chart
+            :source="RESIDUAL_SOURCE"
             :fields="profileFields"
             type="line"
             @change:searches="changeSearches"
@@ -107,7 +113,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <residual-double-chart
+          <dataset-double-chart
+            :source="RESIDUAL_SOURCE"
             :fields="[ResidualStressField.H, ResidualStressField.ProfileType]"
             type="bar"
             @change:searches="changeSearches"
@@ -121,7 +128,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <residual-single-chart
+          <dataset-single-chart
+            :source="RESIDUAL_SOURCE"
             :field="ResidualStressField.Steel"
             :show-reset="false"
             flat
@@ -138,7 +146,11 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <residual-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
+          <dataset-parallel-chart
+            :source="RESIDUAL_SOURCE"
+            :fields="parallelFields"
+            @change:searches="changeSearches"
+          />
         </chart-cell>
       </div>
     </template>
