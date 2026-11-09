@@ -108,6 +108,62 @@ describe('intake: classifying a drop', () => {
     expect(plan.matched.map((match) => match.kind.key)).toEqual(['moment_strong', 'moment_weak'])
   })
 
+  // #282: a folder drop that lost its folder names (files picked one by one, or
+  // a folder dragged out of a zip on Windows) left both moment files pending
+  // and every card said the strong axis was missing.
+  const MOMENT = 'Chord Rotation [rads],Moment [kN-mm]\n0,0\n'
+  const AXIAL = 'Chord Rotation [rads],Axial Shortening [mm]\n0,0\n'
+
+  it('places the columns sample with no folder names: moment files go to the strong axis', async () => {
+    const primary = 'id,investigator,area,grade\nC1,X,10,S355\nC2,Y,12,S355\n'
+    const plan = await classifyIntake(
+      [
+        file('steel_columns.csv', primary),
+        file('C1.csv', AXIAL),
+        file('C2.csv', AXIAL),
+        file('C1.csv', MOMENT),
+        file('C2.csv', MOMENT)
+      ],
+      { ...options('columns'), primaryName: 'steel_columns.csv' }
+    )
+    expect(plan.pending).toEqual([])
+    expect(plan.matched.map((match) => [match.id, match.kind.key, !!match.assumed])).toEqual([
+      ['C1', 'axial_shortening', false],
+      ['C2', 'axial_shortening', false],
+      ['C1', 'moment_strong', true],
+      ['C2', 'moment_strong', true]
+    ])
+  })
+
+  it('does not guess when two files compete for the same experiment', async () => {
+    const plan = await classifyIntake([file('a/C1.csv', MOMENT), file('b/c1.csv', MOMENT)], {
+      ...options('columns'),
+      ids: ['C1']
+    })
+    expect(plan.matched).toEqual([])
+    expect(plan.pending.map((entry) => entry.reason)).toEqual(['ambiguous', 'ambiguous'])
+  })
+
+  it('does not guess when no candidate type is required', async () => {
+    const plan = await classifyIntake([file('C1.csv', MOMENT)], {
+      ...options('connections'),
+      ids: ['C1']
+    })
+    expect(
+      plan.pending.map((entry) => [entry.reason, entry.kinds.map((kind) => kind.key)])
+    ).toEqual([['ambiguous', ['beam', 'beam_west']]])
+  })
+
+  it('keeps every candidate type on a guessed file that matches no experiment', async () => {
+    const plan = await classifyIntake([file('C9.csv', MOMENT)], {
+      ...options('columns'),
+      ids: ['C1']
+    })
+    expect(
+      plan.pending.map((entry) => [entry.reason, entry.kinds.map((kind) => kind.key)])
+    ).toEqual([['orphan', ['moment_strong', 'moment_weak']]])
+  })
+
   it('falls back to the headers for loose files, and reports what it cannot place', async () => {
     const plan = await classifyIntake(
       [

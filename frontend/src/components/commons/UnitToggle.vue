@@ -4,12 +4,13 @@
  * from `TitleRow.vue` so the tool-page headers can place it in their actions
  * slot.
  */
-import SimpleToggle from '@/components/commons/SimpleToggle.vue'
+import ToolSegmented from '@/components/commons/tools/ToolSegmented.vue'
 import { useUnitStore } from '@/stores/unit'
-import { unitItems, type UnitSystem } from '@/utils/unit'
+import { unitItems as buildUnitItems, type UnitSystem } from '@/utils/unit'
 import { computed } from 'vue'
 
 const unitStore = useUnitStore()
+const unitItems = computed(() => buildUnitItems())
 
 const unitSystem = computed<UnitSystem>({
   get: () => unitStore.unitSystem,
@@ -18,5 +19,5 @@ const unitSystem = computed<UnitSystem>({
 </script>
 
 <template>
-  <simple-toggle v-model="unitSystem" :items="unitItems" />
+  <tool-segmented v-model="unitSystem" :items="unitItems" />
 </template>

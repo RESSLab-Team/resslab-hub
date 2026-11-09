@@ -6,8 +6,8 @@ import ProgressLine from '@/components/commons/ProgressLine.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useContributionStore, type CardIssue } from '@/stores/contribution'
 import { useDictionaryStore } from '@/stores/dictionary'
-import { CONTRIBUTION_DATABASES, fieldLabel } from '@/utils/contribution'
-import { DATABASES, type DatabaseId } from '@/utils/navigation'
+import { CONTRIBUTION_DATABASES } from '@/utils/contribution'
+import { databases, type DatabaseId } from '@/utils/navigation'
 import {
   mdiAlertOutline,
   mdiArrowRight,
@@ -32,6 +32,8 @@ const props = defineProps<{ prNumber?: string }>()
 const { t } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const store = useContributionStore()
+// Computed, so the names follow a language switch.
+const databaseList = computed(() => databases())
 const dictionary = useDictionaryStore()
 const auth = useAuthStore()
 
@@ -49,7 +51,7 @@ const atRisk = computed(() => (store.hasAnyId ? store.experimentCount : 0))
 
 /** Name of the picked database, echoed next to the section title. */
 const selectedName = computed(
-  () => DATABASES.find((entry) => entry.id === store.database)?.name ?? ''
+  () => databaseList.value.find((entry) => entry.id === store.database)?.name ?? ''
 )
 
 // The two routes share this component and `<router-view>` has no key, so the
@@ -169,13 +171,6 @@ function revealIssue(uid: number, issue: CardIssue): void {
   cards.value?.revealIssue(uid, issue)
 }
 
-/** What a problem is about, the way the card labels it: the field, or the file kind. */
-function issueSubject(issue: CardIssue): string {
-  if (issue.column) return fieldLabel(store.database!, issue.column)
-  if (issue.kindKey) return t(`contribute.timeseries.kind.${issue.kindKey}`)
-  return ''
-}
-
 // --- Submission dialog ----------------------------------------------------
 
 const dialogOpen = ref(false)
@@ -260,7 +255,7 @@ async function confirmSubmit(): Promise<void> {
           </div>
           <div class="db-grid">
             <button
-              v-for="entry in DATABASES"
+              v-for="entry in databaseList"
               :key="entry.id"
               class="db"
               :class="{ active: store.database === entry.id, pending: pending === entry.id }"
@@ -290,13 +285,7 @@ async function confirmSubmit(): Promise<void> {
         <progress-line
           v-if="store.loadStatus === 'loading'"
           :active="true"
-          :label="
-            store.loadProgress
-              ? $t('contribute.edit.loading_files', store.loadProgress)
-              : $t('contribute.edit.loading', { number: prNumber })
-          "
-          :done="store.loadProgress?.done"
-          :total="store.loadProgress?.total"
+          :label="$t('contribute.edit.loading', { number: prNumber })"
         />
         <div v-else-if="store.loadStatus === 'error'" class="load-error">
           <p class="load-error-text">
@@ -325,7 +314,12 @@ async function confirmSubmit(): Promise<void> {
               {{ $t('contribute.edit.skipped_files', { count: store.skippedFiles.length }) }}
             </span>
           </p>
-          <a class="btn btn-secondary btn-sm" :href="store.editTarget!.prUrl" target="_blank">
+          <a
+            class="btn btn-secondary btn-sm"
+            :href="store.editTarget!.prUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <v-icon :icon="mdiOpenInNew" size="14" />{{ $t('contribute.submitted.view_pr') }}
           </a>
         </div>
@@ -381,7 +375,12 @@ async function confirmSubmit(): Promise<void> {
             }}
           </span>
           <div class="bar-actions">
-            <a class="btn btn-secondary btn-sm" :href="store.pullRequestUrl" target="_blank">
+            <a
+              class="btn btn-secondary btn-sm"
+              :href="store.pullRequestUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <v-icon :icon="mdiOpenInNew" size="14" />{{ $t('contribute.submitted.view_pr') }}
             </a>
             <button class="btn btn-primary btn-sm" type="button" @click="startNew()">
@@ -390,7 +389,12 @@ async function confirmSubmit(): Promise<void> {
           </div>
           <p v-if="store.submitKind === 'created'" class="submitted-howto">
             {{ $t('contribute.submitted.how_to_update') }}
-            <a v-if="store.csvOnGitHubUrl" :href="store.csvOnGitHubUrl" target="_blank">
+            <a
+              v-if="store.csvOnGitHubUrl"
+              :href="store.csvOnGitHubUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {{ $t('contribute.submitted.edit_on_github') }}
             </a>
           </p>
@@ -503,8 +507,14 @@ async function confirmSubmit(): Promise<void> {
                 >
                   <v-icon :icon="mdiAlertOutline" size="14" />
                   <span class="problem-msg">
-                    <template v-if="issueSubject(entry.issues[0])"
-                      >{{ issueSubject(entry.issues[0]) }}:
+                    <!-- What the problem is about, the way the card shows it: the CSV
+                         column, or the file kind. -->
+                    <template v-if="entry.issues[0].column"
+                      ><code class="col-name">{{ entry.issues[0].column }}</code
+                      >:
+                    </template>
+                    <template v-else-if="entry.issues[0].kindKey"
+                      >{{ $t(`contribute.timeseries.kind.${entry.issues[0].kindKey}`) }}:
                     </template>
                     {{ entry.issues[0].message }}
                   </span>

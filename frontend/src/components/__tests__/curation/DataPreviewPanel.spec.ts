@@ -1,4 +1,5 @@
 import type { CurationFile } from '@/backend'
+import { SUBMITTED_COLOR } from '@/components/curation/curves'
 import DataPreviewPanel from '@/components/curation/DataPreviewPanel.vue'
 import en from '@/locales/en.json'
 import { flushPromises, mount } from '@vue/test-utils'
@@ -155,5 +156,40 @@ describe('DataPreviewPanel cohort colours', () => {
     expect(colors[0]).not.toBe(colors[1])
     expect(colors).not.toContain('#e30713')
     expect(colors).not.toContain('#212121')
+  })
+})
+
+describe('DataPreviewPanel submitted vs existing (#268)', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    fetchCurve.mockClear()
+  })
+
+  async function withOverlay() {
+    const wrapper = await mountPanel()
+    const select = wrapper.findComponent({ name: 'ToolSelect' })
+    await select.vm.$emit('update:modelValue', 'MAT-1')
+    await flushPromises()
+    return wrapper
+  }
+
+  it('draws the submission in the submitted colour, thicker than the existing curves', async () => {
+    const wrapper = await withOverlay()
+    const all = series(wrapper)
+    const submitted = all.find((serie) => serie.name === 'MAT-NEW')
+    const existing = all.find((serie) => serie.name === 'MAT-1')
+    expect(submitted?.lineStyle?.color).toBe(SUBMITTED_COLOR)
+    expect(existing).toBeDefined()
+    expect(Number(existing?.lineStyle?.width)).toBeLessThan(Number(submitted?.lineStyle?.width))
+  })
+
+  it('names the two in a legend, existing only once something is compared', async () => {
+    const plain = await mountPanel()
+    const legend = plain.find('.data-legend')
+    expect(legend.text()).toContain('Submitted')
+    expect(legend.text()).not.toContain('Existing (compared)')
+
+    const compared = await withOverlay()
+    expect(compared.find('.data-legend').text()).toContain('Existing (compared)')
   })
 })

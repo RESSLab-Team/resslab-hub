@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import type { CurationExperiment } from '@/backend'
+import DataLegend from '@/components/curation/DataLegend.vue'
 import {
   displaySymbol,
   displayUnit,
   useDictionaryStore,
   type DictColumn
 } from '@/stores/dictionary'
-import { fieldLabel } from '@/utils/contribution'
+import TextSubscript from '@/components/commons/TextSubscript.vue'
+import { fieldDisplay } from '@/utils/contribution'
 import { isMissing } from '@/utils/curation'
 import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
 import type { DatabaseId } from '@/utils/navigation'
@@ -48,10 +50,13 @@ const rows = computed<FieldRow[]>(() =>
     const dict = dictionary.columnFor(props.database, column)
     const raw = props.experiment.cells[column] ?? ''
     const missing = isMissing(raw)
+    const symbol = dict ? displaySymbol(dict) : undefined
+    const label = fieldDisplay(props.database, column, symbol)
     return {
       column,
-      label: fieldLabel(props.database, column),
-      symbol: dict ? displaySymbol(dict) : undefined,
+      label,
+      // Without a translation the label is the symbol already: don't show it twice.
+      symbol: symbol === label ? undefined : symbol,
       unit: dict ? displayUnit(dict) : undefined,
       description: dict?.description,
       value: raw.trim(),
@@ -61,6 +66,9 @@ const rows = computed<FieldRow[]>(() =>
     }
   })
 )
+
+/** The legend only names the pair when there is an existing range to compare. */
+const hasRanges = computed(() => rows.value.some((row) => !!row.range))
 
 /** A column the dictionary does not describe still needs a category. */
 function dictColumn(name: string): DictColumn {
@@ -121,6 +129,14 @@ defineExpose({ flash })
 <template>
   <section>
     <p class="sech">{{ $t('curation.metadata.title') }}</p>
+    <data-legend
+      v-if="hasRanges"
+      class="legend"
+      :items="[
+        { kind: 'submitted-value', label: $t('curation.legend.submitted_value') },
+        { kind: 'existing-range', label: $t('curation.legend.existing_range') }
+      ]"
+    />
     <div v-for="group in groups" :key="group.id" class="fgroup">
       <button
         class="fgroup-head"
@@ -142,10 +158,9 @@ defineExpose({ flash })
           :title="row.description"
         >
           <span class="pk">
-            {{ row.label }}
-            <!-- Dictionary symbols carry <sub>/<sup> markup. -->
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <span v-if="row.symbol" class="symbol" v-html="row.symbol"></span>
+            <!-- Dictionary symbols carry <sub>/<sup> markup (#328). -->
+            <text-subscript :text="row.label" />
+            <span v-if="row.symbol" class="symbol"><text-subscript :text="row.symbol" /></span>
           </span>
           <span class="leader"></span>
           <span class="pv">
@@ -153,9 +168,9 @@ defineExpose({ flash })
               {{ $t('curation.metadata.missing') }}
             </span>
             <span v-else-if="row.missing" class="nr">NR</span>
-            <template v-else>
+            <span v-else :class="{ submitted: !!row.range }">
               {{ row.value }}<span v-if="row.unit" class="u">{{ row.unit }}</span>
-            </template>
+            </span>
             <span v-if="row.range" class="range">
               {{
                 $t('curation.metadata.range_hint', {
@@ -291,13 +306,24 @@ defineExpose({ flash })
   color: var(--fg-subtle);
   font-weight: 400;
 }
+/* Submitted vs existing (#268): the value under review gets the red rule, the
+   range already in the database the faded grey one, so the pair reads apart. */
+.submitted {
+  border-left: 2px solid var(--data-submitted);
+  padding-left: 6px;
+}
 .range {
   display: block;
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 400;
-  color: var(--fg-subtle);
+  color: var(--data-existing);
+  border-left: 2px solid var(--data-existing);
+  padding-left: 6px;
   margin-top: 2px;
+}
+.legend {
+  margin: -6px 0 12px;
 }
 .flash {
   animation: field-flash 1.6s ease-out;

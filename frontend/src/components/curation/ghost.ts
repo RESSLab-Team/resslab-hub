@@ -49,14 +49,17 @@ export interface GhostConfig {
 function config(
   key: string,
   fetchAll: () => Promise<unknown[]>,
-  fields: ParallelField<string>[],
+  /** A function when the axes carry translated labels (hss): read on each access. */
+  fields: ParallelField<string>[] | (() => ParallelField<string>[]),
   cohortCandidates: string[],
   cohortDefaults: string[]
 ): GhostConfig {
   return {
     key,
     fetchAll: fetchAll as () => Promise<{ id: string }[]>,
-    fields,
+    get fields() {
+      return typeof fields === 'function' ? fields() : fields
+    },
     cohortCandidates,
     cohortDefaults
   }
@@ -105,7 +108,7 @@ export const GHOST_CONFIGS: Partial<Record<DatabaseId, GhostConfig>> = {
   hss: config(
     hss.HSS_KEY,
     hss.fetchHsss,
-    hss.PARALLEL_FIELDS,
+    hss.parallelFields,
     [
       HSSColumnField.TestConfiguration,
       HSSColumnField.TubeSection,

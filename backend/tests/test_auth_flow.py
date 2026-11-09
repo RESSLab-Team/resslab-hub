@@ -6,6 +6,7 @@ everything here goes through the ``client`` fixture rather than calling the
 endpoint functions.
 """
 
+import json
 import logging
 
 import aiosmtplib
@@ -961,6 +962,47 @@ async def test_a_contributor_is_past_the_gate(client, sign_in):
     # is no longer refused by the role gate.
     for response in (await _submit(client), await _update(client)):
         assert response.status_code not in (401, 403)
+
+
+async def test_a_full_review_queue_refuses_new_submissions(
+    client, sign_in, monkeypatch
+):
+    """A backstop on open submissions, whatever the rate limit (#264 H4)."""
+    from resslab_hub.routers import contributions as contributions_router
+
+    pulls = [{"head_ref": f"contrib/braces/b{i}-x"} for i in range(3)]
+
+    async def fake_open_pulls(_client):
+        return pulls
+
+    monkeypatch.setattr(contributions_router, "configured", lambda: True)
+    monkeypatch.setattr(contributions_router, "DataRepoClient", lambda: None)
+    monkeypatch.setattr(contributions_router, "open_pulls", fake_open_pulls)
+    monkeypatch.setattr(contributions_router.settings, "max_open_contributions", 3)
+    sign_in(email="ada@epfl.ch", role="contributor")
+
+    response = await _submit(client)
+    assert response.status_code == 503
+    assert "queue is full" in response.json()["detail"]
+    # An update opens no pull request: it is not refused for that.
+    assert (await _update(client)).status_code != 503
+
+    # Verification pull requests are the curators' own, they do not count.
+    pulls[:] = [{"head_ref": f"verify/braces/v{i}-x"} for i in range(3)]
+    # Past the backstop: the junk archive is what fails now.
+    assert (await _submit(client)).status_code == 400
+
+
+async def test_too_many_dismissed_warnings_are_refused(client, sign_in):
+    sign_in(email="ada@epfl.ch", role="contributor")
+    response = await client.post(
+        "/contributions",
+        params={"type": "all-braces"},
+        data={"dismissed_warnings": json.dumps(["w"] * 101)},
+        files={"file": ("batch.tar.gz", b"x", "application/gzip")},
+    )
+    assert response.status_code == 400
+    assert "Too many" in response.json()["detail"]
 
 
 # --- /validate has two kinds of caller ------------------------------------

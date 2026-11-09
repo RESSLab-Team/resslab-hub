@@ -18,6 +18,7 @@
 import { useDataset } from '@/composables/useDataset'
 import { displaySymbol, displayUnit, useDictionaryStore } from '@/stores/dictionary'
 import { FALLBACK_GROUP, groupBy, groupFor, type FieldGroupId } from '@/utils/fieldGroups'
+import { liveCounts, staticCounts, type LiveCounts } from '@/utils/filterCounts'
 import {
   profileColumns,
   visibleFilters,
@@ -28,11 +29,13 @@ import type { DatabaseId } from '@/utils/navigation'
 import type { Row } from '@/utils/queryEngine'
 import {
   computed,
+  provide,
   ref,
   shallowReactive,
   shallowRef,
   toValue,
   type ComputedRef,
+  type InjectionKey,
   type MaybeRefOrGetter,
   type Ref
 } from 'vue'
@@ -65,6 +68,16 @@ export interface AutoFilterOptions<M extends { id: string }> {
   /** i18n key prefix for curated field labels, e.g. `'brace.'`. */
   i18nPrefix: string
 }
+
+/**
+ * The counts of one filter over the rows that pass `othersQuery`: the committed
+ * query without the filter's own clause, so a selection can still be widened.
+ */
+export type CountsFor = (filter: FilterDescriptor, othersQuery: string | undefined) => LiveCounts
+
+// Provided by the dashboard, read by each `FilterInput`, in the rail or in a
+// table header menu. An input outside a dashboard keeps the static counts.
+export const filterCountsKey: InjectionKey<CountsFor> = Symbol('filterCounts')
 
 // Profiles outlive the components that request them: the underlying datasets are
 // cached for the life of the page, so a second visit to a dashboard reuses this.
@@ -152,6 +165,19 @@ export function useAutoFilters<M extends { id: string }>(
         loading.value = false
       })
   }
+
+  // One column over rows already filtered and memoised, so a filter change costs
+  // one small tally per open row, not one more profile. Inactive rows all ask for
+  // the same query: only an active filter adds a pass over the rows.
+  const countsFor: CountsFor = (filter, othersQuery) => {
+    if (!othersQuery) return staticCounts(filter)
+    perfMark('filters:counts:start', { key: filter.key })
+    const counts = liveCounts(dataset.filteredRowsSync(othersQuery) as Row[], filter)
+    perfMark('filters:counts:end', { key: filter.key })
+    perfMeasure('filters:counts', 'filters:counts:start', 'filters:counts:end')
+    return counts
+  }
+  provide(filterCountsKey, countsFor)
 
   const filters = computed<LabeledFilter[]>(() =>
     visibleFilters(descriptors.value).map((descriptor) => ({

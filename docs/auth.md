@@ -221,7 +221,7 @@ never is.
 | `SMTP_USER` / `SMTP_PASSWORD` | The service account (above, mind the quoting). |
 | `SMTP_FROM` | Sender address. The display name is fixed in the code. |
 | `ADMIN_EMAILS` | Comma-separated addresses that are always administrators. For an admin with no GitHub account, and so a fresh deployment has one without a CLI (Roles, below). |
-| `CONTRIBUTOR_DOMAINS` | Comma-separated domains that count as academic on top of the built-in list (Roles, below). |
+| `CONTRIBUTOR_DOMAINS` | Comma-separated domains that count as academic on top of the swot list ("What counts as academic", below). |
 | `SESSION_TTL_DAYS` | 30 by default. |
 | `LOGIN_CODE_TTL_MINUTES` | 10 by default. |
 | `SESSION_COOKIE_SECURE` | Derived from the `PUBLIC_BASE_URL` scheme; set it only to override. |
@@ -395,18 +395,39 @@ the data repository `main` (one approving review, checks, squash only).
 
 ### What counts as academic
 
-The check is the `pyswot` package, which carries the domain list JetBrains
-uses to hand out student licences. Free mailboxes never pass, a stoplist of
-abused domains is refused, and everything else has to be on the list, where
-a subdomain matches its institution (`cs.stanford.edu` matches Stanford).
+The list is [JetBrains swot](https://github.com/JetBrains/swot), the one
+JetBrains uses to hand out student licences (#375). We read it from the
+`pyswot` package, which carries a snapshot of swot inside the wheel. So
+there is no network call at sign-in. The swot commit of the snapshot is on
+line 2 of `pyswot/vendor/tlds.py`; `make swot-update` prints it.
 
-It is an allowlist, not a rule about endings: `example.edu` is not academic
-just because it ends in `.edu`. The list is good on universities (EPFL,
-ETHZ, Stanford, Tokyo, Imperial, Politecnico, TUM are all on it) and knows
-nothing about research institutes or industry. Empa, NIST, AISC and Arup
-are all absent.
+`roles.py` applies the same rules as swot's own code (`Swot.kt`):
 
-That is what `CONTRIBUTOR_DOMAINS` is for:
+1. **The stoplist wins.** A domain on it, or under one, is refused. That is
+   how swot leaves out alumni domains (`alumni.stanford.edu`) and listed
+   schools that people abused (`glion.ch`).
+2. **Some second-level domains are academic as a whole.** Anything under
+   `edu.cn`, `ac.za`, `edu.hk`, `k12.ny.us` and about 90 more passes.
+   Bare `.edu` and `.ac.uk` are not on that list: `example.edu` is refused
+   if nobody added it to swot.
+3. **Else the domain must be in the swot tree.** A subdomain matches its
+   school: `sti.epfl.ch` matches `epfl.ch`, `cs.stanford.edu` matches
+   Stanford.
+
+Two things we do not take, on purpose:
+
+- `pyswot.is_academic` also refuses a list of free mailboxes that swot does
+  not have. That list holds real universities (`nus.edu.sg`, `unican.es`),
+  so we do not call it. Gmail and the like are refused anyway: they are on
+  no list.
+- swot's `abused.txt` (real schools where students cheated on the licence
+  form). `Swot.kt` does not read it either. For us the risk is a pull
+  request that a curator reviews anyway, not a free licence.
+
+The list is good on universities (EPFL, ETHZ, Stanford, Tokyo, Imperial,
+Politecnico, TUM) and knows nothing about research institutes or industry.
+Empa, NIST, AISC and Arup are all absent. That is what `CONTRIBUTOR_DOMAINS`
+is for:
 
 ```env
 CONTRIBUTOR_DOMAINS=empa.ch,aisc.org
@@ -414,7 +435,33 @@ CONTRIBUTOR_DOMAINS=empa.ch,aisc.org
 
 A subdomain of a listed domain matches too, so `lab.empa.ch` passes. A bare
 top-level domain never matches, so `ch` in that setting hands the role to
-nobody.
+nobody. This setting is checked before swot, so it also wins over the
+stoplist.
+
+#### Refreshing the list
+
+pyswot re-vendors swot every week and releases a new version. To take it:
+
+```sh
+cd backend && make swot-update   # bumps pyswot in uv.lock, prints the swot commit
+```
+
+Commit `backend/uv.lock`. The new list counts once the backend is deployed,
+see "When a change shows" below.
+
+If pyswot stops being released one day, copy its `scripts/update_vendor.py`
+into `backend/data/` and commit the module it writes. The code in `roles.py`
+only needs the stoplist, the academic TLDs and a domain lookup.
+
+#### When a university is missing
+
+Three ways, from the fastest:
+
+- The person asks for access from the account page (see "Asking for
+  access" below). An admin approves, done.
+- Add the domain to `CONTRIBUTOR_DOMAINS` for a whole institution.
+- Add it to swot with a pull request (rules in its README), then
+  `make swot-update` once pyswot has a release with it.
 
 ### What the role gates
 
@@ -494,8 +541,18 @@ invitation mail fails, the page says so and the invitation stays valid.
 
 - An admin's decision: at once.
 - A GitHub permission: within the hour, or at the next sign-in.
-- A new `CONTRIBUTOR_DOMAINS` or `ADMIN_EMAILS` entry: at the person's next
-  sign-in. Sessions last 30 days, so tell them to sign out and back in.
+- A new `CONTRIBUTOR_DOMAINS` or `ADMIN_EMAILS` entry, or a new swot
+  snapshot: at the person's next sign-in, or within the hour when their
+  GitHub is linked. Sessions last 30 days, so tell them to sign out and
+  back in.
+
+## Backup
+
+The `auth_*` tables are the only data that is not in the data repo. If the
+database is lost, the upload job brings back the data, not the accounts. So
+each deployment dumps these tables every night and keeps 30 days of dumps.
+What is in the dump and how to restore it:
+[backend/README.md](../backend/README.md#backup-and-restore-of-a-deployed-database).
 
 ## Later
 

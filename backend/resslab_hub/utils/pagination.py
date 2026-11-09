@@ -8,7 +8,7 @@ from fastapi import Query
 from fastapi_pagination.api import resolve_params
 from fastapi_pagination.bases import AbstractParams
 from fastapi_pagination.default import Page, Params
-from fastapi_pagination.ext.sqlalchemy import paginate_query
+from fastapi_pagination.ext.sqlalchemy import create_paginate_query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
@@ -41,7 +41,7 @@ async def paginate(
     if count_query is None:
         count_query = select(func.count()).select_from(query.subquery())
     total = await session.scalar(count_query) or 0
-    result = await session.execute(paginate_query(query, params))
+    result = await session.execute(create_paginate_query(query, params))
     items = result.unique().all()
     mapped_items = [
         {k: map_value(v) for k, v in item._mapping.items()} for item in items

@@ -5,7 +5,7 @@ import '@/assets/styles/index.css'
 import App from '@/App.vue'
 import { echartsTheme } from '@/plugins/echarts-theme'
 import { options } from '@/plugins/gtag'
-import i18n, { initialLocale } from '@/plugins/i18n'
+import i18n, { initialLocale, loadLocaleMessages } from '@/plugins/i18n'
 import vuetify from '@/plugins/vuetify'
 import router from '@/router'
 import { createPinia } from 'pinia'
@@ -29,13 +29,10 @@ app.use(VueGtag, options, router)
 app.provide('ecTheme', echartsTheme)
 
 async function bootstrap(): Promise<void> {
-  // The non-default locale loads as its own chunk, but must be registered
-  // BEFORE mount: module-scope strings resolve via i18n.global.t at import
-  // time (which is also why LanguageToggle reloads the page on switch).
-  if (initialLocale === 'fr') {
-    const fr = await import('@/locales/fr.json')
-    i18n.global.setLocaleMessage('fr', fr.default)
-  }
+  // The non-default locale loads as its own chunk. Register it before mount,
+  // so the first paint is already in the stored language.
+  await loadLocaleMessages(initialLocale)
+  document.documentElement.lang = initialLocale
   app.mount('#app')
 }
 bootstrap()

@@ -384,8 +384,6 @@
       "measured_yield_stress": "Limite d'élasticité mesurée",
       "ultimate_tensile_stress": "Résistance à la traction",
       "no_gusset_plates": "La configuration ne comprend pas de gousset",
-      "not_reported": "Non renseigné",
-      "no": "Non",
       "chart_force_displacement": "Force-déplacement",
       "axis_displacement": "Déplacement [mm]",
       "axis_force": "Force [kN]"
@@ -590,7 +588,6 @@
     "reset_filters": "Réinitialiser les filtres",
     "download": "Télécharger",
     "download_n": "Télécharger ({n}/{m})",
-    "share": "Partager",
     "share_specimen": "Partager un lien vers cette éprouvette",
     "specimen_not_found": "L'éprouvette {id} est introuvable.",
     "table_showing": "Affichage de {from}–{to} sur {total}",
@@ -603,7 +600,11 @@
     "close": "Fermer",
     "previous": "Précédent",
     "next": "Suivant",
+    "select_all": "Tout sélectionner",
+    "select_row": "Sélectionner {id}",
     "reset_all": "Tout réinitialiser",
+    "expand_all": "Tout déplier",
+    "collapse_all": "Tout replier",
     "expand_filters": "Développer les filtres",
     "collapse_filters": "Réduire les filtres",
     "close_filters": "Fermer les filtres",
@@ -642,55 +643,12 @@
     }
   },
   "table": {
-    "connection": {
-      "title": "Assemblages",
-      "tooltip": {
-        "intro": "La base de données des assemblages présente des données depuis le début des années 1970 sur les assemblages poutre-poteau sous chargement cyclique alterné et monotone. Les données principales concernent le comportement global de l'assemblage et le cisaillement décomposé de la zone nodale en fonction de la distorsion en cisaillement, le moment déduit en extrémité de poutre en fonction de la rotation de corde, lorsque ces données sont disponibles.",
-        "howToUse": "Comment l'utiliser ?",
-        "bulletFilter": "Filtrez le tableau en effectuant des sélections dans les différents graphiques autour du tableau, ou en utilisant les filtres et menus déroulants au-dessus des en-têtes du tableau.",
-        "bulletClick": "Cliquez sur une ligne pour voir les données d'un essai unique.",
-        "bulletDownload": "Téléchargez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Télécharger » ci-dessous.",
-        "bulletShare": "Partagez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Partager » ci-dessous."
-      }
-    },
-    "column": {
-      "title": "Poteaux",
-      "tooltip": {
-        "intro": "La base de données des poteaux présente des données depuis le début des années 1970 sur les poteaux sous chargement cyclique alterné et monotone. Les données principales concernent le moment déduit en fonction de la rotation de corde du poteau et le raccourcissement axial déduit du poteau en fonction de la rotation de corde.",
-        "howToUse": "Comment l'utiliser ?",
-        "bulletFilter": "Filtrez le tableau en effectuant des sélections dans les différents graphiques autour du tableau, ou en utilisant les filtres et menus déroulants au-dessus des en-têtes du tableau.",
-        "bulletClick": "Cliquez sur une ligne pour voir les données d'un essai unique.",
-        "bulletDownload": "Téléchargez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Télécharger » ci-dessous.",
-        "bulletShare": "Partagez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Partager » ci-dessous."
-      }
-    },
-    "brace": {
-      "title": "Contreventements",
-      "tooltip": {
-        "intro": "La base de données des contreventements présente des données depuis le milieu des années 1970 sur les contreventements en acier de diverses configurations. Les contreventements sont soumis à des historiques de chargement monotone, cyclique symétrique et autres. Les données principales concernent la charge axiale du contreventement en fonction du déplacement axial.",
-        "howToUse": "Comment l'utiliser ?",
-        "bulletFilter": "Filtrez le tableau en effectuant des sélections dans les différents graphiques autour du tableau, ou en utilisant les filtres et menus déroulants au-dessus des en-têtes du tableau.",
-        "bulletClick": "Cliquez sur une ligne pour voir les données d'un essai unique.",
-        "bulletDownload": "Téléchargez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Télécharger » ci-dessous.",
-        "bulletShare": "Partagez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Partager » ci-dessous."
-      }
-    },
     "hss": {
-      "title": "Poteaux HSS",
       "columns": {
         "experimentalProgram": "Programme expérimental"
-      },
-      "tooltip": {
-        "intro": "La base de données des poteaux HSS présente des données depuis le début de 1975 sur les poteaux sous chargement cyclique alterné et monotone. Les données principales concernent le moment déduit en fonction de la rotation de corde du poteau.",
-        "howToUse": "Comment l'utiliser ?",
-        "bulletFilter": "Filtrez le tableau en effectuant des sélections dans les différents graphiques autour du tableau, ou en utilisant les filtres et menus déroulants au-dessus des en-têtes du tableau.",
-        "bulletClick": "Cliquez sur une ligne pour voir les données d'un essai unique.",
-        "bulletDownload": "Téléchargez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Télécharger » ci-dessous.",
-        "bulletShare": "Partagez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Partager » ci-dessous."
       }
     },
     "ebf": {
-      "title": "Tronçons EBF",
       "columns": {
         "experimentalProgram": "Programme expérimental",
         "experimentalProgram_short": "Programme",
@@ -704,31 +662,13 @@
         "linkLength_short": "Longueur [mm]",
         "steelMaterial": "Matériau acier [MPa]",
         "steelMaterial_short": "Acier [MPa]"
-      },
-      "tooltip": {
-        "intro": "La base de données sur les tronçons des portiques à treillis excentré (EBF) présente des données depuis le début des années 1977 sur les tronçons EBF sous chargement cyclique alterné et monotone. Les données principales concernent l'angle déduit cisaillement-tronçon du tronçon EBF.",
-        "howToUse": "Comment l'utiliser ?",
-        "bulletFilter": "Filtrez le tableau en effectuant des sélections dans les différents graphiques autour du tableau, ou en utilisant les filtres et menus déroulants au-dessus des en-têtes du tableau.",
-        "bulletClick": "Cliquez sur une ligne pour voir les données d'un essai unique.",
-        "bulletDownload": "Téléchargez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Télécharger » ci-dessous.",
-        "bulletShare": "Partagez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Partager » ci-dessous."
       }
     },
     "ductile_fracture": {
-      "title": "Rupture ductile",
       "columns": {
         "profileType": "Type de profilé",
         "profileType_short": "Profilé"
       }
-    },
-    "material": {
-      "title": "Éprouvettes cycliques"
-    },
-    "residual": {
-      "title": "Contraintes résiduelles"
-    },
-    "tensile_coupon": {
-      "title": "Éprouvettes de traction"
     }
   },
   "map": {
@@ -796,9 +736,6 @@
     "continuousLink": "Tronçon continu",
     "connectionConfiguration1": "Configuration d'assemblage 1",
     "connectionConfiguration5": "Configuration d'assemblage 5",
-    "short": "Court",
-    "intermediate": "Intermédiaire",
-    "long": "Long",
     "hotRolled": "Laminé à chaud",
     "builtUp": "Reconstitué soudé",
     "threePointBending": "Flexion 3 points",
@@ -833,7 +770,8 @@
     "cdf_x_axis": "Diamètre des cupules [mm]",
     "dimple_load_error": "Échec du chargement des données de cupules ({error}).",
     "legend_test_data": "Données d'essai",
-    "legend_simulation": "Simulation"
+    "legend_simulation": "Simulation",
+    "zoom_hotspot": "Zoomer sur {location}"
   },
   "tools": {
     "common": {
@@ -1121,6 +1059,7 @@
       "required": "Obligatoire",
       "example": "Exemple",
       "dictionary_hint": "{count} colonnes, issues du dictionnaire de données chargé avec les données. Les colonnes obligatoires ne peuvent pas être NA.",
+      "dictionary_github": "Ouvrir le dictionnaire CSV sur GitHub",
       "search": "Filtrer les colonnes…",
       "no_match": "Aucune colonne ne correspond.",
       "layout_title": "Organisation attendue",
@@ -1132,7 +1071,7 @@
       "title": "Expériences",
       "add_experiment": "Ajouter une expérience manuellement",
       "template": "Modèle CSV",
-      "dictionary": "Dictionnaire de données",
+      "dictionary": "Dictionnaire CSV",
       "guide": "Guide de contribution",
       "untitled": "Expérience {n}",
       "issue_count": "{count} problème(s)",
@@ -1318,7 +1257,7 @@
       "edit_identity": "Modifier",
       "identity_incomplete": "Ce compte n'a pas d'adresse email confirmée. Connectez-vous avec votre adresse email pour soumettre.",
       "link_github_hint": "Liez GitHub sur votre page compte pour être mentionné sur la pull request et suivre sa relecture.",
-      "note": "Ces informations sont enregistrées avec la soumission afin que les curateurs puissent vous créditer et vous contacter. Elles apparaissent publiquement dans le dépôt de données.",
+      "note": "Votre nom et votre adresse e-mail sont enregistrés avec la soumission afin que les curateurs puissent vous créditer et vous contacter. Ils apparaissent dans une pull request publique sur GitHub et dans l'historique du dépôt de données.",
       "cancel": "Annuler",
       "confirm": "Soumettre"
     },
@@ -1332,12 +1271,14 @@
       "reading": "Lecture de {count} fichier(s)…",
       "loaded": "{added} essai(s) ajouté(s), {updated} mis à jour.",
       "attached": "{count} fichier(s) attaché(s).",
+      "assumed": "{count} d’entre eux n’avaient pas de dossier pour dire leur type, voir le rapport.",
       "to_resolve": "{count} fichier(s) demandent votre attention, voir dessous.",
       "nothing": "Rien de reconnu dans ce qui a été déposé.",
       "report_title": "Dernier dépôt",
       "dismiss": "Fermer",
       "line_primary": "{name} : {added} essai(s) ajouté(s), {updated} mis à jour.",
       "line_attached": "{kind} : {count} fichier(s) attaché(s).",
+      "line_assumed": "{kind} : {count} fichier(s) sans dossier pour dire leur type, avec les mêmes en-têtes que {other}, ont été pris comme {kind}. Si l’un d’eux est {other}, retirez-le de la fiche et attachez-le là.",
       "line_missing": "{kind} : {count} essai(s) encore sans fichier.",
       "line_candidates": "Ressemblaient aussi à un CSV d’essais, laissés de côté : {files}",
       "line_skipped": "Pas des CSV, ignorés : {files}",
@@ -1365,7 +1306,6 @@
       "description": "Changez les expériences ou les fichiers d'une soumission ouverte. Soumettre à nouveau met à jour la même demande de relecture.",
       "banner": "Vous modifiez la soumission n°{number}.",
       "loading": "Chargement de la soumission n°{number}…",
-      "loading_files": "Chargement de {done} fichiers sur {total}…",
       "not_open": "Cette soumission n'existe pas, ou elle n'est plus ouverte.",
       "unknown_database": "Cette soumission concerne une base que l'éditeur ne connaît pas.",
       "load_failed": "La soumission n'a pas pu être chargée. Vérifiez votre connexion et réessayez.",
@@ -1376,6 +1316,9 @@
       "draft_notice": "Soumettre à nouveau ajoute un commit à la demande de relecture ouverte sur le dépôt de données RESSLab. Les vérifications sont relancées et la relecture continue.",
       "conflict": "Cette soumission a changé sur GitHub après son ouverture. Rechargez la page pour obtenir la dernière version, puis refaites vos modifications.",
       "not_mine": "Cette soumission a été faite depuis un autre compte. Seule la personne qui l'a soumise peut la modifier ici."
+    },
+    "legend": {
+      "submitted": "Vos courbes soumises, en rouge ici et sur la page de revue"
     }
   },
   "curation": {
@@ -1462,10 +1405,10 @@
       "brushed": "{count} sélectionnées",
       "chart_title": "Coordonnées parallèles · Nouveau spécimen vs cohorte",
       "ghosts": "{count} fantômes + {added} nouveau(x)",
-      "legend_new": "Nouveau spécimen · {id}",
+      "legend_new": "Soumis · {id}",
       "legend_brushed": "{count} sélectionnées",
-      "legend_ghost": "{count} similaires (fantômes)",
-      "hint": "Chaque ligne grise est une expérience existante sur tous les axes ; la ligne rouge est cette soumission.",
+      "legend_ghost": "{count} existantes (similaires)",
+      "hint": "Chaque ligne estompée est une expérience déjà présente dans la base, sur tous les axes ; la ligne rouge est cette soumission.",
       "brush_hint": "Glissez le long d'un axe pour sélectionner un sous-ensemble : le décompte de la cohorte et les courbes de comparaison ci-dessous suivent la sélection. « Zoomer sur la sélection » redessine les axes dessus.",
       "criteria_hint": "Critères définissant une expérience comparable",
       "not_reported": "non renseigné",
@@ -1537,6 +1480,12 @@
       "only": "Marquer seulement {id} comme vérifiée",
       "nothing_left": "Chaque expérience ici est déjà vérifiée ou dans une pull request de vérification.",
       "note": "Ouvre une pull request qui ne change que la colonne de statut. Fusionnez-la sur GitHub (squash). Le site affiche le changement après le prochain chargement des données."
+    },
+    "legend": {
+      "submitted": "Soumis",
+      "submitted_value": "Valeur soumise",
+      "existing_compared": "Existant (comparé)",
+      "existing_range": "Plage déjà présente dans la base"
     }
   },
   "auth": {

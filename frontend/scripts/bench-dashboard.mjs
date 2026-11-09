@@ -10,9 +10,11 @@
  *
  *   A. load        first paint, the fetch, the filter-rail profile, the charts,
  *                  the table, and when the main thread goes quiet
- *   B. filter      one categorical option ticked, then unticked
+ *   B. filter      one categorical option ticked, then a second one
  *   C. brush       one drag across a distribution brush, frame by frame
  *   D. sort        one column header clicked, asc then desc then off
+ *   E. counts      the untick, then what the rail's live counts cost, with a few
+ *                  rows open and with every row open
  *
  * It measures, it does not judge. Every number comes from the browser itself:
  * the paint entries, Event Timing, the long-task observer, and the `rh:` marks
@@ -362,13 +364,9 @@ async function openWidestCategorical(page, probe = 16) {
       head.click()
       await new Promise((resolve) => setTimeout(resolve, 60))
       const all = [...row.querySelectorAll('.afr-option')]
-      // Skip values holding a comma: it is the query grammar's set separator,
-      // so such a value round-trips as two and the option never reads back as
-      // selected (see the note in docs/dashboard-architecture.md). Measuring a
-      // toggle that cannot be untoggled would measure the wrong thing.
-      // Skip values holding a comma: it is the query grammar's set separator,
-      // so such a value round-trips as two. Two plain values are needed, one
-      // per measured click.
+      // Plain values only. A value with a comma works, but this keeps the same
+      // pick as older reports, so they stay comparable. Two values are needed,
+      // one per measured click.
       const plain = all
         .map((option, i) => [i, option.querySelector('.afr-option-value')?.textContent ?? ''])
         .filter(([, text]) => text && !text.includes(','))
@@ -417,10 +415,9 @@ async function scenarioFilter(page) {
     )
   }
 
-  // Two different values, not a tick then an untick: clicking the same option
-  // again does not clear it today (the box never reads back as checked, see the
-  // note in docs/dashboard-architecture.md), so the second click would measure
-  // a no-op. Two values still exercise the query memo on a warm dataset.
+  // Two different values, not a tick then an untick: the brush and sort scenarios
+  // run on the filter this leaves, so it stays the same as in older reports. The
+  // untick is measured last, in scenarioCounts.
   const clicks = []
   for (const [index, pass] of ['first value', 'second value'].entries()) {
     const target = targets[index]
@@ -448,12 +445,78 @@ async function scenarioFilter(page) {
   // scenario that follows would drag the scrim instead of the histogram.
   await closeRail(page)
   return {
+    targets,
     field: opened.field,
     values,
     options: opened.options,
     first: clicks[0],
     second: clicks[1]
   }
+}
+
+/** One click on a rail option, with what the live counts cost in it. */
+async function measureRailClick(page, target) {
+  await target.evaluate((node) => node.scrollIntoView({ block: 'center' }))
+  await page.waitForTimeout(100)
+  await resetProbes(page)
+  const before = await page.evaluate(() => performance.now())
+  await target.click({ timeout: 10_000 })
+  await waitForQuiet(page, QUIET_MS, 60_000, SETTLE_MS)
+  const data = await collect(page, 'page=')
+  const commit = firstMark(data.marks, 'query:commit')
+  const renders = marksNamed(data.marks, 'chart:render')
+  const table = firstMark(data.marks, 'table:items')
+  const counts = marksNamed(data.marks, 'filters:counts').filter((m) => m.type === 'measure')
+  const from = commit?.start ?? before
+  return {
+    chartsSettled: renders.length ? renders[renders.length - 1].start - from : null,
+    tableUpdated: table ? table.start - from : null,
+    countsCalls: counts.length,
+    countsTotal: counts.reduce((sum, m) => sum + m.duration, 0),
+    countsLongest: max(counts.map((m) => m.duration)),
+    ...blocking(data.longtasks, from)
+  }
+}
+
+/** Open closed rows, a few at a time so the page can breathe, up to `limit`. */
+const openRows = (page, limit) =>
+  page.evaluate(async (count) => {
+    const closed = [...document.querySelectorAll('.filters-overlay .afr-row')].filter(
+      (row) => !row.querySelector('.afr-body')
+    )
+    for (const [i, row] of closed.slice(0, count).entries()) {
+      row.querySelector('.afr-head')?.click()
+      if (i % 10 === 9) await new Promise((resolve) => setTimeout(resolve, 50))
+    }
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    return document.querySelectorAll('.filters-overlay .afr-body').length
+  }, limit)
+
+/**
+ * The untick, then the live counts. A row counts only when it is open and another
+ * filter is active, so the rows of the filter scenario never pay for it.
+ *
+ * It runs last because it leaves every row open, and the untick changes the filter
+ * the brush and sort scenarios run on.
+ */
+async function scenarioCounts(page, targets) {
+  if (!targets) return { skipped: 'no categorical filter option in the rail' }
+  await openRail(page)
+  const isOn = (target) => target.evaluate((node) => node.classList.contains('on'))
+
+  const untick = await measureRailClick(page, targets[1])
+  const cleared = !(await isOn(targets[1]))
+  // A checkbox list keeps the first value too, a text shortcut has replaced it.
+  if (await isOn(targets[0])) await measureRailClick(page, targets[0])
+
+  const fewRows = await openRows(page, 4)
+  const few = await measureRailClick(page, targets[0])
+  await measureRailClick(page, targets[0])
+
+  const allRows = await openRows(page, Infinity)
+  await waitForQuiet(page, QUIET_MS, 120_000, SETTLE_MS)
+  const all = await measureRailClick(page, targets[1])
+  return { untick, cleared, fewRows, few, allRows, all }
 }
 
 async function scenarioBrush(page) {
@@ -542,12 +605,14 @@ async function runOnce(browser, args) {
   try {
     const load = await scenarioLoad(page, args)
     await page.waitForTimeout(SETTLE_MS)
-    const filter = await scenarioFilter(page)
+    const { targets, ...filter } = await scenarioFilter(page)
     await page.waitForTimeout(SETTLE_MS)
     const brush = await scenarioBrush(page)
     await page.waitForTimeout(SETTLE_MS)
     const sort = await scenarioSort(page)
-    return { load, filter, brush, sort }
+    await page.waitForTimeout(SETTLE_MS)
+    const counts = await scenarioCounts(page, targets)
+    return { load, filter, brush, sort, counts }
   } finally {
     await context.close()
   }
@@ -579,7 +644,14 @@ const ROWS = [
   ['Sort', 'Input delay', (r) => r.sort.clicks?.[0]?.inputDelay],
   ['Sort', 'Table sorted (asc)', (r) => r.sort.clicks?.[0]?.tableUpdated],
   ['Sort', 'Table sorted (desc)', (r) => r.sort.clicks?.[1]?.tableUpdated],
-  ['Sort', 'Longest task', (r) => r.sort.clicks?.[0]?.longest]
+  ['Sort', 'Longest task', (r) => r.sort.clicks?.[0]?.longest],
+  ['Counts', 'Untick: table updated', (r) => r.counts?.untick?.tableUpdated],
+  ['Counts', 'Few rows open: all counts', (r) => r.counts?.few?.countsTotal],
+  ['Counts', 'Few rows open: charts settled', (r) => r.counts?.few?.chartsSettled],
+  ['Counts', 'All rows open: all counts', (r) => r.counts?.all?.countsTotal],
+  ['Counts', 'All rows open: slowest count', (r) => r.counts?.all?.countsLongest],
+  ['Counts', 'All rows open: charts settled', (r) => r.counts?.all?.chartsSettled],
+  ['Counts', 'All rows open: longest task', (r) => r.counts?.all?.longest]
 ]
 
 const fmt = (value) =>
@@ -664,7 +736,15 @@ async function main() {
     )
   }
   if (runs[0].sort.column) console.log(`Column sorted: \`${runs[0].sort.column}\`.`)
-  for (const scenario of ['filter', 'brush', 'sort']) {
+  if (runs[0].counts.fewRows) {
+    console.log(
+      `Counts: ${runs[0].counts.fewRows} then ${runs[0].counts.allRows} rows open. ` +
+        `Untick cleared the option in ${runs.filter((r) => r.counts.cleared).length}/${
+          runs.length
+        } runs.`
+    )
+  }
+  for (const scenario of ['filter', 'brush', 'sort', 'counts']) {
     if (runs[0][scenario].skipped) console.log(`${scenario} skipped: ${runs[0][scenario].skipped}`)
   }
   console.log('')

@@ -5,8 +5,10 @@ These project the state of open contribution pull requests on the data repo
 into shapes the review interface can render. Nothing here is stored: GitHub is
 the source of truth, and every field is reconstructed from the PR on demand.
 
-The contributor's email is deliberately omitted: it is not needed to review a
-submission, and it is on the pull request for curators who do need it.
+The contributor's email is left out on purpose, also from the PR body that
+``CurationDetail.body`` and the first ``CurationComment`` carry
+(``redact_emails``): it is not needed to review a submission, and it is on the
+pull request for curators who do need it.
 """
 
 from typing import Dict, List, Optional
@@ -67,6 +69,23 @@ class CurationFile(BaseModel):
     timeseries_dir: Optional[str] = None
     #: Filename stem of a time-series file — the specimen id it belongs to.
     experiment_id: Optional[str] = None
+
+
+class CurationCurve(BaseModel):
+    """One curve file of the submission, with its text at the head commit."""
+
+    path: str
+    text: str
+
+
+class CurationCurvesResponse(BaseModel):
+    """Every curve of a submission, for the edit step (#336)."""
+
+    pr_number: int
+    #: The commit the texts were read at. The editor refuses to open when it
+    #: is not the head of the detail it holds (the branch moved in between).
+    head_sha: str
+    files: List[CurationCurve]
 
 
 class CurationComment(BaseModel):

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { HSSColumnField, type HSSColumnModel } from '@/backend'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
 import { useDataset } from '@/composables/useDataset'
@@ -40,9 +39,7 @@ const columns: Column[] = [
 ]
 
 const props = defineProps(tableProps)
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface Emits extends TableEmits<HSSColumnModel> {}
-const emit = defineEmits<Emits>()
+const emit = defineEmits<TableEmits<HSSColumnModel>>()
 
 const notificationStore = useNotificationStore()
 const { getTotal, getPage, countRowsSync, pageSync } = useDataset<HSSColumnModel>(
@@ -57,7 +54,6 @@ const {
   liveItems,
   loading,
   options,
-  search,
   searches,
   totalCount,
   totalFilteredCount
@@ -85,11 +81,9 @@ const {
 <template>
   <simple-table
     v-model:options="options"
-    v-model:search="search"
     v-model:searches="searches"
     database-id="hss"
     :columns="columns"
-    hide-toolbar
     :items="items"
     :live-count="liveCount"
     :live-items="liveItems"
@@ -97,24 +91,10 @@ const {
     :loading="loading"
     prefix="hss."
     :query="query"
-    :title="$t('table.hss.title')"
     :total-count="totalCount"
     :total-filtered-count="totalFilteredCount"
     @click:row="clickRow"
     @download="downloadFiles"
   >
-    <template #title>
-      {{ $t('table.hss.title') }}
-      <info-tooltip>
-        <p>{{ $t('table.hss.tooltip.intro') }}</p>
-        {{ $t('table.hss.tooltip.howToUse') }}
-        <ul>
-          <li>{{ $t('table.hss.tooltip.bulletFilter') }}</li>
-          <li>{{ $t('table.hss.tooltip.bulletClick') }}</li>
-          <li>{{ $t('table.hss.tooltip.bulletDownload') }}</li>
-          <li>{{ $t('table.hss.tooltip.bulletShare') }}</li>
-        </ul>
-      </info-tooltip>
-    </template>
   </simple-table>
 </template>

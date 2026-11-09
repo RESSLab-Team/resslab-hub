@@ -631,7 +631,6 @@ class TableValidator(Validator):
     def _validate_field(
         self, result: ValidationResult, row: int, column: Any, value: str
     ):
-        # cf analyzer.py for column type determination and reference for now
         try:
             if self._check_missing(result, row, column, value):
                 return
@@ -1330,11 +1329,6 @@ def validate_all(
         except Exception as e:
             error(f"Error in validate_all: {str(e)}")
             error(f"Traceback: {traceback.format_exc()}")
-        # Check if all primary validations passed before proceeding
-        # primary_errors = any(not result.is_valid() for result in primary_results)
-        # if primary_errors:
-        #     error("Primary file validation failed. Skipping subsidiary files.")
-        #     return results
 
     # Then validate subsidiary files
     if subsidiary_types:

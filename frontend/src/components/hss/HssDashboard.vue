@@ -2,17 +2,22 @@
 import { HSSColumnField, type HSSColumnModel } from '@/backend'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import HssDoubleChart from '@/components/hss/charts/HssDoubleChart.vue'
-import HssParallelChart from '@/components/hss/charts/HssParallelChart.vue'
-import HssSingleChart from '@/components/hss/charts/HssSingleChart.vue'
+import DatasetDoubleChart from '@/components/commons/charts/DatasetDoubleChart.vue'
+import DatasetParallelChart from '@/components/commons/charts/DatasetParallelChart.vue'
+import DatasetSingleChart from '@/components/commons/charts/DatasetSingleChart.vue'
 import HssDetail from '@/components/hss/HssDetail.vue'
 import HssTable from '@/components/hss/HssTable.vue'
-import { HSS_KEY, PARALLEL_FIELDS, fetchHsss } from '@/components/hss/data'
+import {
+  HSS_KEY,
+  HSS_SOURCE,
+  fetchHsss,
+  parallelFields as buildParallelFields
+} from '@/components/hss/data'
 import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
@@ -26,11 +31,12 @@ const { clickTableRow, closeDetail, item, query, search, searches, changeSearche
 const countsStore = useCountsStore()
 onMounted(() => countsStore.fetch())
 
-const parallelFields = PARALLEL_FIELDS
+// Computed, so the configuration labels follow a language switch.
+const parallelFields = computed(() => buildParallelFields())
 
 const parallelFilterFields: string[] = [
   HSSColumnField.Id,
-  ...parallelFields.flatMap((f) =>
+  ...buildParallelFields().flatMap((f) =>
     typeof f.id === 'string'
       ? [f.id]
       : 'dividend' in f.id
@@ -99,7 +105,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <hss-double-chart
+          <dataset-double-chart
+            :source="HSS_SOURCE"
             :fields="failureModeFields"
             type="line"
             @change:searches="changeSearches"
@@ -113,7 +120,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <hss-single-chart
+          <dataset-single-chart
+            :source="HSS_SOURCE"
             :field="HSSColumnField.LoadingProtocol"
             :show-reset="false"
             flat
@@ -128,7 +136,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <hss-single-chart
+          <dataset-single-chart
+            :source="HSS_SOURCE"
             :field="HSSColumnField.SteelType"
             :show-reset="false"
             flat
@@ -145,7 +154,11 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <hss-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
+          <dataset-parallel-chart
+            :source="HSS_SOURCE"
+            :fields="parallelFields"
+            @change:searches="changeSearches"
+          />
         </chart-cell>
       </div>
     </template>

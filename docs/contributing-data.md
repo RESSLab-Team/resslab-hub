@@ -17,12 +17,14 @@ sign-in (`auth/roles.py`). The route sends to `/contribute/new`, the editor
 - a database picker (changing it with unsaved rows asks once),
 - the experiment cards (`components/contribute/ExperimentCards.vue`), one
   card per row of the primary CSV, fields folded by scientific category, the
-  card head pinned while scrolling,
+  card head pinned while scrolling. Their toolbar is for files only: the
+  starter kit, the template CSV and the dictionary CSV, all downloads,
 - a status bar with the client and server verdict,
-- a guide rail on the right (`ContributionGuide.vue`) with the database
-  README and a searchable data dictionary. Both leave out the columns the
-  Hub fills itself (`MANAGED_COLUMNS` in `utils/curationStatus.ts`, today
-  only `data_curation_status`),
+- a guide rail on the right (`ContributionGuide.vue`), for reading: the
+  database README and a searchable data dictionary, each with a link to its
+  file in the data repository. Both leave out the columns the Hub fills
+  itself (`MANAGED_COLUMNS` in `utils/curationStatus.ts`, today only
+  `data_curation_status`),
 - a submit dialog that shows who is submitting, from the session.
 
 Files get in by drop or by the folder picker: a whole folder, a zip, or loose
@@ -196,10 +198,11 @@ Two things in `contributions/github.py`:
   drawer says the data was not checked by the lab yet. A curator verifies
   them later from the "To verify" tab, which opens a second, small pull
   request ([curation.md](curation.md#verification)).
-- The data reaches a deployment when someone runs its upload CronJob from
-  ArgoCD ([backend/README.md](../backend/README.md)). The backend caches
-  responses for an hour per process, so restart the pods if it must show at
-  once.
+- The data reaches the deployments when the pull request is merged: the data
+  repo sends the changed files to `/upload` of each hub, and dev also rebuilds
+  its data each night ([backend/README.md](../backend/README.md#upload-data-to-a-deployed-environment-dev-stage-prod)).
+  The backend caches responses for an hour per process, so restart the pods if
+  it must show at once.
 
 ## Trying it locally
 

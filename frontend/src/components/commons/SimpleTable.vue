@@ -14,30 +14,26 @@ import {
   useDictionaryStore,
   type DictColumn
 } from '@/stores/dictionary'
-import { useNotificationStore } from '@/stores/notification'
 import type { ColorScale } from '@/utils/categoryColors'
-import { isStructuredFilterValue, shareCurrentUrl, type Searches, type Value } from '@/utils/common'
+import { isStructuredFilterValue, type Searches, type Value } from '@/utils/common'
 import { isUnverified } from '@/utils/curationStatus'
 import type { FilterDescriptor } from '@/utils/filterProfile'
 import { formatValue } from '@/utils/queryEngine'
 import type { DatabaseId } from '@/utils/navigation'
 import type { DataOptions } from '@/utils/vuetify'
-import { booleanOptions } from '@/utils/vuetify'
+import { booleanOptions as buildBooleanOptions } from '@/utils/vuetify'
 import {
   mdiChevronDown,
   mdiClose,
   mdiDownload,
   mdiFilterRemoveOutline,
-  mdiMagnify,
   mdiMenuDown,
   mdiMenuUp,
-  mdiShare,
   mdiSortAscending,
   mdiSortDescending
 } from '@mdi/js'
 import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
 
 interface TableHeader {
   type: ColumnType
@@ -56,12 +52,13 @@ interface TableHeader {
   shortTitle?: { text: string; isSymbol: boolean }
   /** Dictionary unit shown in the header menu, when the title doesn't already carry it. */
   unit?: string
+  /** Dictionary description, shown in the header menu under the title (#330). */
+  description?: string
   align?: 'start' | 'end'
 }
 
 const props = withDefaults(
   defineProps<{
-    title?: string
     columns?: Column[]
     totalCount?: number
     loading?: boolean
@@ -70,11 +67,6 @@ const props = withDefaults(
     prefix?: string
     query?: string
     searches?: Searches
-    search?: string
-    /** Hide the filter-only inputs row above the table (when a filter rail covers them) */
-    hideFilterOnly?: boolean
-    /** Hide the title/search toolbar (when the dashboard provides its own toolbar) */
-    hideToolbar?: boolean
     /** In-browser filtering is instant — skip the loading bar that reads as a fetch. */
     instant?: boolean
     /** Provisional filtered count shown live during a crossfilter drag. Display-only:
@@ -93,7 +85,6 @@ const props = withDefaults(
     colorFor?: (field: string) => ColorScale
   }>(),
   {
-    title: undefined,
     columns: () => [],
     totalCount: undefined,
     loading: false,
@@ -102,9 +93,6 @@ const props = withDefaults(
     prefix: undefined,
     query: undefined,
     searches: () => ({}),
-    search: '',
-    hideFilterOnly: false,
-    hideToolbar: false,
     instant: false,
     liveCount: undefined,
     liveItems: undefined,
@@ -116,7 +104,6 @@ const emit = defineEmits<{
   (e: 'click:row', value: M): void
   (e: 'download', items: M[], types: DownloadType[]): void
   (e: 'update:options', value?: DataOptions): void
-  (e: 'update:search', value: string): void
   (e: 'update:searches', value: Searches): void
 }>()
 
@@ -133,19 +120,11 @@ const vInputBind = {
   variant: 'underlined' as 'underlined'
 }
 const { t } = useI18n({ useScope: 'global' })
-const checkboxDialogItems: CheckBoxDialogItem<DownloadType>[] = [
-  {
-    key: DownloadType.Main,
-    text: t('commons.download_master_data')
-  },
-  {
-    key: DownloadType.Test,
-    text: t('commons.download_test_data')
-  }
-]
+const checkboxDialogItems = computed<CheckBoxDialogItem<DownloadType>[]>(() => [
+  { key: DownloadType.Main, text: t('commons.download_master_data') },
+  { key: DownloadType.Test, text: t('commons.download_test_data') }
+])
 
-const route = useRoute()
-const notificationStore = useNotificationStore()
 // The data dictionary powers the adaptive short header labels; the store
 // dedupes, so this kicks at most one fetch per session. Until it resolves
 // (or without a databaseId) headers simply never shorten.
@@ -381,17 +360,7 @@ const columnSearches = computed<Searches>({
   get: () => props.searches,
   set: (value) => emit('update:searches', value)
 })
-const globalSearch = computed<string>({
-  get: () => props.search,
-  set: (value) => emit('update:search', value)
-})
-const tableHeaders = computed<TableHeader[]>(() =>
-  props.columns.filter((column) => !column.filterOnly).map(getTableHeader)
-)
-const filterHeaders = computed<TableHeader[]>(() =>
-  props.columns.filter((column) => column.filterOnly).map(getTableHeader)
-)
-const hasFilters = computed<boolean>(() => !!props.query && props.query?.length != 0)
+const tableHeaders = computed<TableHeader[]>(() => props.columns.map(getTableHeader))
 
 // Content-measured column widths (see useColumnWidths): each column is sized to
 // its widest header/value; leftover space goes to the text columns, and when the
@@ -635,18 +604,11 @@ function categoryColor(header: TableHeader, item: M): string | undefined {
   return props.colorFor(header.key)(formatValue(value))
 }
 
-function resetFilters(): void {
-  globalSearch.value = ''
-  columnSearches.value = {}
-}
+// Built on each locale change, so the true/false labels follow the language.
+const booleanOptions = computed(() => buildBooleanOptions())
 
 function rowClick(item: M): void {
   emit('click:row', item)
-}
-
-function shareUrl(): void {
-  // the URL query is added automatically via vue-router
-  shareCurrentUrl(route.fullPath, notificationStore.notify)
 }
 
 // Adaptive short label candidate, by precedence: an explicit `shortTitle`
@@ -688,6 +650,12 @@ function unitFor(dict: DictColumn | undefined, title: string): string | undefine
   return unit && !title.includes(`[${unit}]`) ? unit : undefined
 }
 
+// The dictionary marks a missing description with `-`, like a missing unit.
+function descriptionFor(dict: DictColumn | undefined): string | undefined {
+  const description = dict?.description.trim()
+  return description && description !== '-' ? description : undefined
+}
+
 function getTableHeader(column: Column): TableHeader {
   // Locale key behind the title: explicit `titleKey`, else the prefix
   // convention — absent when the title is a literal string.
@@ -702,6 +670,7 @@ function getTableHeader(column: Column): TableHeader {
     title,
     shortTitle: shortLabelFor(column, titleKey, title, dict),
     unit: unitFor(dict, title),
+    description: descriptionFor(dict),
     type: column.type,
     format: column.format,
     cellVariant: column.cellVariant,
@@ -733,71 +702,6 @@ function downloadZip(): void {
     flat
     :style="{ '--stbl-rows': String(heightRows), '--stbl-head-h': headHeight }"
   >
-    <div v-if="!hideToolbar" class="stbl-toolbar">
-      <div class="stbl-title">
-        <slot name="title">
-          {{ title }}
-        </slot>
-      </div>
-      <v-spacer />
-      <v-responsive class="stbl-search" max-width="280">
-        <v-text-field
-          v-model="globalSearch"
-          clearable
-          density="compact"
-          hide-details
-          single-line
-          :prepend-inner-icon="mdiMagnify"
-          :label="$t('commons.search')"
-          variant="outlined"
-        />
-      </v-responsive>
-      <button class="btn btn-ghost btn-sm" :disabled="!hasFilters" @click="resetFilters">
-        {{ $t('commons.reset_filters') }}
-      </button>
-    </div>
-
-    <!-- Filter-only inputs (columns not shown in the table body) -->
-    <div v-if="!hideFilterOnly && filterHeaders.length" class="stbl-filteronly">
-      <v-row class="px-4 pb-4">
-        <v-col v-for="header in filterHeaders" :key="header.key">
-          <v-select
-            v-if="header.options"
-            v-bind="vInputBind"
-            :model-value="(columnSearches[header.key] as string)"
-            :multiple="header.multiple"
-            :items="header.options"
-            @update:model-value="columnSearches[header.key] = $event"
-          >
-            <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-          </v-select>
-          <v-text-field
-            v-else-if="header.type === 'text'"
-            v-bind="vInputBind"
-            v-model="columnSearches[header.key]"
-          >
-            <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-          </v-text-field>
-          <v-select
-            v-else-if="header.type === 'boolean'"
-            v-bind="vInputBind"
-            v-model="columnSearches[header.key]"
-            :items="booleanOptions"
-          >
-            <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-          </v-select>
-          <v-text-field
-            v-else-if="header.type === 'number'"
-            v-bind="vInputBind"
-            v-model="columnSearches[header.key]"
-            type="number"
-          >
-            <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-          </v-text-field>
-        </v-col>
-      </v-row>
-    </div>
-
     <div class="stbl-body">
       <!-- One shared horizontal scroller around BOTH tables: when the measured
            column mins outgrow the viewport, head and body overflow together and
@@ -828,7 +732,7 @@ function downloadZip(): void {
                     class="stbl-check"
                     :checked="allPageSelected"
                     :indeterminate.prop="somePageSelected"
-                    aria-label="select all"
+                    :aria-label="t('commons.select_all')"
                     @change="toggleSelectAll"
                   />
                 </th>
@@ -1025,11 +929,16 @@ function downloadZip(): void {
                       </button>
                       <div class="stbl-menu-sep" />
                       <!-- Full column title (+ unit) as a caption — the visible
-                           header may be ellipsised or swapped to its short label. -->
+                           header may be ellipsised or swapped to its short label.
+                           The dictionary description under it is the glossary
+                           entry of the column (#330). -->
                       <div class="stbl-menu-title">
                         <text-subscript :text="header.title" />
                         <span v-if="header.unit" class="stbl-menu-unit">[{{ header.unit }}]</span>
                       </div>
+                      <p v-if="header.description" class="stbl-menu-desc">
+                        {{ header.description }}
+                      </p>
                     </div>
                   </v-menu>
                 </th>
@@ -1064,7 +973,10 @@ function downloadZip(): void {
                   'is-selected': isRowSelected(item),
                   'is-stripe': (rowWindow.startIndex + index) % 2 === 1
                 }"
+                tabindex="0"
                 @click="rowClick(item)"
+                @keydown.enter.self.prevent="rowClick(item)"
+                @keydown.space.self.prevent="rowClick(item)"
               >
                 <td
                   class="stbl-col-select"
@@ -1076,6 +988,7 @@ function downloadZip(): void {
                     type="checkbox"
                     class="stbl-check"
                     :checked="isRowSelected(item)"
+                    :aria-label="t('commons.select_row', { id: item.id })"
                     @change="toggleRow(item)"
                   />
                   <span v-if="isUnverified(item)" class="stbl-sr">{{
@@ -1144,15 +1057,6 @@ function downloadZip(): void {
           <v-icon :icon="mdiDownload" size="14" />
           {{ $t('commons.download_n', { n: selectedItems.length, m: totalCount }) }}
         </button>
-        <button
-          v-if="!hideToolbar"
-          class="btn btn-secondary btn-sm"
-          :disabled="!hasFilters"
-          @click="shareUrl"
-        >
-          <v-icon :icon="mdiShare" size="14" />
-          {{ $t('commons.share') }}
-        </button>
       </div>
       <div class="dash-pager-info">
         <i18n-t keypath="commons.table_showing" tag="span" scope="global">
@@ -1181,14 +1085,30 @@ function downloadZip(): void {
         </select>
       </div>
       <div class="pager-btns">
-        <button class="pager-btn" :disabled="page <= 1" @click="page--">‹</button>
+        <button
+          class="pager-btn"
+          type="button"
+          :aria-label="t('commons.previous')"
+          :disabled="page <= 1"
+          @click="page--"
+        >
+          ‹
+        </button>
         <template v-for="(item, index) in pageItems" :key="`${index}-${item}`">
           <span v-if="item === '…'" class="pager-ellipsis">…</span>
           <button v-else class="pager-btn" :class="{ on: item === page }" @click="page = item">
             {{ item }}
           </button>
         </template>
-        <button class="pager-btn" :disabled="page >= pageCount" @click="page++">›</button>
+        <button
+          class="pager-btn"
+          type="button"
+          :aria-label="t('commons.next')"
+          :disabled="page >= pageCount"
+          @click="page++"
+        >
+          ›
+        </button>
       </div>
     </div>
 
@@ -1216,26 +1136,6 @@ function downloadZip(): void {
   /* Isolate the table's internal reflow/repaint from the rest of the page, so a
      filter-driven re-render here doesn't invalidate the chart strips below. */
   contain: layout;
-}
-
-.stbl-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-}
-.stbl-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--title-card-size);
-  font-weight: var(--title-card-weight);
-  letter-spacing: var(--title-card-tracking);
-}
-.stbl-search :deep(.v-field) {
-  border-radius: var(--radius);
-  font-size: 14px;
 }
 
 /* Horizontal scroll wrapper around BOTH tables. On wide screens the columns sum
@@ -1498,6 +1398,15 @@ function downloadZip(): void {
   font-weight: 400;
   color: var(--fg-muted);
 }
+/* Capped so a long description wraps instead of widening the popover. */
+.stbl-menu-desc {
+  max-width: 280px;
+  margin: -3px 0 0;
+  padding: 0 10px 7px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--fg-muted);
+}
 .stbl-menu-item {
   display: flex;
   align-items: center;
@@ -1600,6 +1509,10 @@ function downloadZip(): void {
 }
 .stbl-table tbody td.text-end {
   text-align: end;
+}
+.stbl-row:focus-visible {
+  outline: 2px solid var(--epfl-red);
+  outline-offset: -2px;
 }
 .stbl-row:hover {
   cursor: pointer;

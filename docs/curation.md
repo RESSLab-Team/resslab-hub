@@ -46,7 +46,8 @@ pull request at once.
 | `GET /contributions/{pr}` | everything the review page needs: summary, provenance (from the trailers, else the pull request body, else the legacy JSON record), the reconstructed rows, the classified files, and `mine`, whether the signed-in account owns it. |
 | `GET /contributions/{pr}/validation` | `validate_all` re-run on the reconstructed batch in a temporary repo-shaped folder. Up to `MAX_CURVE_FILES` (100) curve files are downloaded, with size caps; the skipped ones get an explicit warning ("too large, review on GitHub"). |
 | `GET /contributions/{pr}/comments` | the pull request thread, oldest first, the pull request body as the first entry. Read only. |
-| `GET /contributions/{pr}/files?path=` | the text of one file the pull request added, primary CSV or curve only. Used for the curve preview and by the editor when it loads a submission to edit. |
+| `GET /contributions/{pr}/files?path=` | the text of one file the pull request added, primary CSV or curve only. Used for the curve preview. |
+| `GET /contributions/{pr}/curves` | every curve the pull request added, with its text, in one answer (#336). The editor loads a submission with it. The files are read from GitHub in parallel, cached per head sha when the batch is 1 MB or less. The answer is complete or it is a 502, never partial: a save deletes the curves the editor does not send back. |
 
 Response shapes: `backend/resslab_hub/models/curation.py`.
 
@@ -102,7 +103,11 @@ the pull request body (experiment count, contributor). **To verify**
   coupon `type` from `grade` and `spec`, or `h_over_b` for residual
   stresses. Cohort chips and curves can then match on them.
 - **Data preview** (`DataPreviewPanel.vue`, `curves.ts`): every attached
-  curve, with ghosts of the cohort's curves behind it. For cyclic coupons'
+  curve, with ghosts of the cohort's curves behind it.
+  The submission is red and the ghosts are faded and thinner: the same
+  convention as the parallel plot, the metadata ranges and the
+  contribution preview (#268, `--data-submitted` and `--data-existing`,
+  named by `DataLegend.vue`). For cyclic coupons'
   `stress_strain` files, the UVC material model is drawn dashed over the
   test, computed in the browser from the row's calibrated parameters run
   over the submitted strain history (#316), the same code as the Materials

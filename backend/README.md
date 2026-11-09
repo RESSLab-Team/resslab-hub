@@ -130,6 +130,70 @@ block from `docs/sem-images.md`.
 
 Then from `backend/`, run `make upload-data`. With `REBUILD=1`, it first empties the data tables it touches.
 
+Finished upload jobs and their pods leave after a day (`ttlSecondsAfterFinished`).
+Read the logs of a failed run before that.
+
+## Backup and restore of a deployed database
+
+Almost everything in the database comes from the data repo, so the upload job
+can rebuild it. Only the `auth_*` tables live in the database alone: accounts,
+linked identities, roles given by an admin, invitations, access requests and
+sessions (see [docs/auth.md](../docs/auth.md)).
+
+So the CronJob `resslab-hub-db-dump-<env>` dumps only these tables, each night
+at 02:00 UTC. It writes `auth-<date>.dump` (`pg_dump -Fc`, a few kB) to the PVC
+`resslab-hub-db-longtermbackup-pvc-<env>`, keeps 30 days of files, and fails
+when `pg_dump` fails. The dump only locks the auth tables, so it can't block
+the nightly rebuild at 03:00. The PVC name has `longtermbackup` in it, so the
+team backup also copies it off the cluster (see "Build and deploy" in the team
+wiki).
+
+What a lost database without this dump would cost: every account and profile,
+the roles and invitations an admin gave, the pending access requests, and all
+sessions (everyone signed out). Roles from GitHub, `ADMIN_EMAILS` and academic
+emails come back at the next sign-in. Who submitted what stays in the commit
+trailers of the data repo.
+
+To restore a database (example on prod):
+
+1. Start from an empty database. The backend runs the migrations when it
+   starts.
+2. Load the data: in ArgoCD, run `create-job` on the CronJob
+   `resslab-hub-upload-data-prod`.
+3. Open a shell next to the dump files:
+
+   ```bash
+   NS=epfl-resslab-resslab-hub-prod
+   kubectl -n $NS run auth-restore --rm -it --restart=Never --image=postgres:14 \
+     --overrides='{"spec":{"containers":[{"name":"auth-restore","image":"postgres:14",
+       "stdin":true,"tty":true,"command":["bash"],
+       "envFrom":[{"secretRef":{"name":"db-secret"}}],
+       "volumeMounts":[{"name":"backup","mountPath":"/backup"}]}],
+       "volumes":[{"name":"backup","persistentVolumeClaim":
+         {"claimName":"resslab-hub-db-longtermbackup-pvc-prod"}}]}}'
+   ```
+
+4. In that shell, restore the rows of the newest dump:
+
+   ```bash
+   ls -lt /backup
+   export PGHOST=resslab-hub-db-prod PGDATABASE=postgres PGUSER=$DB_USER PGPASSWORD=$DB_PASSWORD
+   pg_restore --data-only --single-transaction /backup/auth-<date>.dump
+   ```
+
+   The auth tables must be empty. If someone signed in after the crash, remove
+   their rows first: on a duplicate key the restore stops and changes nothing.
+   The dump also holds the table definitions (`pg_restore -l` lists them), so you
+   can compare the columns with the current migration if the restore complains.
+
+For a full dump by hand (before a risky migration, for example), run `pg_dump`
+in the database pod and keep the file on your machine:
+
+```bash
+kubectl -n epfl-resslab-resslab-hub-prod exec resslab-hub-db-prod-0 -- \
+  sh -c 'pg_dump -U "$POSTGRES_USER" -Fc postgres' > prod-$(date +%F).dump
+```
+
 ## Validate a component folder
 
 With the backend running, `make validate-braces` (or any type listed by

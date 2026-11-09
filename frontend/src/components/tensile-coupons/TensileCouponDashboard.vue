@@ -2,13 +2,17 @@
 import { TensileCouponField, type TensileCouponModel } from '@/backend'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import TensileCouponDoubleChart from '@/components/tensile-coupons/charts/TensileCouponDoubleChart.vue'
-import TensileCouponParallelChart from '@/components/tensile-coupons/charts/TensileCouponParallelChart.vue'
-import TensileCouponSingleChart from '@/components/tensile-coupons/charts/TensileCouponSingleChart.vue'
+import DatasetDoubleChart from '@/components/commons/charts/DatasetDoubleChart.vue'
+import DatasetParallelChart from '@/components/commons/charts/DatasetParallelChart.vue'
+import DatasetSingleChart from '@/components/commons/charts/DatasetSingleChart.vue'
 import TensileCouponDetail from '@/components/tensile-coupons/TensileCouponDetail.vue'
 import TensileCouponTable from '@/components/tensile-coupons/TensileCouponTable.vue'
 import type { DoubleFields, ParallelField } from '@/composables/chart'
-import { TENSILE_COUPON_KEY, fetchTensileCoupons } from '@/components/tensile-coupons/data'
+import {
+  TENSILE_COUPON_KEY,
+  TENSILE_COUPON_SOURCE,
+  fetchTensileCoupons
+} from '@/components/tensile-coupons/data'
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
@@ -116,7 +120,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <tensile-coupon-double-chart
+          <dataset-double-chart
+            :source="TENSILE_COUPON_SOURCE"
             :fields="profileYearFields"
             type="line"
             @change:searches="changeSearches"
@@ -129,7 +134,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <tensile-coupon-double-chart
+          <dataset-double-chart
+            :source="TENSILE_COUPON_SOURCE"
             :fields="profileThicknessFields"
             type="bar"
             @change:searches="changeSearches"
@@ -143,7 +149,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <tensile-coupon-single-chart
+          <dataset-single-chart
+            :source="TENSILE_COUPON_SOURCE"
             :field="TensileCouponField.SteelGrade"
             :show-reset="false"
             flat
@@ -160,7 +167,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <tensile-coupon-parallel-chart
+          <dataset-parallel-chart
+            :source="TENSILE_COUPON_SOURCE"
             :fields="parallelFields"
             @change:searches="changeSearches"
           />

@@ -89,10 +89,32 @@ watch(
   { immediate: true }
 )
 
+// A filter set from elsewhere (a chart click, a chip, a table header, the URL) has
+// to show up here, so its group and its row open. Only opening: closing stays the
+// reader's gesture.
+watch(
+  () => Object.keys(props.searches),
+  (keys, previous = []) => {
+    const added = keys.filter((key) => !previous.includes(key))
+    if (added.length === 0) return
+    const groups = new Set(openGroups.value)
+    const rows = new Set(open.value)
+    for (const group of props.groups) {
+      for (const filter of group.filters) {
+        if (!added.includes(filter.key) || !isActive(filter)) continue
+        groups.add(group.id)
+        rows.add(filter.key)
+      }
+    }
+    openGroups.value = groups
+    open.value = rows
+  }
+)
+
 /** While searching, every group holding a hit is open: hiding a match behind a
  *  collapsed heading would make the search box look broken. */
 function isOpen(group: FilterGroup): boolean {
-  return search.value.trim().length > 0 || openGroups.value.has(group.id)
+  return searching.value || openGroups.value.has(group.id)
 }
 
 function toggleGroup(group: FilterGroup): void {
@@ -100,6 +122,18 @@ function toggleGroup(group: FilterGroup): void {
   if (next.has(group.id)) next.delete(group.id)
   else next.add(group.id)
   openGroups.value = next
+}
+
+const searching = computed<boolean>(() => search.value.trim().length > 0)
+
+const allOpen = computed<boolean>(() =>
+  props.groups.every((group) => openGroups.value.has(group.id))
+)
+
+// Groups only, not the rows inside: a group of closed rows costs a few buttons,
+// while an open row mounts its histogram.
+function toggleAll(): void {
+  openGroups.value = new Set(allOpen.value ? [] : props.groups.map((group) => group.id))
 }
 
 function setOpen(key: string, value: boolean): void {
@@ -125,6 +159,10 @@ function resetAll(): void {
         <span v-if="activeCount > 0" class="dash-filters-active-count">{{ activeCount }}</span>
       </div>
       <div class="dash-filters-head-r">
+        <!-- Hidden while searching: the search box decides what is open then. -->
+        <button v-if="groups.length > 0 && !searching" class="expand" @click="toggleAll">
+          {{ allOpen ? $t('commons.collapse_all') : $t('commons.expand_all') }}
+        </button>
         <button class="reset" @click="resetAll">{{ $t('commons.reset_all') }}</button>
         <button
           class="dash-filters-collapse-btn"

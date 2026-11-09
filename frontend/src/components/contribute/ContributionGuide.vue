@@ -13,13 +13,15 @@
  * Two placements: `docked` fills the page's right rail (own scroll, always
  * open); otherwise it is a collapsible card above the editor.
  */
+import { stripSubSup } from '@/components/commons/TextSubscript.vue'
 import {
   displaySymbol,
   displayUnit,
+  symbolHtml,
   useDictionaryStore,
   type DictColumn
 } from '@/stores/dictionary'
-import { contributionGuideUrl } from '@/utils/contribution'
+import { contributionGuideUrl, dataDictionaryUrl } from '@/utils/contribution'
 import { MANAGED_COLUMNS } from '@/utils/curationStatus'
 import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
 import type { DatabaseId } from '@/utils/navigation'
@@ -46,6 +48,7 @@ watch(
 
 const readme = computed(() => dictionary.readmes[props.database])
 const githubUrl = computed(() => contributionGuideUrl(props.database))
+const dictionaryUrl = computed(() => dataDictionaryUrl(props.database))
 
 /**
  * Relative links in the README (`steel_braces_data_dictionary.csv`,
@@ -62,7 +65,7 @@ function rewriteLinks(clean: string, base: string): string {
       anchor.setAttribute('href', new URL(href, base).toString())
     }
     anchor.setAttribute('target', '_blank')
-    anchor.setAttribute('rel', 'noopener')
+    anchor.setAttribute('rel', 'noopener noreferrer')
   })
   return doc.body.innerHTML
 }
@@ -94,7 +97,8 @@ function matches(column: DictColumn, needle: string): boolean {
   return (
     column.name.toLowerCase().includes(needle) ||
     column.description.toLowerCase().includes(needle) ||
-    column.symbol.toLowerCase().includes(needle)
+    // `dpz` finds `d<sub>pz</sub>`: search the symbol without its markup.
+    stripSubSup(column.symbol).toLowerCase().includes(needle)
   )
 }
 
@@ -123,10 +127,6 @@ function toggleGroup(id: FieldGroupId): void {
 const groupOpen = (id: FieldGroupId): boolean =>
   query.value.trim() !== '' || openGroups.value.has(id)
 
-function symbolHtml(symbol: string | undefined): string {
-  return symbol ? DOMPurify.sanitize(symbol, { ALLOWED_TAGS: ['sub', 'sup', 'i', 'em'] }) : ''
-}
-
 /** Lets the page switch tab and open the panel from elsewhere. */
 function show(which: 'guide' | 'dictionary' = 'guide'): void {
   tab.value = which
@@ -151,7 +151,7 @@ defineExpose({ show })
           <span class="title">{{ $t('contribute.guide.title') }}</span>
         </button>
         <span v-else class="title">{{ $t('contribute.guide.title') }}</span>
-        <a class="github" :href="githubUrl" rel="noopener" target="_blank">
+        <a class="github" :href="githubUrl" rel="noopener noreferrer" target="_blank">
           {{ $t('contribute.guide.github') }}
           <v-icon :icon="mdiOpenInNew" size="12" />
         </a>
@@ -223,7 +223,9 @@ defineExpose({ show })
       <p v-if="readme === undefined" class="state">{{ $t('contribute.guide.loading') }}</p>
       <p v-else-if="readme === null" class="state">
         {{ $t('contribute.guide.missing') }}
-        <a :href="githubUrl" rel="noopener" target="_blank">{{ $t('contribute.guide.github') }}</a>
+        <a :href="githubUrl" rel="noopener noreferrer" target="_blank">{{
+          $t('contribute.guide.github')
+        }}</a>
       </p>
       <!-- eslint-disable-next-line vue/no-v-html -- sanitized by DOMPurify above -->
       <div v-else class="md" v-html="html" />
@@ -234,7 +236,13 @@ defineExpose({ show })
         <v-icon :icon="mdiMagnify" size="16" />
         <input v-model="query" type="search" :placeholder="$t('contribute.guide.search')" />
       </label>
-      <p class="state">{{ $t('contribute.guide.dictionary_hint', { count: columns.length }) }}</p>
+      <p class="state">
+        {{ $t('contribute.guide.dictionary_hint', { count: columns.length }) }}
+        <a class="dict-github" :href="dictionaryUrl" rel="noopener noreferrer" target="_blank">
+          {{ $t('contribute.guide.dictionary_github') }}
+          <v-icon :icon="mdiOpenInNew" size="12" />
+        </a>
+      </p>
       <p v-if="groups.length === 0" class="state">{{ $t('contribute.guide.no_match') }}</p>
       <div v-for="group in groups" :key="group.id" class="group">
         <button
@@ -256,7 +264,7 @@ defineExpose({ show })
           <li v-for="row in group.rows" :key="row.column.name" class="col">
             <div class="col-top">
               <code class="col-name">{{ row.column.name }}</code>
-              <!-- eslint-disable-next-line vue/no-v-html -- sanitized to sub/sup only -->
+              <!-- eslint-disable-next-line vue/no-v-html -- sanitised by symbolHtml -->
               <span v-if="row.symbol" class="col-symbol" v-html="symbolHtml(row.symbol)" />
               <span v-if="row.unit" class="col-unit">{{ row.unit }}</span>
               <span
@@ -402,6 +410,17 @@ defineExpose({ show })
 }
 .state a {
   color: inherit;
+}
+/* The dictionary as a file in the data repository, on its own line (#241). */
+.dict-github {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  margin-top: 4px;
+}
+.dict-github:hover {
+  color: var(--epfl-red);
 }
 
 /* Rendered README. Headings step down one level visually: the card already
@@ -558,11 +577,6 @@ defineExpose({ show })
   align-items: baseline;
   flex-wrap: wrap;
   gap: 8px;
-}
-.col-name {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--fg);
 }
 .col-symbol {
   font-style: italic;

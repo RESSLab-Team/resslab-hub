@@ -11,12 +11,27 @@ import { cancelScheduled, scheduleFrameUpdate } from './frameScheduler'
 // Unique per chart instance, so the frame scheduler can coalesce repeated
 // updates from the same chart (latest-wins) without conflating separate charts.
 let chartInstanceId = 0
-const chartProps = {
-  query: String
-}
 
 export interface ChartEmits {
   (e: 'change:searches', key: string, value?: Value): void
+}
+
+/**
+ * What the dashboard charts (`commons/charts/Dataset*Chart.vue`) need to know
+ * about a dataset. Each `components/{type}/data.ts` exports one.
+ */
+export interface DatasetSource<F extends string = string> {
+  /** `useDataset` cache key, the same one the dashboard uses. */
+  key: string
+  fetchAll: () => Promise<{ id: string }[]>
+  /** i18n prefix of the field labels, e.g. `'brace.'`. */
+  labelPrefix: string
+  /** The specimen id, what a click on a parallel-chart line filters on. */
+  idField: F
+  /** The numeric fields (generated `*NumberField`): their range sets the number brush. */
+  numberFields: Record<string, string>
+  /** The date fields (generated `*DateField`), for datasets that have some. */
+  dateFields?: Record<string, string>
 }
 
 function getSearchValueFromQuery(query: string | undefined, field: string): string | undefined {
@@ -63,23 +78,6 @@ export function toSingleCounts(values: CountModel[]): Count[] {
     .sort((c1, c2) => (c1.name < c2.name ? -1 : 1))
 }
 
-export function singleChartProps<F extends string>() {
-  return {
-    ...chartProps,
-    showReset: {
-      type: Boolean as unknown as () => boolean,
-      required: false as false
-    },
-    field: {
-      type: String as unknown as () => F,
-      required: true as true
-    },
-    flat: {
-      type: Boolean as unknown as () => boolean,
-      required: false as false
-    }
-  }
-}
 export function useSingleChart<F>(
   emit: ChartEmits,
   field: F,
@@ -150,16 +148,6 @@ export interface RangeOption<F, M> {
   getRange: (numberField: F) => Promise<AxiosResponse<M>>
 }
 
-export function doubleChartProps<F extends string>() {
-  return {
-    ...chartProps,
-    fields: {
-      type: Array as unknown as () => DoubleFields<F>,
-      required: true as true
-    },
-    type: String as () => 'bar' | 'line'
-  }
-}
 export function useDoubleChart<F extends string, NF extends string, DF extends string = string>(
   emit: ChartEmits,
   fields: DoubleFields<F>,
@@ -328,15 +316,6 @@ export function isComputed<T>(id: T | Division<T> | Computed<T>): id is Computed
   return typeof id === 'object' && id !== null && 'compute' in id
 }
 
-export function parallelChartProps<F extends string>() {
-  return {
-    ...chartProps,
-    fields: {
-      type: Array as () => ParallelField<F>[],
-      required: true as true
-    }
-  }
-}
 export function useParallelChart<F extends string>(
   emit: ChartEmits,
   idField: F,

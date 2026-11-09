@@ -142,6 +142,12 @@ export interface IntakeMatch {
   /** Specimen id, as written in the primary CSV (the row may be new). */
   id: string
   text: string
+  /**
+   * Placed by a guess: no folder name told the type, the headers fit several
+   * types, and the file went to the only required one (strong axis rather
+   * than weak axis). The drop report says so.
+   */
+  assumed?: boolean
 }
 
 /** A curve file the classifier could not place; the contributor decides. */
@@ -231,11 +237,25 @@ function kindsByFolder(kinds: TimeSeriesKind[], folder: string, options: Classif
   })
 }
 
+/** The only required kind among several candidates, or undefined. */
+function soleRequired(kinds: TimeSeriesKind[]): TimeSeriesKind | undefined {
+  const required = kinds.filter((kind) => kind.required)
+  return required.length === 1 ? required[0] : undefined
+}
+
+/** Key of a file stem and its candidate types, to find two files that compete. */
+function rivalKey(fileStem: string, kinds: TimeSeriesKind[]): string {
+  return `${fileStem.toLowerCase()}|${kinds.map((kind) => kind.key).join('|')}`
+}
+
 /**
  * Place every file. Order of the rules for a curve file:
  *  1. its folder is named after a response type (the repository's directory,
  *     the kind key, or its label) — the only way to tell F1 from F2;
- *  2. otherwise its headers, when they single out one response type;
+ *  2. otherwise its headers, when they single out one response type. When
+ *     they fit several types and only one of them is required, a file alone
+ *     for its experiment goes to the required one, flagged `assumed` (a drop
+ *     that lost its folder names: strong and weak axis share their headers);
  *  3. its stem is a specimen id (case-insensitive), through the kind's naming
  *     rule (`id74` for EBF).
  * Ids from a primary CSV in the same drop count, so a whole folder lands in one go.
@@ -291,9 +311,29 @@ export async function classifyIntake(
     if (id && !ids.includes(id)) ids.push(id)
   }
 
-  for (const { file, text } of curves) {
+  const placed = curves.map(({ file, text }) => {
     let kinds = kindsByFolder(options.kinds, parentLeaf(file.path), options)
     if (kinds.length !== 1) kinds = kindsMatchingHeaders(options.kinds, firstLine(text))
+    return { file, text, kinds }
+  })
+  // Files that could be the same experiment's same slot: none of them is guessed.
+  const rivals = new Map<string, number>()
+  for (const { file, kinds } of placed) {
+    if (kinds.length < 2) continue
+    const key = rivalKey(stem(file.name), kinds)
+    rivals.set(key, (rivals.get(key) ?? 0) + 1)
+  }
+
+  for (const { file, text, kinds: candidates } of placed) {
+    let kinds = candidates
+    let assumed = false
+    if (kinds.length > 1) {
+      const required = soleRequired(kinds)
+      if (required && rivals.get(rivalKey(stem(file.name), kinds)) === 1) {
+        kinds = [required]
+        assumed = true
+      }
+    }
     if (kinds.length === 0) {
       plan.pending.push({
         id: pendingCounter++,
@@ -311,10 +351,12 @@ export async function classifyIntake(
     const kind = kinds[0]
     const id = matchId(kind, stem(file.name), ids)
     if (id === undefined) {
-      plan.pending.push({ id: pendingCounter++, file, text, reason: 'orphan', kinds: [kind] })
+      // A guessed type is no more than a guess: the contributor still picks among all.
+      const left = assumed ? candidates : [kind]
+      plan.pending.push({ id: pendingCounter++, file, text, reason: 'orphan', kinds: left })
       continue
     }
-    plan.matched.push({ file, kind, id, text })
+    plan.matched.push(assumed ? { file, kind, id, text, assumed } : { file, kind, id, text })
   }
   return plan
 }

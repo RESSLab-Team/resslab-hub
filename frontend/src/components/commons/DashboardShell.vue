@@ -6,9 +6,10 @@ import { useNotificationStore } from '@/stores/notification'
 import type { FilterGroup, LabeledFilter } from '@/composables/useAutoFilters'
 import { formatFilterValue, shareCurrentUrl, type Searches, type Value } from '@/utils/common'
 import { STATUS_COLUMN, VERIFIED_ONLY_SEARCH } from '@/utils/curationStatus'
-import { DATABASES, type DatabaseId } from '@/utils/navigation'
+import { databases, type DatabaseId } from '@/utils/navigation'
 import { mdiCheckDecagramOutline, mdiClose, mdiFilterVariant, mdiMagnify, mdiShare } from '@mdi/js'
-import { computed, ref } from 'vue'
+import { useEscapeKey } from '@/composables/useEscapeKey'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 /**
@@ -64,6 +65,35 @@ const notificationStore = useNotificationStore()
 
 const filtersOverlayOpen = ref<boolean>(false)
 
+/* ---- drawers and the keyboard ---- */
+// Escape closes the top drawer: the filters overlay first, then the detail one.
+useEscapeKey(
+  computed(() => props.detailOpen || filtersOverlayOpen.value),
+  () => {
+    if (filtersOverlayOpen.value) filtersOverlayOpen.value = false
+    else emit('close:detail')
+  }
+)
+
+// A closed drawer is `inert`, so the focus inside it would drop to <body> on
+// close. Move it into the drawer on open, and back to where it was on close
+// (the table row that opened it).
+const detailDrawer = ref<HTMLElement>()
+let focusBeforeDetail: HTMLElement | null = null
+watch(
+  () => props.detailOpen,
+  async (open) => {
+    if (open) {
+      focusBeforeDetail ??= document.activeElement as HTMLElement | null
+      await nextTick()
+      detailDrawer.value?.focus({ preventScroll: true })
+    } else {
+      if (focusBeforeDetail?.isConnected) focusBeforeDetail.focus({ preventScroll: true })
+      focusBeforeDetail = null
+    }
+  }
+)
+
 const searchModel = computed<string>({
   get: () => props.search,
   set: (value) => emit('update:search', value)
@@ -71,7 +101,7 @@ const searchModel = computed<string>({
 
 /** The database's own icon, resolved from the single nav definition. */
 const databaseIcon = computed<string | undefined>(
-  () => DATABASES.find((entry) => entry.id === props.databaseId)?.icon
+  () => databases().find((entry) => entry.id === props.databaseId)?.icon
 )
 
 const railFilterCount = computed<number>(
@@ -201,14 +231,14 @@ function shareView(): void {
           <strong>{{ $t('commons.active_filters') }}</strong>
           <span v-for="chip in activeChips" :key="chip.key" class="fchip">
             {{ chip.label }}
-            <span
+            <button
               class="fchip-x"
-              role="button"
+              type="button"
               :aria-label="$t('commons.remove_filter', { label: chip.label })"
               @click="emit('change:searches', chip.key, undefined)"
             >
               <v-icon :icon="mdiClose" size="10" />
-            </span>
+            </button>
           </span>
           <button class="chip-clear" @click="clearAll">
             <v-icon :icon="mdiClose" size="10" />
@@ -228,18 +258,38 @@ function shareView(): void {
     </div>
 
     <!-- Detail drawer -->
-    <div class="drawer-scrim" :class="{ open: detailOpen }" @click="emit('close:detail')" />
-    <aside class="drawer" :class="{ open: detailOpen }">
+    <button
+      class="drawer-scrim"
+      type="button"
+      :class="{ open: detailOpen }"
+      :aria-label="$t('commons.close')"
+      :inert="!detailOpen || undefined"
+      @click="emit('close:detail')"
+    />
+    <aside
+      ref="detailDrawer"
+      class="drawer"
+      :class="{ open: detailOpen }"
+      :inert="!detailOpen || undefined"
+      tabindex="-1"
+    >
       <slot name="detail" />
     </aside>
 
     <!-- Filters overlay drawer -->
-    <div
+    <button
       class="drawer-scrim"
+      type="button"
       :class="{ open: filtersOverlayOpen }"
+      :aria-label="$t('commons.close')"
+      :inert="!filtersOverlayOpen || undefined"
       @click="filtersOverlayOpen = false"
     />
-    <aside class="filters-overlay" :class="{ open: filtersOverlayOpen }">
+    <aside
+      class="filters-overlay"
+      :class="{ open: filtersOverlayOpen }"
+      :inert="!filtersOverlayOpen || undefined"
+    >
       <auto-filter-rail
         :groups="filterGroups"
         :loading="filtersLoading"

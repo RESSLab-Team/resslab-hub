@@ -3,15 +3,20 @@ import type { CurationFile } from '@/backend'
 import UnitLineChart from '@/components/commons/charts/UnitLineChart.vue'
 import ToolSelect from '@/components/commons/tools/ToolSelect.vue'
 import ToolSwitch from '@/components/commons/tools/ToolSwitch.vue'
+import DataLegend, { type DataLegendItem } from '@/components/curation/DataLegend.vue'
 import {
   countFieldsFor,
   curveSourceFor,
+  EXISTING_OPACITY,
+  EXISTING_WIDTH,
   fetchCurve,
-  ghostColor
+  ghostColor,
+  SUBMITTED_COLOR,
+  SUBMITTED_WIDTH
 } from '@/components/curation/curves'
 import { GHOST_CONFIGS } from '@/components/curation/ghost'
 import { useDataset } from '@/composables/useDataset'
-import { INK, RED } from '@/plugins/echarts-theme'
+import { INK } from '@/plugins/echarts-theme'
 import { kindForFile } from '@/utils/curation'
 import {
   missingUvcColumns,
@@ -49,7 +54,6 @@ const props = defineProps<{
 
 const { t, te, n } = useI18n({ useScope: 'global' })
 
-const SUBMISSION_COLOR = RED
 // The model is the reference the data is judged against, not one more specimen:
 // the theme's soft black keeps it clear of both the red submission and the
 // muted palette hues the cohort curves take.
@@ -109,8 +113,8 @@ function buildPreview(file: CurationFile, text: string): Preview | null {
         name: specimenId(file),
         data,
         showSymbol: false,
-        lineStyle: { color: SUBMISSION_COLOR, width: 1.6 },
-        itemStyle: { color: SUBMISSION_COLOR },
+        lineStyle: { color: SUBMITTED_COLOR, width: SUBMITTED_WIDTH },
+        itemStyle: { color: SUBMITTED_COLOR },
         z: 3
       }
     ]
@@ -311,8 +315,8 @@ const charts = computed(() =>
         name: id,
         data,
         showSymbol: false,
-        lineStyle: { color, width: 1 },
-        itemStyle: { color },
+        lineStyle: { color, width: EXISTING_WIDTH, opacity: EXISTING_OPACITY },
+        itemStyle: { color, opacity: EXISTING_OPACITY },
         z: 1
       })
     })
@@ -338,6 +342,18 @@ const charts = computed(() =>
     }
   })
 )
+
+/** Names the submitted-vs-existing colours (#268); only what the frames draw. */
+const legendItems = computed<DataLegendItem[]>(() => {
+  const items: DataLegendItem[] = [{ kind: 'submitted', label: t('curation.legend.submitted') }]
+  if (showUvc.value && charts.value.some((chart) => !!uvcCurves.value[chart.path])) {
+    items.push({ kind: 'model', label: t('curation.preview.uvc_model') })
+  }
+  if (charts.value.some((chart) => chart.ghosts > 0)) {
+    items.push({ kind: 'existing', label: t('curation.legend.existing_compared') })
+  }
+  return items
+})
 
 const fileName = (path: string) => path.slice(path.lastIndexOf('/') + 1)
 const empty = computed(() => !loading.value && !previews.value.length && !failed.value.length)
@@ -402,6 +418,7 @@ const showPicker = computed(() => !!candidates.value.length || !!overlayIds.valu
       </p>
     </div>
 
+    <data-legend v-if="charts.length" class="legend" :items="legendItems" />
     <div class="grid">
       <div v-for="chart in charts" :key="chart.path" class="previewchart">
         <div class="ch">
@@ -519,6 +536,9 @@ const showPicker = computed(() => !!candidates.value.length || !!overlayIds.valu
 /* Frames tile side-by-side once the pane can fit two — on wide screens a
    multi-curve experiment reads as a gallery instead of a scroll of oversized
    charts. */
+.legend {
+  margin-bottom: 12px;
+}
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr));

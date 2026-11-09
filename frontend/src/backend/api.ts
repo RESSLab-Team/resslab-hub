@@ -1131,6 +1131,21 @@ export interface CurationContributor {
     'github_login'?: string;
 }
 /**
+ * One curve file of the submission, with its text at the head commit.
+ */
+export interface CurationCurve {
+    'path': string;
+    'text': string;
+}
+/**
+ * Every curve of a submission, for the edit step (#336).
+ */
+export interface CurationCurvesResponse {
+    'pr_number': number;
+    'head_sha': string;
+    'files': Array<CurationCurve>;
+}
+/**
  * Everything the review screen needs about one submission.  The list-ish fields carry no defaults on purpose: they are always present in the response, and a default would mark them optional in the OpenAPI schema (and therefore in the generated frontend client).
  */
 export interface CurationDetail {
@@ -1787,65 +1802,65 @@ export interface EmailVerifyRequest {
 export interface ExtendedPageBraceModel {
     'items': Array<BraceModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 export interface ExtendedPageColumnModel {
     'items': Array<ColumnModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 export interface ExtendedPageConnectionModel {
     'items': Array<ConnectionModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 export interface ExtendedPageDuctileFractureModel {
     'items': Array<DuctileFractureModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 export interface ExtendedPageEccentricBracedFrameModel {
     'items': Array<EccentricBracedFrameModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 export interface ExtendedPageHSSColumnModel {
     'items': Array<HSSColumnModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 export interface ExtendedPageMaterialModel {
     'items': Array<MaterialModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 export interface ExtendedPageResidualStressModel {
     'items': Array<ResidualStressModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 export interface ExtendedPageTensileCouponModel {
     'items': Array<TensileCouponModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 /**
  * What this deployment offers, read once by the frontend at start.
@@ -2831,6 +2846,8 @@ export interface ValidationError {
     'loc': Array<LocationInner>;
     'msg': string;
     'type': string;
+    'input'?: any;
+    'ctx'?: object;
 }
 /**
  * A single error or warning, anchored to a cell where possible.
@@ -7715,6 +7732,40 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Every curve file of the submission, with its text (#336).  This is how the edit step loads a submission: one request, and the files are read from GitHub in parallel here. The answer is complete or it is a 502, never partial: a save deletes the curves the editor does not send back, so a curve left out here would be lost on the next save. The single-file route above stays for the curator\'s curve preview.
+         * @summary Get Contribution Curves
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContributionCurves: async (prNumber: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'prNumber' is not null or undefined
+            assertParamExists('getContributionCurves', 'prNumber', prNumber)
+            const localVarPath = `/contributions/{pr_number}/curves`
+                .replace('{pr_number}', encodeURIComponent(String(prNumber)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Raw text of one file added by the submission (time-series preview). Only paths the PR actually adds inside the type\'s layout are served.
          * @summary Get Contribution File
          * @param {number} prNumber 
@@ -8324,6 +8375,19 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Every curve file of the submission, with its text (#336).  This is how the edit step loads a submission: one request, and the files are read from GitHub in parallel here. The answer is complete or it is a 502, never partial: a save deletes the curves the editor does not send back, so a curve left out here would be lost on the next save. The single-file route above stays for the curator\'s curve preview.
+         * @summary Get Contribution Curves
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getContributionCurves(prNumber: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CurationCurvesResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getContributionCurves(prNumber, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.getContributionCurves']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Raw text of one file added by the submission (time-series preview). Only paths the PR actually adds inside the type\'s layout are served.
          * @summary Get Contribution File
          * @param {number} prNumber 
@@ -8572,6 +8636,16 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.getContributionComments(prNumber, options).then((request) => request(axios, basePath));
         },
         /**
+         * Every curve file of the submission, with its text (#336).  This is how the edit step loads a submission: one request, and the files are read from GitHub in parallel here. The answer is complete or it is a 502, never partial: a save deletes the curves the editor does not send back, so a curve left out here would be lost on the next save. The single-file route above stays for the curator\'s curve preview.
+         * @summary Get Contribution Curves
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContributionCurves(prNumber: number, options?: RawAxiosRequestConfig): AxiosPromise<CurationCurvesResponse> {
+            return localVarFp.getContributionCurves(prNumber, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Raw text of one file added by the submission (time-series preview). Only paths the PR actually adds inside the type\'s layout are served.
          * @summary Get Contribution File
          * @param {number} prNumber 
@@ -8778,6 +8852,17 @@ export class DefaultApi extends BaseAPI {
      */
     public getContributionComments(prNumber: number, options?: RawAxiosRequestConfig) {
         return DefaultApiFp(this.configuration).getContributionComments(prNumber, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Every curve file of the submission, with its text (#336).  This is how the edit step loads a submission: one request, and the files are read from GitHub in parallel here. The answer is complete or it is a 502, never partial: a save deletes the curves the editor does not send back, so a curve left out here would be lost on the next save. The single-file route above stays for the curator\'s curve preview.
+     * @summary Get Contribution Curves
+     * @param {number} prNumber 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getContributionCurves(prNumber: number, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).getContributionCurves(prNumber, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

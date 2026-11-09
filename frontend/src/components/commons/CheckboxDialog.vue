@@ -7,7 +7,6 @@ export interface CheckBoxDialogItem<K> {
   text: string
 }
 
-// TODO add genericity https://github.com/vuejs/rfcs/discussions/436
 type T = string
 const props = withDefaults(
   defineProps<{

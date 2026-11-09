@@ -3,6 +3,7 @@ import CohortPanel from '@/components/curation/CohortPanel.vue'
 import type { ParallelSelection } from '@/composables/chart'
 import en from '@/locales/en.json'
 import { flushPromises, mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 
@@ -57,6 +58,8 @@ function chart(wrapper: ReturnType<typeof mountPanel>) {
 
 describe('CohortPanel brush wiring', () => {
   beforeEach(() => {
+    // The chips read the dictionary store for the column symbols.
+    setActivePinia(createPinia())
     matrixSync.mockClear()
     countRowsSync.mockClear()
   })
@@ -138,5 +141,18 @@ describe('CohortPanel brush wiring', () => {
     const banner = wrapper.get('.cohort-h .ct').text()
     expect(banner).toContain('12 similar')
     expect(banner).not.toContain('brushed')
+  })
+})
+
+describe('CohortPanel legend (#268)', () => {
+  it('names the submitted specimen and the existing cohort', async () => {
+    const wrapper = mountPanel()
+    await flushPromises()
+
+    const legend = wrapper.find('.data-legend')
+    expect(legend.find('.sw.submitted').exists()).toBe(true)
+    expect(legend.find('.sw.existing').exists()).toBe(true)
+    expect(legend.text()).toContain('Submitted · NEW-1')
+    expect(legend.text()).toContain('2 existing (similar)')
   })
 })

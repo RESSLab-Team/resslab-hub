@@ -113,32 +113,40 @@ watch(
       <h3 class="cd-section-h">{{ $t('detail.connection.section_loading_geometric') }}</h3>
       <div class="cd-twocol">
         <div class="cd-prop-block">
-          <property-item :name="$t('detail.connection.loading_protocol')">
+          <property-item column="loading_protocol" :name="$t('detail.connection.loading_protocol')">
             {{ connection.loading_protocol }}
           </property-item>
-          <property-item :name="$t('detail.connection.structural_configuration')">
+          <property-item
+            column="specimen_type"
+            :name="$t('detail.connection.structural_configuration')"
+          >
             {{ connection.specimen_type }}
           </property-item>
-          <property-item :name="$t('detail.connection.connection_type')">
+          <property-item column="connection_type" :name="$t('detail.connection.connection_type')">
             {{ connection.connection_type }}
           </property-item>
-          <property-item mono :name="$t('detail.connection.beam_cross_section')">
+          <property-item column="section_b" mono :name="$t('detail.connection.beam_cross_section')">
             {{ connection.section_b }}
           </property-item>
-          <property-item mono :name="$t('detail.connection.column_cross_section')">
+          <property-item
+            column="section_c"
+            mono
+            :name="$t('detail.connection.column_cross_section')"
+          >
             {{ connection.section_c }}
           </property-item>
           <property-item
             v-if="connection.t_dp_tot"
+            column="t_dp_tot"
             :name="$t('detail.connection.doubler_plate_thickness')"
             unit="mm"
           >
             {{ connection.t_dp_tot }}
           </property-item>
-          <property-item :name="$t('detail.connection.weld_electrode')">
+          <property-item column="electrode" :name="$t('detail.connection.weld_electrode')">
             {{ formatString(connection.electrode) }}
           </property-item>
-          <property-item :name="$t('detail.connection.backing_bar')">
+          <property-item column="backing_bar" :name="$t('detail.connection.backing_bar')">
             {{ backingBar }}
           </property-item>
         </div>
@@ -168,16 +176,23 @@ watch(
           {{ $t('detail.connection.section_composite_slab') }}
         </h4>
         <div class="cd-prop-block cd-prop-block-row">
-          <property-item :name="$t('detail.connection.deck_ribs_orientation')">
+          <property-item
+            column="deck_ribs_orientation"
+            :name="$t('detail.connection.deck_ribs_orientation')"
+          >
             {{ connection.deck_ribs_orientation }}
           </property-item>
-          <property-item :name="$t('detail.connection.thickness')" unit="mm">
+          <property-item column="h_t" :name="$t('detail.connection.thickness')" unit="mm">
             {{ formatNumber(connection.h_t) }}
           </property-item>
-          <property-item :name="$t('detail.connection.width')" unit="mm">
+          <property-item column="w" :name="$t('detail.connection.width')" unit="mm">
             {{ formatNumber(connection.w) }}
           </property-item>
-          <property-item :name="$t('detail.connection.concrete_compressive_strength')" unit="MPa">
+          <property-item
+            column="f_cm"
+            :name="$t('detail.connection.concrete_compressive_strength')"
+            unit="MPa"
+          >
             {{ formatNumber(connection.f_cm, 1) }}
           </property-item>
         </div>
@@ -187,31 +202,55 @@ watch(
       <div class="cd-twocol">
         <div class="cd-prop-block">
           <div class="cd-prop-sub">{{ $t('detail.connection.sub_beam') }}</div>
-          <property-item :name="$t('detail.connection.steel_type')">
+          <property-item column="steel_b" :name="$t('detail.connection.steel_type')">
             {{ connection.steel_b }}
           </property-item>
-          <property-item :name="$t('detail.connection.nominal_yield_stress')" unit="MPa">
+          <property-item
+            column="f_yb"
+            :name="$t('detail.connection.nominal_yield_stress')"
+            unit="MPa"
+          >
             {{ formatNumber(connection.f_yb) }}
           </property-item>
-          <property-item :name="$t('detail.connection.measured_yield_stress_flange')" unit="MPa">
+          <property-item
+            column="f_ybf"
+            :name="$t('detail.connection.measured_yield_stress_flange')"
+            unit="MPa"
+          >
             {{ formatNumber(connection.f_ybf, 1) }}
           </property-item>
-          <property-item :name="$t('detail.connection.measured_yield_stress_web')" unit="MPa">
+          <property-item
+            column="f_ybw"
+            :name="$t('detail.connection.measured_yield_stress_web')"
+            unit="MPa"
+          >
             {{ formatNumber(connection.f_ybw, 1) }}
           </property-item>
         </div>
         <div class="cd-prop-block">
           <div class="cd-prop-sub">{{ $t('detail.connection.sub_column') }}</div>
-          <property-item :name="$t('detail.connection.steel_type')">
+          <property-item column="steel_c" :name="$t('detail.connection.steel_type')">
             {{ connection.steel_c }}
           </property-item>
-          <property-item :name="$t('detail.connection.nominal_yield_stress')" unit="MPa">
+          <property-item
+            column="f_yc"
+            :name="$t('detail.connection.nominal_yield_stress')"
+            unit="MPa"
+          >
             {{ formatNumber(connection.f_yc) }}
           </property-item>
-          <property-item :name="$t('detail.connection.measured_yield_stress_flange')" unit="MPa">
+          <property-item
+            column="f_ycf"
+            :name="$t('detail.connection.measured_yield_stress_flange')"
+            unit="MPa"
+          >
             {{ formatNumber(connection.f_ycf, 1) }}
           </property-item>
-          <property-item :name="$t('detail.connection.measured_yield_stress_web')" unit="MPa">
+          <property-item
+            column="f_ycw"
+            :name="$t('detail.connection.measured_yield_stress_web')"
+            unit="MPa"
+          >
             {{ formatNumber(connection.f_ycw, 1) }}
           </property-item>
         </div>
@@ -247,7 +286,7 @@ watch(
           class="btn btn-secondary btn-sm"
           :href="connection.link"
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
         >
           <v-icon :icon="mdiOpenInNew" size="12" />
           {{ $t('detail.connection.view_publication') }}

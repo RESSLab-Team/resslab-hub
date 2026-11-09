@@ -24,16 +24,13 @@ export interface DataOptions {
   itemsPerPage?: number
 }
 
-export const booleanOptions: SelectItemObject<boolean>[] = [
-  {
-    title: i18n.global.t('enum.true'),
-    value: true
-  },
-  {
-    title: i18n.global.t('enum.false'),
-    value: false
-  }
-]
+/** A function, not a constant, so the labels follow the current locale. */
+export function booleanOptions(): SelectItemObject<boolean>[] {
+  return [
+    { title: i18n.global.t('enum.true'), value: true },
+    { title: i18n.global.t('enum.false'), value: false }
+  ]
+}
 
 // https://vuetifyjs.com/en/api/v-select/#props-items
 export interface SelectItemObject<V = string | number | object> {

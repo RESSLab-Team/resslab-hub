@@ -54,6 +54,7 @@ from resslab_hub.contributions.submission import (
     _read_csv,
     _write_csv,
     read_provenance,
+    redact_emails,
 )
 from resslab_hub.contributions.trailers import Provenance, owns_submission
 from resslab_hub.contributions.verification import type_for_verify_branch
@@ -63,6 +64,8 @@ from resslab_hub.models.curation import (
     CurationComment,
     CurationCommentsResponse,
     CurationContributor,
+    CurationCurve,
+    CurationCurvesResponse,
     CurationDetail,
     CurationExperiment,
     CurationFile,
@@ -126,6 +129,11 @@ class _TTLCache:
 
 _cache = _TTLCache()
 
+#: A file text over this size is served but not kept in the cache. With 256
+#: entries, a few big curve files would hold a lot of memory per pod for
+#: their whole TTL (#264 Low).
+MAX_CACHED_FILE_BYTES = 2**20  # 1 MB
+
 
 def invalidate_pull(pr_number: int) -> None:
     """Forget what we know about one pull request.
@@ -157,21 +165,27 @@ def invalidate_open_pulls() -> None:
 
 
 def _parse_pr_body(body: str) -> Tuple[Optional[int], Optional[CurationContributor]]:
-    """Best-effort parse of build_pr_body's deterministic format."""
+    """Best-effort parse of build_pr_body's deterministic format.
+
+    Each field is read only at the start of its own `- **Field**:` line, so
+    a dismissed warning further down cannot pose as one (#264 H4).
+    """
     count = None
-    match = re.search(r"\*\*Experiments\*\*: (\d+)", body)
+    match = re.search(r"^- \*\*Experiments\*\*: (\d+)", body, re.M)
     if match:
         count = int(match.group(1))
     contributor = None
-    match = re.search(r"\*\*Contributor\*\*: (.*?) \([^)]*\)(?:, (.*))?$", body, re.M)
+    match = re.search(
+        r"^- \*\*Contributor\*\*: (.*?) \([^)]*\)(?:, (.*))?$", body, re.M
+    )
     if match:
         contributor = CurationContributor(
             name=match.group(1).strip(), institution=(match.group(2) or "").strip()
         )
-        orcid = re.search(r"\*\*ORCID\*\*: (.*)$", body, re.M)
+        orcid = re.search(r"^- \*\*ORCID\*\*: (.*)$", body, re.M)
         if orcid:
             contributor.orcid = orcid.group(1).strip()
-        github = re.search(r"\*\*GitHub\*\*: @(\S+)$", body, re.M)
+        github = re.search(r"^- \*\*GitHub\*\*: @(\S+)$", body, re.M)
         if github:
             contributor.github_login = github.group(1).strip()
     return count, contributor
@@ -301,7 +315,7 @@ async def _build_detail(
         **_summary(pull, Resolved(kind, input_type)).model_dump(),
         state=pull["state"],
         head_sha=head_sha,
-        body=pull["body"],
+        body=redact_emails(pull["body"]),
         submitted_at="",
         dismissed_warnings=[],
         columns=[],
@@ -683,7 +697,7 @@ async def get_contribution_comments(
             id=0,
             author=pull.get("author", ""),
             author_type=pull.get("author_type", ""),
-            body=pull.get("body", ""),
+            body=redact_emails(pull.get("body") or ""),
             html_url=pull["html_url"],
             created_at=pull["created_at"],
             updated_at=pull["created_at"],
@@ -713,9 +727,9 @@ async def get_contribution_comments(
     response_class=PlainTextResponse,
     dependencies=[Depends(require_user)],
 )
-# The edit step (#321) loads one file per request to fill the editor, so a
-# batch with many curves needs more headroom than a curator reading one.
-@limiter.limit("120/minute")
+# A curator previewing curves one by one. The edit step loads all of them in
+# one request with /curves (#336).
+@limiter.limit("60/minute")
 async def get_contribution_file(
     request: Request, pr_number: int, path_param: str = Query(..., alias="path")
 ) -> str:
@@ -751,5 +765,80 @@ async def get_contribution_file(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="The file could not be read from the data repository.",
         )
-    _cache.put(("file", head_sha, path_param), text, DETAIL_TTL_SECONDS)
+    if len(text) <= MAX_CACHED_FILE_BYTES:
+        _cache.put(("file", head_sha, path_param), text, DETAIL_TTL_SECONDS)
     return text
+
+
+@router.get(
+    "/contributions/{pr_number}/curves",
+    response_model=CurationCurvesResponse,
+    dependencies=[Depends(require_user)],
+)
+@limiter.limit("30/minute")
+async def get_contribution_curves(
+    request: Request, pr_number: int
+) -> CurationCurvesResponse:
+    """
+    Every curve file of the submission, with its text (#336).
+
+    This is how the edit step loads a submission: one request, and the files
+    are read from GitHub in parallel here. The answer is complete or it is a
+    502, never partial: a save deletes the curves the editor does not send
+    back, so a curve left out here would be lost on the next save. The
+    single-file route above stays for the curator's curve preview.
+    """
+    if not configured():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Curation is not enabled on this deployment.",
+        )
+    client = DataRepoClient()
+    pull, input_type = await _fetch_pull(client, pr_number)
+    await _check_access(request, client, pull, input_type)
+    head_sha = pull["head_sha"]
+    # One entry for the whole batch. One entry per file would fill the
+    # 256-entry cache with a big batch and push out everything else. Like a
+    # single file, a batch over MAX_CACHED_FILE_BYTES is not kept (#264 Low).
+    key = ("curves", pr_number, head_sha)
+    cached = _cache.get(key)
+    if cached is not None:
+        return cached
+    detail = await _build_detail(client, pull, input_type)
+    wanted = [file.path for file in detail.files if file.kind == "timeseries"]
+
+    limit = asyncio.Semaphore(MAX_PARALLEL_CALLS)
+
+    async def read(file_path: str) -> str:
+        async with limit:
+            return await client.get_file_text(file_path, ref=head_sha)
+
+    # return_exceptions: wait for every read, so none keeps running after the
+    # 502 is sent, and keep the failure next to its file for the log.
+    texts = await asyncio.gather(
+        *(read(file_path) for file_path in wanted), return_exceptions=True
+    )
+    for file_path, text in zip(wanted, texts):
+        if isinstance(text, Exception):
+            logger.warning(
+                "Curve %s of PR #%s could not be read: %s",
+                file_path,
+                pr_number,
+                describe_error(text),
+            )
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="The files could not be read from the data repository: "
+                + describe_error(text),
+            )
+    response = CurationCurvesResponse(
+        pr_number=pr_number,
+        head_sha=head_sha,
+        files=[
+            CurationCurve(path=file_path, text=text)
+            for file_path, text in zip(wanted, texts)
+        ],
+    )
+    if sum(len(text) for text in texts) <= MAX_CACHED_FILE_BYTES:
+        _cache.put(key, response, DETAIL_TTL_SECONDS)
+    return response

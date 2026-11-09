@@ -539,7 +539,8 @@ class CsvFileUploader(Uploader):
         statement = f'COPY "{table_name}" ({column_list}) FROM STDIN'
         dbapi_connection = connection.connection.driver_connection
         with dbapi_connection.cursor() as cursor:
-            cursor.copy_expert(statement, buffer)
+            with cursor.copy(statement) as copy:
+                copy.write(buffer.getvalue())
 
     @staticmethod
     def __get_filename(file_path: str) -> str:

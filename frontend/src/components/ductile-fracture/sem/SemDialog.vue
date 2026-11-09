@@ -116,7 +116,13 @@ watch(dialogOpen, (open) => {
           {{ $t('sem.dialog_title', { id: model.specimen_designation }) }}
         </span>
         <v-spacer />
-        <v-btn :icon="mdiClose" variant="text" density="comfortable" @click="dialogOpen = false" />
+        <v-btn
+          :icon="mdiClose"
+          :aria-label="$t('commons.close')"
+          variant="text"
+          density="comfortable"
+          @click="dialogOpen = false"
+        />
       </v-card-title>
       <v-divider />
       <v-card-text class="pa-4 pa-sm-6">

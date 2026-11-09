@@ -6,7 +6,7 @@ import { useCountUp } from '@/composables/useCountUp'
 import { useCountsStore } from '@/stores/counts'
 import { publicPath } from '@/utils/common'
 import { kpiSnapshot, type KpiStatus } from '@/utils/kpiSnapshot'
-import { DATABASES, TOOLS } from '@/utils/navigation'
+import { databases, tools } from '@/utils/navigation'
 import { mdiArrowRight } from '@mdi/js'
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -17,6 +17,9 @@ const OverviewMap = defineAsyncComponent(() => import('@/components/map/Overview
 
 const { t } = useI18n({ useScope: 'global' })
 const countsStore = useCountsStore()
+// Computed, so the names follow a language switch.
+const databaseList = computed(() => databases())
+const toolList = computed(() => tools())
 
 // Lab photos + credits carried over from the pre-redesign home carousel.
 const galleryImages = [
@@ -92,7 +95,7 @@ const keyNumbers = computed<{ num: number | string; label: string; status: KpiSt
     label: t('home.keyNumbers.researchers'),
     status: countsStore.usersStatus
   },
-  { num: DATABASES.length, label: t('home.keyNumbers.databases'), status: 'live' }
+  { num: databaseList.value.length, label: t('home.keyNumbers.databases'), status: 'live' }
 ])
 
 // Hero video (#404). The poster is a separate <img> on top of the <video>: a
@@ -308,7 +311,7 @@ onMounted(() => {
       </div>
       <div class="data-split">
         <div class="cat-grid">
-          <router-link v-for="db in DATABASES" :key="db.id" class="cat-tile" :to="db.to">
+          <router-link v-for="db in databaseList" :key="db.id" class="cat-tile" :to="db.to">
             <div class="cat-tile-icon"><v-icon :icon="db.icon" size="18" /></div>
             <h3 class="cat-tile-title">{{ db.name }}</h3>
             <p class="cat-tile-desc">{{ db.desc }}</p>
@@ -347,7 +350,7 @@ onMounted(() => {
             <p class="tools-panel-blurb">{{ t('home.tools.blurb') }}</p>
             <div class="tools-panel-links">
               <router-link
-                v-for="tool in TOOLS"
+                v-for="tool in toolList"
                 :key="tool.to"
                 class="btn btn-secondary btn-sm"
                 :to="tool.to"
@@ -394,16 +397,16 @@ onMounted(() => {
     <div class="logos">
       <div class="logos-eyebrow">{{ t('home.partners.eyebrow') }}</div>
       <div class="logos-items">
-        <a href="https://www.epfl.ch/labs/resslab" target="_blank" rel="noreferrer">
+        <a href="https://www.epfl.ch/labs/resslab" target="_blank" rel="noopener noreferrer">
           <img :src="publicPath + 'logo/resslab_logo_v1.svg'" alt="RESSLab" />
         </a>
-        <a href="https://www.epfl.ch" target="_blank" rel="noreferrer">
+        <a href="https://www.epfl.ch" target="_blank" rel="noopener noreferrer">
           <img :src="publicPath + 'logo/EPFL_Logo_184X53.svg'" alt="EPFL" />
         </a>
-        <a href="https://enac-it4r.epfl.ch" target="_blank" rel="noreferrer">
+        <a href="https://enac-it4r.epfl.ch" target="_blank" rel="noopener noreferrer">
           <img :src="publicPath + 'logo/logo_IT4R.svg'" alt="ENAC-IT4R" />
         </a>
-        <a href="https://www.snf.ch" target="_blank" rel="noreferrer">
+        <a href="https://www.snf.ch" target="_blank" rel="noopener noreferrer">
           <img
             :src="publicPath + 'logo/SNF_logo_standard_web_color_pos_e.svg'"
             alt="Swiss National Science Foundation"

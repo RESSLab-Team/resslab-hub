@@ -91,19 +91,42 @@ export function contributionGuideUrl(database: DatabaseId): string {
   return `${DATA_REPOSITORY_URL}/blob/main/${directory}/README.md`
 }
 
+/**
+ * The data dictionary of the database in the data repository (#241). Every
+ * folder names it after its primary CSV: `steel_braces.csv` sits next to
+ * `steel_braces_data_dictionary.csv`.
+ */
+export function dataDictionaryUrl(database: DatabaseId): string {
+  const path = CONTRIBUTION_DATABASES[database].csvPath.replace(/\.csv$/, '')
+  return `${DATA_REPOSITORY_URL}/blob/main/${path}_data_dictionary.csv`
+}
+
 /** `f_yn` → `F yn`; a readable fallback when a column has no translation. */
-function prettify(column: string): string {
+export function prettify(column: string): string {
   const spaced = column.replace(/_/g, ' ')
   return spaced.charAt(0).toUpperCase() + spaced.slice(1)
 }
 
 /**
- * Field labels come from the per-database i18n dictionaries used by the data
- * tables, which cover only the columns those tables display.
+ * The name to show for a column outside the contribution editor (specimen
+ * drawer, curation panels): its translation, else its dictionary symbol, else
+ * the prettified column name (#328). The translations come from the
+ * per-database i18n dictionaries of the data tables, which cover only the
+ * columns those tables display.
+ *
+ * The symbol can carry `<sub>`/`<sup>` markup, so the result must go through
+ * `TextSubscript` (or `stripSubSup()` for a `title` attribute), never a bare
+ * `{{ }}`. Where the contributor types the CSV header, show the raw column
+ * name instead.
  */
-export function fieldLabel(database: DatabaseId, column: string): string {
+export function fieldDisplay(database: DatabaseId, column: string, symbol?: string): string {
   const key = `${CONTRIBUTION_DATABASES[database].namespace}.${column}`
-  return i18n.global.te(key) ? i18n.global.t(key) : prettify(column)
+  if (i18n.global.te(key)) return i18n.global.t(key)
+  const trimmed = symbol?.trim()
+  // Some dictionaries write LaTeX or code (`f_{y,n}`, `\varepsilon_y`, `K_p`
+  // for nine PID gains): not readable as a label, keep the prettified name.
+  if (trimmed && !/[_\\{}]/.test(trimmed)) return trimmed
+  return prettify(column)
 }
 
 export function escapeCsv(value: string): string {

@@ -130,58 +130,89 @@ watch(
         <v-col class="mt-6" cols="12" sm="6">
           <h2 class="mb-2">{{ $t('detail.residual.structural_steel_element') }}</h2>
           <p class="mb-6">
-            <property-item :name="$t('detail.residual.profile_type')">
+            <property-item column="profile_type" :name="$t('detail.residual.profile_type')">
               {{ residual.profile_type }}
             </property-item>
-            <property-item :name="$t('detail.residual.cross_section')">
+            <property-item column="profile" :name="$t('detail.residual.cross_section')">
               {{ residual.profile }}
             </property-item>
           </p>
           <h2 class="mb-2">{{ $t('detail.residual.steel_material_designation') }}</h2>
           <p class="mb-6">
-            <property-item :name="$t('detail.residual.steel_type')">
+            <property-item column="steel" :name="$t('detail.residual.steel_type')">
               {{ residual.steel }}
             </property-item>
-            <property-item :name="$t('detail.residual.nominal_yield_stress')" unit="MPa">
+            <property-item
+              column="fy_n"
+              :name="$t('detail.residual.nominal_yield_stress')"
+              unit="MPa"
+            >
               {{ formatNumber(residual.fy_n) }}
             </property-item>
-            <property-item :name="$t('detail.residual.expected_yield_stress')" unit="MPa">
+            <property-item
+              column="fy_e"
+              :name="$t('detail.residual.expected_yield_stress')"
+              unit="MPa"
+            >
               {{ formatNumber(residual.fy_e) }}
             </property-item>
-            <property-item :name="$t('detail.residual.measured_yield_stress_flange')" unit="MPa">
+            <property-item
+              column="fy_mf"
+              :name="$t('detail.residual.measured_yield_stress_flange')"
+              unit="MPa"
+            >
               {{ formatNumber(residual.fy_mf) }}
             </property-item>
-            <property-item :name="$t('detail.residual.measured_yield_stress_web')" unit="MPa">
+            <property-item
+              column="fy_mw"
+              :name="$t('detail.residual.measured_yield_stress_web')"
+              unit="MPa"
+            >
               {{ formatNumber(residual.fy_mw) }}
             </property-item>
           </p>
           <h2 class="mb-2">{{ $t('detail.residual.cross_sectional_geometric_properties') }}</h2>
           <p class="mb-6">
-            <property-item :name="$t('detail.residual.height_of_the_cross_section')" unit="mm">
+            <property-item
+              column="h"
+              :name="$t('detail.residual.height_of_the_cross_section')"
+              unit="mm"
+            >
               {{ formatNumber(residual.h) }}
             </property-item>
-            <property-item :name="$t('detail.residual.width_of_the_cross_section')" unit="mm">
+            <property-item
+              column="b"
+              :name="$t('detail.residual.width_of_the_cross_section')"
+              unit="mm"
+            >
               {{ formatNumber(residual.b) }}
             </property-item>
             <property-item
+              column="tw"
               :name="$t('detail.residual.web_thickness_of_the_cross_section')"
               unit="mm"
             >
               {{ formatNumber(residual.tw) }}
             </property-item>
             <property-item
+              column="tf"
               :name="$t('detail.residual.flange_thickness_of_the_cross_section')"
               unit="mm"
             >
               {{ formatNumber(residual.tf) }}
             </property-item>
             <property-item
+              column="r"
               :name="$t('detail.residual.fillet_radii_of_the_cross_section')"
               unit="mm"
             >
               {{ formatNumber(residual.r) }}
             </property-item>
-            <property-item :name="$t('detail.residual.area_of_the_cross_section')" unit="mm">
+            <property-item
+              column="A"
+              :name="$t('detail.residual.area_of_the_cross_section')"
+              unit="mm"
+            >
               {{ formatNumber(residual.A) }}
             </property-item>
           </p>

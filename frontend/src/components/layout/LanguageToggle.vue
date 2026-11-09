@@ -1,19 +1,20 @@
 <script setup lang="ts">
 // Compact EN/FR language switch for the sidebar footer.
-// Persists the choice and reloads so module-scope strings (nav, mappings,
-// chart axis labels resolved via i18n.global.t at import time) re-render in
-// the chosen language without per-call reactivity wiring.
-import { SUPPORTED_LOCALES } from '@/plugins/i18n'
+// Loads the messages if needed, then swaps the locale live. This works because
+// no module keeps a translated string from import time: lists with labels are
+// functions, and components wrap them in `computed`.
+import { loadLocaleMessages, SUPPORTED_LOCALES } from '@/plugins/i18n'
 import { LocalStorageKey } from '@/utils/localStorage'
 import { useI18n } from 'vue-i18n'
 
 const { locale } = useI18n({ useScope: 'global' })
 
-function setLocale(value: string): void {
+async function setLocale(value: string): Promise<void> {
   if (value === locale.value) return
-  localStorage.setItem(LocalStorageKey.Locale, value)
+  await loadLocaleMessages(value)
   locale.value = value
-  window.location.reload()
+  localStorage.setItem(LocalStorageKey.Locale, value)
+  document.documentElement.lang = value
 }
 </script>
 

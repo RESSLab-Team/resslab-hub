@@ -12,6 +12,8 @@ backend framework upgrade on later branches.
 import io
 import tarfile
 
+import pytest
+
 from resslab_hub.data.uploader import Type, upload_one
 from resslab_hub.models.database.brace import Brace
 from resslab_hub.models.database.material import Material
@@ -82,6 +84,51 @@ async def test_braces_query_filters_rows(client, tmp_path):
     body = response.json()
     assert body["total"] == 1
     assert [item["id"] for item in body["items"]] == ["B1"]
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"sort_by": "nope"},
+        {"sort_by": "__class__", "sort_desc": "false"},
+        {"query": "nope:1"},
+        {"query": "metadata:1"},
+        {"query": "f_yn:abc"},
+        {"query": "f_yn:1<<x"},
+        {"query": "f_yn:>x"},
+        {"query": "date:1990,x"},
+    ],
+)
+async def test_braces_bad_query_or_sort_answers_400(client, tmp_path, params):
+    # An unknown key or a value that does not parse is the caller's mistake,
+    # not a server error (#264 M7).
+    _seed_braces(tmp_path)
+    response = await client.get("/braces", params=params)
+    assert response.status_code == 400
+    assert "detail" in response.json()
+
+
+async def test_braces_query_value_with_colon(client, tmp_path):
+    # Only the first ":" splits the key from the value (#265).
+    _seed_braces(tmp_path)
+    response = await client.get("/braces", params={"query": "investigator:a:b"})
+    assert response.status_code == 200
+    assert response.json()["total"] == 0
+
+
+async def test_braces_query_typed_list_and_compare(client, tmp_path):
+    _seed_braces(tmp_path)
+    # A number list on a float column, and `>` on it, compare as numbers.
+    response = await client.get("/braces", params={"query": "f_yn:355,1"})
+    assert [item["id"] for item in response.json()["items"]] == ["B1"]
+    response = await client.get("/braces", params={"query": "f_yn:>400.5"})
+    assert [item["id"] for item in response.json()["items"]] == ["B2"]
+    response = await client.get("/braces", params={"query": "displacement_count:>0"})
+    assert response.status_code == 200
+    response = await client.get(
+        "/braces", params={"sort_by": "f_yn", "sort_desc": "true"}
+    )
+    assert [item["id"] for item in response.json()["items"]] == ["B2", "B1"]
 
 
 async def test_braces_counts_group_by_field(client, tmp_path):
@@ -239,6 +286,34 @@ async def test_validate_unhandled_error_answers_json(tmp_path):
         app.dependency_overrides.pop(enforce_request_size, None)
     assert response.status_code == 500
     assert response.json() == {"detail": "Internal server error"}
+
+
+@pytest.mark.parametrize("route", ["/validate", "/upload"])
+async def test_oversized_body_without_content_length_answers_413(
+    tmp_path, monkeypatch, route
+):
+    # A chunked body has no Content-Length, so only the parsed file size can
+    # stop it (#264 M3). The header check is skipped here to play that client.
+    import httpx
+
+    from resslab_hub.main import app
+    from resslab_hub.routers import root
+
+    monkeypatch.setattr(root, "MAX_REQUEST_BYTES", 100)
+    app.dependency_overrides[root.enforce_request_size] = lambda: None
+    try:
+        transport = httpx.ASGITransport(app=app, raise_app_exceptions=False)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
+            response = await c.post(
+                route,
+                params={"type": "all-braces"},
+                files=_upload(_braces_targz(tmp_path, [{"id": "B1"}])),
+                auth=SERVICE_AUTH,
+            )
+    finally:
+        app.dependency_overrides.pop(root.enforce_request_size, None)
+    assert response.status_code == 413
+    assert response.json() == {"detail": "Upload exceeds the maximum allowed size."}
 
 
 async def test_validate_invalid_data_is_200_with_structured_issue(client, tmp_path):

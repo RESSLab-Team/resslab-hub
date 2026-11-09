@@ -26,10 +26,12 @@ watch(
   }
 )
 
-const config = computed(() => ductileFracturePlots[selected.value])
+// Computed, so the titles and axis names follow a language switch.
+const plots = computed(() => ductileFracturePlots())
+const config = computed(() => plots.value[selected.value])
 
 const optionItems = computed(() =>
-  props.options.map((id) => ({ value: id, title: ductileFracturePlots[id].title }))
+  props.options.map((id) => ({ value: id, title: plots.value[id].title }))
 )
 
 const series = ref<LineSeriesOption[]>([])
@@ -37,7 +39,7 @@ const series = ref<LineSeriesOption[]>([])
 watch(
   [() => props.model.id, selected],
   async ([id, plotId]) => {
-    const cfg = ductileFracturePlots[plotId]
+    const cfg = plots.value[plotId]
     const wantTest = !!cfg.testFetcher && cfg.hasTest(props.model)
     const wantSim = !!cfg.simulationFetcher && cfg.hasSimulation(props.model)
 

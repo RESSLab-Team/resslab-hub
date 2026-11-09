@@ -54,7 +54,13 @@ async function verify(): Promise<void> {
       <span class="un-text">{{ $t('commons.unverified.notice') }}</span>
     </div>
     <div v-if="curator" class="un-actions">
-      <a v-if="pending" class="un-link" :href="pending.pr_url" target="_blank" rel="noreferrer">
+      <a
+        v-if="pending"
+        class="un-link"
+        :href="pending.pr_url"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         {{ $t('commons.unverified.pending', { number: pending.pr_number }) }}
         <v-icon :icon="mdiOpenInNew" size="11" />
       </a>

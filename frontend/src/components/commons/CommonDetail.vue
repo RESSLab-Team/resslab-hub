@@ -3,14 +3,16 @@ import EyebrowText from '@/components/commons/EyebrowText.vue'
 import GroupedProperties from '@/components/commons/GroupedProperties.vue'
 import UnverifiedNotice from '@/components/commons/UnverifiedNotice.vue'
 import UnitLineChart from '@/components/commons/charts/UnitLineChart.vue'
+import { useDictionaryStore } from '@/stores/dictionary'
 import { useNotificationStore } from '@/stores/notification'
 import { isHttpUrl, shareCurrentUrl, specimenKey } from '@/utils/common'
 import { isUnverified } from '@/utils/curationStatus'
+import { DETAIL_DATABASE_KEY } from '@/utils/detail'
 import type { DatabaseId } from '@/utils/navigation'
 import { mdiClose, mdiOpenInNew, mdiShare } from '@mdi/js'
 import type { AxiosResponse } from 'axios'
 import type { LineSeriesOption } from 'echarts'
-import { computed, ref, watch } from 'vue'
+import { computed, provide, ref, toRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 export interface DetailCarouselItem {
@@ -57,6 +59,18 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
+
+// The rows of the drawer find their column in the data dictionary through this,
+// to show its description and unit on hover (PropertyItem's `column`, #330).
+provide(DETAIL_DATABASE_KEY, toRef(props, 'databaseId'))
+const dictionary = useDictionaryStore()
+watch(
+  () => props.databaseId,
+  (database) => {
+    if (database) void dictionary.fetch()
+  },
+  { immediate: true }
+)
 
 const route = useRoute()
 const router = useRouter()
@@ -173,7 +187,7 @@ function nextPage(): void {
           class="cd-publication-ref"
           :href="link"
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
         >
           {{ reference }}
           <v-icon :icon="mdiOpenInNew" size="11" />

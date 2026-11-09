@@ -491,7 +491,6 @@
     "reset_filters": "Reset filters",
     "download": "Download",
     "download_n": "Download ({n}/{m})",
-    "share": "Share",
     "share_specimen": "Share a link to this specimen",
     "specimen_not_found": "Specimen {id} was not found.",
     "table_showing": "Showing {from}–{to} of {total}",
@@ -504,7 +503,11 @@
     "close": "Close",
     "previous": "Previous",
     "next": "Next",
+    "select_all": "Select all",
+    "select_row": "Select {id}",
     "reset_all": "Reset all",
+    "expand_all": "Expand all",
+    "collapse_all": "Collapse all",
     "expand_filters": "Expand filters",
     "collapse_filters": "Collapse filters",
     "close_filters": "Close filters",
@@ -666,8 +669,6 @@
       "measured_yield_stress": "Measured yield stress",
       "ultimate_tensile_stress": "Ultimate tensile stress",
       "no_gusset_plates": "The configuration does not include gusset plates",
-      "not_reported": "Not Reported",
-      "no": "No",
       "chart_force_displacement": "Force Displacement",
       "axis_displacement": "Displacement [mm]",
       "axis_force": "Force [kN]"
@@ -801,9 +802,6 @@
     "continuousLink": "Continuous link",
     "connectionConfiguration1": "Connection Configuration 1",
     "connectionConfiguration5": "Connection Configuration 5",
-    "short": "Short",
-    "intermediate": "Intermediate",
-    "long": "Long",
     "hotRolled": "Hot-Rolled",
     "builtUp": "Built-up",
     "threePointBending": "3 Point Bending",
@@ -892,7 +890,8 @@
     "cdf_x_axis": "Dimple diameter [mm]",
     "dimple_load_error": "Failed to load dimple data ({error}).",
     "legend_test_data": "Test Data",
-    "legend_simulation": "Simulation"
+    "legend_simulation": "Simulation",
+    "zoom_hotspot": "Zoom on {location}"
   },
   "nav": {
     "database": "Database",
@@ -925,55 +924,12 @@
     "residual_stresses_desc": "Cross-sectional residual stresses"
   },
   "table": {
-    "connection": {
-      "title": "Connections",
-      "tooltip": {
-        "intro": "The Connections Database presents data from early 1970s on beam-to-column connections under reversed cyclic and monotonic loading. The primary data involve the global behavior of the connection and the decomposed panel zone shear versus shear distortion, deduced beam end moment versus chord rotation, whenever available.",
-        "howToUse": "How to use?",
-        "bulletFilter": "Filter the table by making selections in the various plots around the table, or by using the filters and dropdowns above the table headers.",
-        "bulletClick": "Click on a row to see the data of a single test.",
-        "bulletDownload": "Download specific tests results by selecting the test (left-most column) and click \"Download\" below.",
-        "bulletShare": "Share specific tests results by selecting the test (left-most column) and click \"Share\" below."
-      }
-    },
-    "column": {
-      "title": "Columns",
-      "tooltip": {
-        "intro": "The Columns Database presents data from early 1970s on columns under reversed cyclic and monotonic loading. The primary data involve the deduced moment chord rotation of the column and deduced column axial shortening versus chord rotation.",
-        "howToUse": "How to use?",
-        "bulletFilter": "Filter the table by making selections in the various plots around the table, or by using the filters and dropdowns above the table headers.",
-        "bulletClick": "Click on a row to see the data of a single test.",
-        "bulletDownload": "Download specific tests results by selecting the test (left-most column) and click \"Download\" below.",
-        "bulletShare": "Share specific tests results by selecting the test (left-most column) and click \"Share\" below."
-      }
-    },
-    "brace": {
-      "title": "Braces",
-      "tooltip": {
-        "intro": "The Brace Database presents data from mid 1970s on steel braces of various configurations. The braces are subjected to monotonic, symmetric cyclic and other loading histories. The primary data involve the brace axial load versus axial displacement.",
-        "howToUse": "How to use?",
-        "bulletFilter": "Filter the table by making selections in the various plots around the table, or by using the filters and dropdowns above the table headers.",
-        "bulletClick": "Click on a row to see the data of a single test.",
-        "bulletDownload": "Download specific tests results by selecting the test (left-most column) and click \"Download\" below.",
-        "bulletShare": "Share specific tests results by selecting the test (left-most column) and click \"Share\" below."
-      }
-    },
     "hss": {
-      "title": "HSS Columns",
       "columns": {
         "experimentalProgram": "Experimental Program"
-      },
-      "tooltip": {
-        "intro": "The HSS Columns Database presents data from early 1975 on columns under reversed cyclic and monotonic loading. The primary data involve the deduced moment chord rotation of the column.",
-        "howToUse": "How to use?",
-        "bulletFilter": "Filter the table by making selections in the various plots around the table, or by using the filters and dropdowns above the table headers.",
-        "bulletClick": "Click on a row to see the data of a single test.",
-        "bulletDownload": "Download specific tests results by selecting the test (left-most column) and click \"Download\" below.",
-        "bulletShare": "Share specific tests results by selecting the test (left-most column) and click \"Share\" below."
       }
     },
     "ebf": {
-      "title": "EBF Links",
       "columns": {
         "experimentalProgram": "Experimental Program",
         "experimentalProgram_short": "Program",
@@ -987,31 +943,13 @@
         "linkLength_short": "Length [mm]",
         "steelMaterial": "Steel material [MPa]",
         "steelMaterial_short": "Steel [MPa]"
-      },
-      "tooltip": {
-        "intro": "The database on eccentric braced frame (EBF) links presents data from early 1977s on EBF Links under reversed cyclic and monotonic loading. The primary data involve the deduced shear-link angle of the EBF link.",
-        "howToUse": "How to use?",
-        "bulletFilter": "Filter the table by making selections in the various plots around the table, or by using the filters and dropdowns above the table headers.",
-        "bulletClick": "Click on a row to see the data of a single test.",
-        "bulletDownload": "Download specific tests results by selecting the test (left-most column) and click \"Download\" below.",
-        "bulletShare": "Share specific tests results by selecting the test (left-most column) and click \"Share\" below."
       }
     },
     "ductile_fracture": {
-      "title": "Ductile Fracture",
       "columns": {
         "profileType": "Profile Type",
         "profileType_short": "Profile"
       }
-    },
-    "material": {
-      "title": "Cyclic Coupons"
-    },
-    "residual": {
-      "title": "Residual Stress"
-    },
-    "tensile_coupon": {
-      "title": "Tensile Coupons"
     }
   },
   "home": {
@@ -1121,6 +1059,7 @@
       "required": "Required",
       "example": "Example",
       "dictionary_hint": "{count} columns, from the data dictionary uploaded with the data. Required columns cannot be NA.",
+      "dictionary_github": "Open the dictionary CSV on GitHub",
       "search": "Filter columns…",
       "no_match": "No column matches.",
       "layout_title": "Expected layout",
@@ -1132,7 +1071,7 @@
       "title": "Experiments",
       "add_experiment": "Add an experiment manually",
       "template": "Template CSV",
-      "dictionary": "Data dictionary",
+      "dictionary": "Dictionary CSV",
       "guide": "Contribution guide",
       "untitled": "Experiment {n}",
       "issue_count": "{count} issue(s)",
@@ -1318,7 +1257,7 @@
       "edit_identity": "Edit",
       "identity_incomplete": "This account has no confirmed email address. Sign in with your email address to submit.",
       "link_github_hint": "Link GitHub on your account page to be mentioned on the pull request and follow its review.",
-      "note": "These details are recorded with the submission so curators can credit and contact you. They appear publicly in the data repository.",
+      "note": "Your name and email address are recorded with the submission so curators can credit and contact you. They appear in a public pull request on GitHub and in the history of the data repository.",
       "cancel": "Cancel",
       "confirm": "Submit"
     },
@@ -1332,12 +1271,14 @@
       "reading": "Reading {count} file(s)…",
       "loaded": "{added} experiment(s) added, {updated} updated.",
       "attached": "{count} file(s) attached.",
+      "assumed": "{count} of them had no folder to tell their type, see the report.",
       "to_resolve": "{count} file(s) need your attention, see below.",
       "nothing": "Nothing recognised in what was dropped.",
       "report_title": "Last drop",
       "dismiss": "Dismiss",
       "line_primary": "{name}: {added} experiment(s) added, {updated} updated.",
       "line_attached": "{kind}: {count} file(s) attached.",
+      "line_assumed": "{kind}: {count} file(s) had no folder to tell their type and the same headers as {other}, so they were taken as {kind}. If one is {other}, remove it from the card and attach it there.",
       "line_missing": "{kind}: {count} experiment(s) still without a file.",
       "line_candidates": "Also looked like an experiments CSV, left alone: {files}",
       "line_skipped": "Not CSV, skipped: {files}",
@@ -1365,7 +1306,6 @@
       "description": "Change the experiments or the files of an open submission. Submitting again updates the same review request.",
       "banner": "You are editing submission #{number}.",
       "loading": "Loading submission #{number}…",
-      "loading_files": "Loading {done} of {total} files…",
       "not_open": "This submission does not exist, or it is no longer open.",
       "unknown_database": "This submission is for a database the editor does not know.",
       "load_failed": "The submission could not be loaded. Check your connection and try again.",
@@ -1376,6 +1316,9 @@
       "draft_notice": "Submitting again adds a commit to the open review request on the RESSLab data repository. The checks rerun and the review goes on.",
       "conflict": "This submission changed on GitHub after you opened it. Reload the page to get the latest version, then make your changes again.",
       "not_mine": "This submission was made from another account. Only the person who submitted it can change it here."
+    },
+    "legend": {
+      "submitted": "Your submitted curves, drawn in red here and on the review page"
     }
   },
   "curation": {
@@ -1462,10 +1405,10 @@
       "brushed": "{count} brushed",
       "chart_title": "Parallel coordinates · New specimen vs cohort",
       "ghosts": "{count} ghosts + {added} new",
-      "legend_new": "New specimen · {id}",
+      "legend_new": "Submitted · {id}",
       "legend_brushed": "{count} brushed",
-      "legend_ghost": "{count} similar (ghost)",
-      "hint": "Each grey line is one existing experiment across all axes; the red line is this submission.",
+      "legend_ghost": "{count} existing (similar)",
+      "hint": "Each faded line is one experiment already in the database, across all axes; the red line is this submission.",
       "brush_hint": "Drag along an axis to brush a subset: the cohort count and the comparison curves below follow the brushed experiments. \"Zoom selection\" redraws the axes on them.",
       "criteria_hint": "Criteria defining a comparable experiment",
       "not_reported": "not reported",
@@ -1537,6 +1480,12 @@
       "only": "Mark only {id} as verified",
       "nothing_left": "Every experiment here is verified already or in a verification pull request.",
       "note": "Opens a pull request that only changes the status column. Merge it on GitHub (squash). The site shows the change after the next upload."
+    },
+    "legend": {
+      "submitted": "Submitted",
+      "submitted_value": "Submitted value",
+      "existing_compared": "Existing (compared)",
+      "existing_range": "Range already in the database"
     }
   },
   "auth": {

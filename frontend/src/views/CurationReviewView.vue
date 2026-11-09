@@ -15,7 +15,7 @@ import { useDictionaryStore } from '@/stores/dictionary'
 import { errorDetail, useVerificationStore } from '@/stores/verification'
 import { databaseIdForType, formatAge, withDerivedExperiments } from '@/utils/curation'
 import { idsSearch, STATUS_COLUMN, VERIFIED } from '@/utils/curationStatus'
-import { DATABASES } from '@/utils/navigation'
+import { databases } from '@/utils/navigation'
 import {
   mdiAlertOutline,
   mdiArrowLeft,
@@ -64,7 +64,7 @@ const state = ref<'loading' | 'ready' | 'error'>('loading')
 const loadError = ref<string | undefined>(undefined)
 
 const database = computed(() => (batch.value ? databaseIdForType(batch.value.type) : null))
-const databaseEntry = computed(() => DATABASES.find((entry) => entry.id === database.value))
+const databaseEntry = computed(() => databases().find((entry) => entry.id === database.value))
 const databaseName = computed(() => databaseEntry.value?.name ?? batch.value?.type ?? '')
 
 const selectedUid = ref(0)
@@ -338,7 +338,7 @@ async function selectIssue(uid: number, column: string): Promise<void> {
                 <v-icon :icon="mdiPencilOutline" size="14" />
                 {{ $t('curation.review.edit_on_hub') }}
               </router-link>
-              <a class="cp-btn" :href="detail.pr_url" target="_blank" rel="noreferrer">
+              <a class="cp-btn" :href="detail.pr_url" target="_blank" rel="noopener noreferrer">
                 <v-icon :icon="mdiOpenInNew" size="14" />
                 {{ $t('curation.review.open_pr') }}
               </a>
@@ -488,7 +488,7 @@ async function selectIssue(uid: number, column: string): Promise<void> {
             class="pull"
             :href="pull.pr_url"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
           >
             {{ $t('commons.unverified.pending', { number: pull.pr_number }) }}
             <v-icon :icon="mdiOpenInNew" size="13" />

@@ -1,4 +1,5 @@
 import SimpleTable from '@/components/commons/SimpleTable.vue'
+import { useDictionaryStore } from '@/stores/dictionary'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -75,5 +76,89 @@ describe('SimpleTable select all', () => {
 
     await header.trigger('change')
     expect(rowChecks().some(Boolean)).toBe(false)
+  })
+})
+
+describe('SimpleTable keyboard and labels', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    window.matchMedia = vi.fn().mockReturnValue({ matches: false }) as never
+  })
+
+  it('opens a row with Enter or Space, like a click', async () => {
+    const wrapper = mountTable()
+    const row = wrapper.findAll('tbody tr.stbl-row')[1]
+    expect(row.attributes('tabindex')).toBe('0')
+
+    await row.trigger('keydown', { key: 'Enter' })
+    await row.trigger('keydown', { key: ' ' })
+    expect(wrapper.emitted('click:row')).toEqual([[items[1]], [items[1]]])
+  })
+
+  it('does not open the row when Space ticks its checkbox', async () => {
+    const wrapper = mountTable()
+    await wrapper.find('tbody .stbl-check').trigger('keydown', { key: ' ' })
+    expect(wrapper.emitted('click:row')).toBeUndefined()
+  })
+
+  it('labels the checkboxes and the pager buttons', () => {
+    const wrapper = mountTable()
+    expect(wrapper.find('.stbl-head-titles .stbl-check').attributes('aria-label')).toBe(
+      'Select all'
+    )
+    expect(wrapper.find('tbody .stbl-check').attributes('aria-label')).toBe('Select S1')
+    const pager = wrapper.findAll('.pager-btn')
+    expect(pager[0].attributes('aria-label')).toBe('Previous')
+    expect(pager[pager.length - 1].attributes('aria-label')).toBe('Next')
+  })
+})
+
+describe('SimpleTable header menu', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    window.matchMedia = vi.fn().mockReturnValue({ matches: false }) as never
+  })
+
+  // #330: the header menu is the glossary entry of the column.
+  it('shows the dictionary description under the column title', () => {
+    const dictionary = useDictionaryStore()
+    dictionary.columns = {
+      braces: [
+        {
+          name: 'kl_r',
+          description: 'Member slenderness ratio',
+          symbol: '',
+          unit: '-',
+          type: 'Numeric',
+          example: '80',
+          nullable: true
+        }
+      ]
+    }
+    dictionary.state = 'ready'
+    const wrapper = mount(SimpleTable, {
+      props: {
+        items,
+        databaseId: 'braces',
+        columns: [
+          { value: 'kl_r', type: 'number' as const, title: 'kL/r' },
+          { value: 'name', type: 'text' as const, title: 'Name' }
+        ],
+        totalCount: items.length,
+        totalFilteredCount: items.length
+      },
+      global: {
+        plugins: [i18n.value, createVuetify()],
+        // Render the menu body in place, so its caption can be read.
+        stubs: {
+          'v-menu': { template: '<div><slot /></div>' },
+          'v-icon': true,
+          'v-dialog': true,
+          CheckboxDialog: true
+        }
+      }
+    })
+    const descriptions = wrapper.findAll('.stbl-menu-desc').map((p) => p.text())
+    expect(descriptions).toEqual(['Member slenderness ratio'])
   })
 })

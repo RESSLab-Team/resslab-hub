@@ -16,6 +16,7 @@ import {
   materialsApi,
   residualsApi
 } from '@/plugins/axios'
+import { EXISTING, RED } from '@/plugins/echarts-theme'
 import { slotColor } from '@/utils/categoryColors'
 import type { DatabaseId } from '@/utils/navigation'
 import { blendHex } from '@/utils/palette'
@@ -142,21 +143,34 @@ export function fetchCurve(database: DatabaseId, kindKey: string, id: string): P
   return promise
 }
 
-// ── overlay colours ────────────────────────────────────────────────────────
+// ── submitted vs existing (#268) ──────────────────────────────────────────
+// One convention on the review screen and the contribution preview: what was
+// submitted is drawn in red (--data-submitted), full weight; what is already in
+// the database is faded toward the neutral grey (--data-existing) and thinner,
+// so it stays behind. The parallel plot uses the same pair.
+
+/** A submitted curve or row. Canvas copy of --data-submitted. */
+export const SUBMITTED_COLOR = RED
+/** Data already in the database. Canvas copy of --data-existing. */
+export const EXISTING_COLOR = EXISTING
+/** Stroke of a submitted curve. */
+export const SUBMITTED_WIDTH = 1.6
+/** Stroke of an existing curve: thinner, so the submission leads. */
+export const EXISTING_WIDTH = 0.9
+/** Opacity of an existing curve on the response-curve frames. */
+export const EXISTING_OPACITY = 0.85
+
 // Every cohort curve used to be the same grey, so with several of them on a
 // frame a curator could not tell which chip was which line (andskia, #268).
-// Each overlay now takes its own slot of the dashboard palette, softened a
-// touch toward grey: the hues stay Okabe-Ito (colour-blind safe) and still
-// read as their dashboard colour, while the submitted curve keeps the visual
-// lead in brand red. A stronger blend (it started at 0.45) turned every hue
-// into the same grey-ish line and the chips could not be told apart.
+// Each overlay keeps its own slot of the dashboard palette (Okabe-Ito, colour
+// blind safe), mixed toward the existing-data grey so it reads as "existing"
+// next to the red submission. Too strong a blend turns every hue into the same
+// grey line and the chips cannot be told apart again.
 
-/** Grey the overlay hues are mixed toward. */
-const OVERLAY_GREY = '#9E9E9E'
-/** How far toward that grey: a touch, not a wash. */
-const OVERLAY_BLEND = 0.2
+/** How far the overlay hues go toward the existing-data grey. */
+const OVERLAY_BLEND = 0.55
 
 /** Colour of the nth cohort overlay on a frame. */
 export function ghostColor(index: number): string {
-  return blendHex(slotColor(index), OVERLAY_GREY, OVERLAY_BLEND)
+  return blendHex(slotColor(index), EXISTING_COLOR, OVERLAY_BLEND)
 }

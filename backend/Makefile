@@ -9,10 +9,15 @@ help: ## Show available targets
 
 # `benchmark` collides with the benchmark/ directory; mark targets phony so make
 # always runs the recipe instead of treating the directory as an up-to-date file.
-.PHONY: install dev test test-cov benchmark bench-rows lint update sample-data
+.PHONY: install swot-update dev test test-cov benchmark bench-rows lint lint-check sample-data
 
 install:                ## uv sync
 	uv sync
+
+swot-update:            ## bump pyswot to the latest JetBrains swot snapshot (academic emails), print its swot commit
+	uv lock --upgrade-package pyswot
+	uv sync
+	@uv run python -c "import pyswot.vendor.tlds as m; print(open(m.__file__).read().splitlines()[1])"
 
 dev:                    ## uvicorn with reload on BACKEND_PORT (default 8000); log level info, debug would log every SQL statement
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run uvicorn resslab_hub.main:app --reload --log-level info --port $(BACKEND_PORT)
@@ -38,17 +43,19 @@ BENCH_OUT ?= .benchmark-tmp
 bench-rows:             ## resample a real CSV up to BENCH_ROWS for the dashboard benchmark; BENCH_DB=connections BENCH_OUT=.benchmark-tmp-300
 	uv run python -m benchmark.bootstrap_rows $(BENCH_DB) --rows $(BENCH_ROWS) --out $(BENCH_OUT)
 
-lint:                   ## ruff + ruff-format through pre-commit, all files
-	uv run pre-commit run --all-files
+lint:                   ## ruff check --fix + ruff format, all files
+	uv run ruff check --fix .
+	uv run ruff format .
+
+lint-check:             ## same as lint, but only checks (CI and pre-push)
+	uv run ruff check .
+	uv run ruff format --check --diff .
 
 EXPERIMENTS ?= 15
 OUTLIERS ?= 3
 sample-data:            ## test batches for /contribute/new, rows from real DB records, curves from the data repo; EXPERIMENTS=15 OUTLIERS=3
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python ../sample-data/generate.py \
 		--experiments $(EXPERIMENTS) --outliers $(OUTLIERS) --data-dir $(RESSLAB_DATA_DIR)
-
-update:                 ## pre-commit autoupdate
-	pre-commit autoupdate
 
 validate-data:          ## list the validate-<type> targets
 	@echo "Usage: make validate-<type>, with the backend running on BACKEND_PORT"
@@ -70,8 +77,10 @@ validate-%:             ## tar one folder of the data repo and POST it to /valid
 	tar --exclude-vcs -czf $(TAR_NAME) -C $(RESSLAB_DATA_DIR) $(DIRECTORY)
 	@echo ""
 	@echo "Executing validation..."
-	$(eval API_PASSWORD=$(shell DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -c "from resslab_hub.config import settings; print(settings.api_password)"))
-	curl -sS -F "file=@$(TAR_NAME)" -u user:$(API_PASSWORD) "http://localhost:$(BACKEND_PORT)/validate?type=all-$*" | jq .
+	@# The password goes to curl as a config line on stdin (-K -): never in
+	@# argv, where `ps` shows it, nor in the echoed recipe (#264 Low).
+	@DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -c "import json; from resslab_hub.config import settings; print('user = ' + json.dumps('user:' + settings.api_password, ensure_ascii=False))" \
+		| curl -sS -K - -F "file=@$(TAR_NAME)" "http://localhost:$(BACKEND_PORT)/validate?type=all-$*" | jq .
 	@echo ""
 	@echo "Cleaning up temporary file..."
 	rm -f $(TAR_NAME)
@@ -143,9 +152,6 @@ transform-data:         ## regenerate the frontend section CSVs from the data re
 	uv run python data/hss_csv_transformer.py aisc $(RESSLAB_DATA_DIR)/hss_columns/sections/aisc.csv ../frontend/src/assets/hss/hss-aisc-sections.csv
 	uv run python data/hss_csv_transformer.py european $(RESSLAB_DATA_DIR)/hss_columns/sections/european.csv ../frontend/src/assets/hss/hss-european-sections.csv
 	uv run python data/hss_csv_transformer.py japanese $(RESSLAB_DATA_DIR)/hss_columns/sections/japanese.csv ../frontend/src/assets/hss/hss-japanese-sections.csv
-
-analyze-data:           ## old CSV analyzer from before the data dictionaries, kept for local checks
-	uv run python -m data.analyzer $(RESSLAB_DATA_DIR)/connections/connections.csv $(RESSLAB_DATA_DIR)/material/cyclic_coupons/steel_material.csv $(RESSLAB_DATA_DIR)/columns/steel_columns.csv $(RESSLAB_DATA_DIR)/braces/steel_braces.csv $(RESSLAB_DATA_DIR)/residual_stresses/residual_stresses.csv $(RESSLAB_DATA_DIR)/hss_columns/hss_columns.csv
 
 generate-model:         ## regenerate ORM models and Pydantic schemas from the data dictionaries
 	uv run python data/generate_model.py \

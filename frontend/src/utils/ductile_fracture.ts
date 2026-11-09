@@ -25,52 +25,57 @@ export interface DuctileFracturePlotConfig {
   hasSimulation: (m: DuctileFractureModel) => boolean
 }
 
-export const ductileFracturePlots: Record<DuctileFracturePlotId, DuctileFracturePlotConfig> = {
-  'force-axial': {
-    id: 'force-axial',
-    title: i18n.global.t('enum.forceAxialElongation'),
-    xAxisName: i18n.global.t('enum.axialElongationMm'),
-    yAxisName: i18n.global.t('enum.forceKn'),
-    testFetcher: (id) => ductileFractureApi.getDuctileFracturesForceElongation(id),
-    simulationFetcher: (id) => ductileFractureApi.getDuctileFracturesForceElongationSimulation(id),
-    hasTest: (m) => m.force_elongation_count > 0,
-    hasSimulation: (m) => m.force_elongation_simulation_count > 0
-  },
-  'force-radial': {
-    id: 'force-radial',
-    title: i18n.global.t('enum.forceRadialElongation'),
-    xAxisName: i18n.global.t('enum.radialElongationMm'),
-    yAxisName: i18n.global.t('enum.forceKn'),
-    testFetcher: (id) => ductileFractureApi.getDuctileFracturesForceRadial(id),
-    simulationFetcher: (id) => ductileFractureApi.getDuctileFracturesForceRadialSimulation(id),
-    hasTest: (m) => m.force_radial_count > 0,
-    hasSimulation: (m) => m.force_radial_simulation_count > 0
-  },
-  triax: {
-    id: 'triax',
-    title: i18n.global.t('enum.triaxialityHistory'),
-    xAxisName: i18n.global.t('enum.axialElongationMm'),
-    yAxisName: i18n.global.t('enum.triaxiality'),
-    simulationFetcher: (id) => ductileFractureApi.getDuctileFracturesTriaxSimulation(id),
-    hasTest: () => false,
-    hasSimulation: (m) => m.triax_simulation_count > 0
-  },
-  lode: {
-    id: 'lode',
-    title: i18n.global.t('enum.lodeAngleHistory'),
-    xAxisName: i18n.global.t('enum.axialElongationMm'),
-    yAxisName: i18n.global.t('enum.lodeAngle'),
-    simulationFetcher: (id) => ductileFractureApi.getDuctileFracturesLodeSimulation(id),
-    hasTest: () => false,
-    hasSimulation: (m) => m.lode_simulation_count > 0
-  },
-  epeq: {
-    id: 'epeq',
-    title: i18n.global.t('enum.equivalentPlasticStrainHistory'),
-    xAxisName: i18n.global.t('enum.axialElongationMm'),
-    yAxisName: 'εp',
-    simulationFetcher: (id) => ductileFractureApi.getDuctileFracturesEpeqSimulation(id),
-    hasTest: () => false,
-    hasSimulation: (m) => m.epeq_simulation_count > 0
+/** A function, not a constant, so the titles follow the current locale. */
+export function ductileFracturePlots(): Record<DuctileFracturePlotId, DuctileFracturePlotConfig> {
+  const t = i18n.global.t
+  return {
+    'force-axial': {
+      id: 'force-axial',
+      title: t('enum.forceAxialElongation'),
+      xAxisName: t('enum.axialElongationMm'),
+      yAxisName: t('enum.forceKn'),
+      testFetcher: (id) => ductileFractureApi.getDuctileFracturesForceElongation(id),
+      simulationFetcher: (id) =>
+        ductileFractureApi.getDuctileFracturesForceElongationSimulation(id),
+      hasTest: (m) => m.force_elongation_count > 0,
+      hasSimulation: (m) => m.force_elongation_simulation_count > 0
+    },
+    'force-radial': {
+      id: 'force-radial',
+      title: t('enum.forceRadialElongation'),
+      xAxisName: t('enum.radialElongationMm'),
+      yAxisName: t('enum.forceKn'),
+      testFetcher: (id) => ductileFractureApi.getDuctileFracturesForceRadial(id),
+      simulationFetcher: (id) => ductileFractureApi.getDuctileFracturesForceRadialSimulation(id),
+      hasTest: (m) => m.force_radial_count > 0,
+      hasSimulation: (m) => m.force_radial_simulation_count > 0
+    },
+    triax: {
+      id: 'triax',
+      title: t('enum.triaxialityHistory'),
+      xAxisName: t('enum.axialElongationMm'),
+      yAxisName: t('enum.triaxiality'),
+      simulationFetcher: (id) => ductileFractureApi.getDuctileFracturesTriaxSimulation(id),
+      hasTest: () => false,
+      hasSimulation: (m) => m.triax_simulation_count > 0
+    },
+    lode: {
+      id: 'lode',
+      title: t('enum.lodeAngleHistory'),
+      xAxisName: t('enum.axialElongationMm'),
+      yAxisName: t('enum.lodeAngle'),
+      simulationFetcher: (id) => ductileFractureApi.getDuctileFracturesLodeSimulation(id),
+      hasTest: () => false,
+      hasSimulation: (m) => m.lode_simulation_count > 0
+    },
+    epeq: {
+      id: 'epeq',
+      title: t('enum.equivalentPlasticStrainHistory'),
+      xAxisName: t('enum.axialElongationMm'),
+      yAxisName: 'εp',
+      simulationFetcher: (id) => ductileFractureApi.getDuctileFracturesEpeqSimulation(id),
+      hasTest: () => false,
+      hasSimulation: (m) => m.epeq_simulation_count > 0
+    }
   }
 }

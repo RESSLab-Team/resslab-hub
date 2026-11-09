@@ -1,7 +1,6 @@
+import re
 from enum import Enum
-
-from fastapi import FastAPI
-from fastapi.routing import APIRoute
+from urllib.parse import quote
 
 
 class MediaType(Enum):
@@ -23,17 +22,14 @@ class HttpHeader(Enum):
 def attachment(filename: str) -> str:
     """
     https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
-    """
-    return f'attachment; filename="{filename}"'
 
-
-def use_route_names_as_operation_ids(app: FastAPI) -> None:
+    The name can come from a query (#264 Low). A quote, a `;` or a line break
+    in it must not end the value or add a header field. So `filename` gets a
+    plain ASCII copy, and `filename*` the real name, percent-encoded
+    (RFC 6266), which browsers prefer when they read it.
     """
-    Simplify operation IDs so that generated API clients have simpler function
-    names.
-    Should be called only after all routes have been added.
-    https://fastapi.tiangolo.com/advanced/path-operation-advanced-configuration/#openapi-operationid
-    """
-    for route in app.routes:
-        if isinstance(route, APIRoute):
-            route.operation_id = route.name
+    ascii_name = re.sub(r"[^A-Za-z0-9._-]+", "_", filename) or "download"
+    return (
+        f'attachment; filename="{ascii_name}"; '
+        f"filename*=UTF-8''{quote(filename, safe='')}"
+    )

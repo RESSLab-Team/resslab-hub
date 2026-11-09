@@ -7,6 +7,7 @@ import {
   useContributionStore
 } from '@/stores/contribution'
 import { useAuthStore } from '@/stores/auth'
+import { useCurationStore } from '@/stores/curation'
 import { useDictionaryStore, type DictColumn } from '@/stores/dictionary'
 import { buildCsv, CONTRIBUTION_DATABASES } from '@/utils/contribution'
 import type { IntakePlan } from '@/utils/intake'
@@ -30,13 +31,13 @@ vi.mock('@/utils/tar', () => ({
 }))
 
 // The automatic check's request: answered clean, counted by the draft tests.
-// `getContribution` / `getContributionFile` back the curation store, which the
-// editor asks for a submission to load.
+// `getContribution` / `getContributionCurves` back the curation store, which
+// the editor asks for a submission to load.
 vi.mock('@/plugins/axios', () => ({
   defaultApi: {
     validateData: vi.fn(async () => ({ data: { valid: true, results: [] } })),
     getContribution: vi.fn(),
-    getContributionFile: vi.fn()
+    getContributionCurves: vi.fn()
   }
 }))
 
@@ -505,7 +506,12 @@ describe('contribution store — bulk intake', () => {
       plan({
         primary: {
           file: intakeFile('braces/steel_braces.csv'),
-          table: { rows: [{ id: 'B1' }, { id: 'B2' }], matched: ['id'], unknown: [], missing: [] }
+          table: {
+            rows: [{ id: 'B1' }, { id: 'B2' }, { id: 'B3' }],
+            matched: ['id'],
+            unknown: [],
+            missing: []
+          }
         },
         matched: [
           {
@@ -513,6 +519,13 @@ describe('contribution store — bulk intake', () => {
             kind: FORCE_DISPLACEMENT,
             id: 'B2',
             text: CURVE
+          },
+          {
+            file: intakeFile('B3.csv'),
+            kind: FORCE_DISPLACEMENT,
+            id: 'B3',
+            text: CURVE,
+            assumed: true
           }
         ],
         pending: [
@@ -530,9 +543,10 @@ describe('contribution store — bulk intake', () => {
     )
     expect(summary).toMatchObject({
       primaryName: 'steel_braces.csv',
-      added: 2,
+      added: 3,
       updated: 0,
-      attached: { force_displacement: 1 },
+      attached: { force_displacement: 2 },
+      assumed: { force_displacement: 1 },
       skipped: ['notes.xlsx'],
       noise: 2
     })
@@ -1022,15 +1036,25 @@ describe('contribution store — editing an open submission', () => {
     ]
   } as unknown as CurationDetail
 
+  /** What `/curves` answers: every curve on the branch, at the detail's head. */
+  const CURVES = {
+    pr_number: 7,
+    head_sha: 'head-sha',
+    files: [
+      { path: 'braces/force_displacement/B1.csv', text: CURVE },
+      { path: 'braces/force_displacement/B2.csv', text: CURVE }
+    ]
+  }
+
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.mocked(postContribution).mockReset()
     vi.mocked(putContribution).mockReset()
     vi.mocked(defaultApi.validateData).mockClear()
     vi.mocked(defaultApi.getContribution).mockReset()
-    vi.mocked(defaultApi.getContributionFile).mockReset()
+    vi.mocked(defaultApi.getContributionCurves).mockReset()
     vi.mocked(defaultApi.getContribution).mockResolvedValue({ data: DETAIL } as never)
-    vi.mocked(defaultApi.getContributionFile).mockResolvedValue({ data: CURVE } as never)
+    vi.mocked(defaultApi.getContributionCurves).mockResolvedValue({ data: CURVES } as never)
   })
 
   /** Sign the visitor in with a role, the way the session would. */
@@ -1048,7 +1072,7 @@ describe('contribution store — editing an open submission', () => {
     expect(store.loadStatus).toBe('error')
     expect(store.loadError).toBe('not_mine')
     expect(store.editing).toBe(false)
-    expect(defaultApi.getContributionFile).not.toHaveBeenCalled()
+    expect(defaultApi.getContributionCurves).not.toHaveBeenCalled()
   })
 
   it("loads someone else's submission when the visitor is a curator", async () => {
@@ -1108,8 +1132,8 @@ describe('contribution store — editing an open submission', () => {
     expect(store.editing).toBe(true)
     expect(store.skippedFiles).toEqual([])
 
-    // Only the time-series file is fetched, and it lands on its own experiment.
-    expect(vi.mocked(defaultApi.getContributionFile)).toHaveBeenCalledTimes(1)
+    // Every curve comes in one request, and each lands on its own experiment.
+    expect(vi.mocked(defaultApi.getContributionCurves)).toHaveBeenCalledTimes(1)
     const attached = store.timeSeries[`${store.rows[0].uid}:force_displacement`]
     expect(attached?.name).toBe('B1.csv')
     expect(attached?.content).toBe(CURVE)
@@ -1122,25 +1146,43 @@ describe('contribution store — editing an open submission', () => {
     expect(store.isDraft(store.rows[0].uid)).toBe(false)
   })
 
-  it('counts the files as they land while loading', async () => {
+  it('loads every curve of a batch in one request', async () => {
     withEveryCurve()
     const store = readyStore()
-    const resolvers: ((value: never) => void)[] = []
-    vi.mocked(defaultApi.getContributionFile).mockImplementation(
-      () => new Promise((resolve) => resolvers.push(resolve as never)) as never
-    )
+    await store.loadSubmission(7)
 
-    const loading = store.loadSubmission(7)
-    await vi.waitFor(() => expect(resolvers).toHaveLength(2))
-    expect(store.loadProgress).toEqual({ done: 0, total: 2 })
-
-    resolvers[0]({ data: CURVE } as never)
-    await vi.waitFor(() => expect(store.loadProgress?.done).toBe(1))
-
-    resolvers[1]({ data: CURVE } as never)
-    await loading
     expect(store.loadStatus).toBe('ready')
-    expect(store.loadProgress).toBeNull()
+    expect(vi.mocked(defaultApi.getContributionCurves)).toHaveBeenCalledTimes(1)
+    for (const row of store.rows) {
+      expect(store.timeSeries[`${row.uid}:force_displacement`]?.content).toBe(CURVE)
+    }
+  })
+
+  it('refuses to open when a curve did not come back', async () => {
+    // Opening without it would delete it from the branch on the next save.
+    withEveryCurve()
+    vi.mocked(defaultApi.getContributionCurves).mockResolvedValue({
+      data: { ...CURVES, files: CURVES.files.slice(0, 1) }
+    } as never)
+    const store = readyStore()
+    await store.loadSubmission(7)
+
+    expect(store.loadStatus).toBe('error')
+    expect(store.loadError).toBe('load_failed')
+    expect(store.editing).toBe(false)
+  })
+
+  it('refuses to open when the branch moved between the two reads', async () => {
+    vi.mocked(defaultApi.getContributionCurves).mockResolvedValue({
+      data: { ...CURVES, head_sha: 'newer-sha' }
+    } as never)
+    const store = readyStore()
+    await store.loadSubmission(7)
+
+    expect(store.loadStatus).toBe('error')
+    expect(store.loadError).toBe('load_failed')
+    // The stale detail is forgotten, so trying again reads the new head.
+    expect(useCurationStore().details.has(7)).toBe(false)
   })
 
   it('keeps the edit target while the batch is edited', async () => {

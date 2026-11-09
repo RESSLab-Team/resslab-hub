@@ -130,6 +130,8 @@ Change one here and the whole app follows.
 | `--table-gridline`, `--table-row-stripe`       | `#ededed`, `#fafafa`      | data tables only, tuned lighter than the hairline on purpose |
 | `--primary`, `--primary-hover`, `--on-primary` | red, dark red, white      | the primary action                                           |
 | `--link`, `--link-hover`                       | black, red                |                                                              |
+| `--data-submitted`                             | red (`--primary`)         | submitted data on the curation review and the contribution   |
+| `--data-existing`                              | gray-500                  | data already in the database, drawn behind a submission      |
 | `--font-sans`, `--font-mono`                   | Suisse Int'l, system mono |                                                              |
 | `--radius`, `--radius-lg`, `--radius-sm`       | `0`                       | see "square corners" below                                   |
 | `--focus-ring`                                 | red at 25%                | keyboard focus                                               |
@@ -179,6 +181,12 @@ The page-level scaffolds are `DashboardShell.vue`, `PageHeader.vue` and
   does not. Underline only where you opt back in.
 - **Red is reserved.** The primary action, the active nav item, the eyebrow, and
   chart brush bands. It is never a series colour.
+- **Submitted vs existing data** (#268): on the curation review and the
+  contribution preview, what was submitted is `--data-submitted` (red, full
+  weight) and what is already in the database is `--data-existing` (faded
+  grey, thinner). Never a raw red or grey. Canvas code takes `SUBMITTED_COLOR`
+  and `EXISTING_COLOR` from `components/curation/curves.ts`, and
+  `DataLegend.vue` names the pair.
 - **Categorical chart colours** come from the Okabe-Ito slots in
   `utils/palette.ts`, handed out once per field by
   `useDataset(...).colorFor(field)`. Never colour a series from its position in
@@ -192,15 +200,16 @@ Vuetify's theme wants plain hex (it splits it into the rgb triplet behind
 `--v-theme-*`), and ECharts draws on a canvas where `var(--epfl-red)` resolves
 to nothing.
 
-| Meaning     | Token             | `plugins/vuetify.ts` | `plugins/echarts-theme.ts` |
-| ----------- | ----------------- | -------------------- | -------------------------- |
-| brand red   | `--epfl-red`      | `primary`            | `RED`                      |
-| leman       | `--epfl-leman`    | `accent`             |                            |
-| soft black  | `--epfl-black`    |                      | `INK`                      |
-| hairline    | `--epfl-gray-300` |                      | `AXIS`                     |
-| tick ink    | `--epfl-gray-500` |                      | `TICK`                     |
-| dark ground | dark `--bg`       | dark `background`    |                            |
-| brand face  | `--font-sans`     |                      | `SANS`                     |
+| Meaning       | Token             | `plugins/vuetify.ts` | `plugins/echarts-theme.ts` |
+| ------------- | ----------------- | -------------------- | -------------------------- |
+| brand red     | `--epfl-red`      | `primary`            | `RED`                      |
+| leman         | `--epfl-leman`    | `accent`             |                            |
+| soft black    | `--epfl-black`    |                      | `INK`                      |
+| hairline      | `--epfl-gray-300` |                      | `AXIS`                     |
+| tick ink      | `--epfl-gray-500` |                      | `TICK`                     |
+| dark ground   | dark `--bg`       | dark `background`    |                            |
+| existing data | `--data-existing` |                      | `EXISTING`                 |
+| brand face    | `--font-sans`     |                      | `SANS`                     |
 
 Change one, change the others. `plugins/__tests__/designTokens.spec.ts` reads
 the token file and fails if they drift, so you will find out at test time

@@ -39,7 +39,7 @@ vi.mock('@/plugins/axios', () => ({
   defaultApi: {
     validateData: vi.fn(async () => ({ data: { valid: true, results: [] } })),
     getContribution: vi.fn(),
-    getContributionFile: vi.fn()
+    getContributionCurves: vi.fn()
   }
 }))
 
@@ -156,7 +156,7 @@ describe('ContributeView after a submit (#403)', () => {
     }) as never
     vi.mocked(postContribution).mockReset()
     vi.mocked(defaultApi.getContribution).mockReset()
-    vi.mocked(defaultApi.getContributionFile).mockReset()
+    vi.mocked(defaultApi.getContributionCurves).mockReset()
     vi.mocked(postContribution).mockResolvedValue({
       pr_url: PR_URL,
       pr_number: 7,
@@ -164,7 +164,13 @@ describe('ContributeView after a submit (#403)', () => {
       head_sha: 'sha-1'
     })
     vi.mocked(defaultApi.getContribution).mockResolvedValue({ data: DETAIL } as never)
-    vi.mocked(defaultApi.getContributionFile).mockResolvedValue({ data: CURVE } as never)
+    vi.mocked(defaultApi.getContributionCurves).mockResolvedValue({
+      data: {
+        pr_number: 7,
+        head_sha: 'sha-1',
+        files: [{ path: 'braces/force_displacement/B1.csv', text: CURVE }]
+      }
+    } as never)
   })
 
   it('shows the same submission when the page is refreshed', async () => {

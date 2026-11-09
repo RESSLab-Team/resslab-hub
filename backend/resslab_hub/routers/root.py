@@ -65,6 +65,21 @@ def enforce_request_size(request: Request) -> None:
             pass
 
 
+def reject_oversized(file: UploadFile) -> None:
+    """Refuse an uploaded file over the cap, once the body is parsed (#264 M3).
+
+    The header check above only stops an honest client. A chunked body has
+    no Content-Length, and a client can lie in it: this one checks what was
+    really received. Starlette spools the file to disk while it parses, so
+    the size of that spool is bounded only by the ingress body limit.
+    """
+    if file.size is not None and file.size > MAX_REQUEST_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="Upload exceeds the maximum allowed size.",
+        )
+
+
 @router.get("/", response_model=Info)
 async def root() -> Info:
     """
@@ -109,6 +124,7 @@ async def create_upload_file(
     _: None = Depends(enforce_request_size),
 ):
     try:
+        reject_oversized(file)
         with TemporaryDirectory() as tmpdir:
             safe_extract_targz(file.file, tmpdir)
             # In a thread: an upload takes minutes, and the event loop must
@@ -137,6 +153,8 @@ async def create_upload_file(
         )
     except ArchiveError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    except HTTPException:
+        raise
     except Exception:
         # The exception text can hold paths, SQL or settings: log it, and
         # send the caller a fixed sentence (#264 H3).
@@ -240,6 +258,7 @@ async def validate_data(
     _: None = Depends(enforce_request_size),
 ):
     try:
+        reject_oversized(file)
         with TemporaryDirectory() as tmpdir:
             safe_extract_targz(file.file, tmpdir)
 
@@ -269,6 +288,8 @@ async def validate_data(
         )
     except ArchiveError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    except HTTPException:
+        raise
     except Exception:
         # The exception text can hold paths, SQL or settings: log it, and
         # send the caller a fixed sentence (#264 H3).

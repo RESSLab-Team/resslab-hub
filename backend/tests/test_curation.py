@@ -18,7 +18,11 @@ from resslab_hub.contributions.projection import (
     type_for_branch,
     type_for_files,
 )
-from resslab_hub.contributions.submission import Contributor, build_pr_body
+from resslab_hub.contributions.submission import (
+    Contributor,
+    build_pr_body,
+    redact_emails,
+)
 from resslab_hub.contributions.trailers import build_commit_message
 from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import ValidationResult
@@ -27,6 +31,7 @@ from resslab_hub.routers.curation import (
     _parse_pr_body,
     get_contribution,
     get_contribution_comments,
+    get_contribution_curves,
     get_contribution_file,
     get_contribution_validation,
     list_contributions,
@@ -155,6 +160,8 @@ class FakeClient:
         self.comments = comments if comments is not None else list(PR_COMMENTS)
         #: Counts GitHub round-trips so a test can prove the TTL cache holds.
         self.comment_calls = 0
+        #: Every path read with get_file_text, in call order.
+        self.text_calls = []
         # (path, ref) -> text; ref None = base branch.
         self.texts = (
             texts
@@ -185,6 +192,7 @@ class FakeClient:
         return self.commits
 
     async def get_file_text(self, path, ref=None):
+        self.text_calls.append(path)
         return self.texts[(path, ref)]
 
     async def list_issue_comments(self, number):
@@ -284,6 +292,27 @@ def test_parse_pr_body_roundtrip_with_update_help():
     assert count == 3
     assert contributor.name == "Ada Lovelace"
     assert contributor.institution == "EPFL"
+
+
+def test_redact_emails_keeps_what_the_review_reads():
+    """The API serves the body without the email (#264 M6)."""
+    raw = build_pr_body(CONTRIBUTOR, Type.ALL_BRACE, 3, 2, ["w1"])
+    redacted = redact_emails(raw)
+    assert "ada@example.edu" not in redacted
+    assert "- **Contributor**: Ada Lovelace, EPFL" in redacted
+    # The parse reads the raw body, as the router does.
+    _, contributor = _parse_pr_body(raw)
+    assert contributor.name == "Ada Lovelace"
+    assert contributor.institution == "EPFL"
+
+
+def test_redact_emails_on_a_verification_body():
+    from resslab_hub.contributions.verification import build_verification_body
+
+    body = build_verification_body(
+        CONTRIBUTOR, Type.ALL_BRACE, ["B1"], "braces/steel_braces.csv"
+    )
+    assert "- **Verified by**: Ada Lovelace\n" in redact_emails(body)
 
 
 def test_parse_pr_body_tolerates_free_text():
@@ -476,6 +505,8 @@ async def test_detail_reconstructs_batch(monkeypatch):
     assert detail.submitted_at == "2026-08-01T12:00:00+00:00"
     assert detail.dismissed_warnings == ["Value is far outside the range"]
     assert detail.reconstruction_warning is None
+    assert "Ada Lovelace" in detail.body
+    assert "@example.edu" not in detail.body
 
 
 async def test_detail_reads_a_legacy_record(monkeypatch):
@@ -585,6 +616,7 @@ async def _read_everything(request):
     await get_contribution_validation(request, 7)
     await get_contribution_comments(request, 7)
     await get_contribution_file(request, 7, "braces/force_displacement/B9.csv")
+    await get_contribution_curves(request, 7)
 
 
 @pytest.fixture
@@ -609,6 +641,7 @@ async def test_anyone_else_is_refused(monkeypatch, no_validation, user):
         get_contribution_validation(make_request(user), 7),
         get_contribution_comments(make_request(user), 7),
         get_contribution_file(make_request(user), 7, "braces/steel_braces.csv"),
+        get_contribution_curves(make_request(user), 7),
     ):
         with pytest.raises(HTTPException) as caught:
             await call
@@ -715,6 +748,87 @@ async def test_files_serves_only_submission_files(monkeypatch):
     assert caught.value.status_code == 404
 
 
+async def test_files_cache_keeps_small_texts_only(monkeypatch):
+    """A big file text is fetched each time, not kept in memory (#264 Low)."""
+    client = FakeClient()
+    reads = []
+    real_get_file_text = client.get_file_text
+
+    async def counting_get_file_text(path, ref=None):
+        reads.append(path)
+        return await real_get_file_text(path, ref)
+
+    client.get_file_text = counting_get_file_text
+    use_client(monkeypatch, client)
+    path = "braces/force_displacement/B9.csv"
+
+    for _ in range(2):
+        assert await get_contribution_file(make_request(), 7, path) == CURVE_CSV
+    assert reads.count(path) == 1
+
+    curation._cache.drop(("file", "head-sha", path))
+    monkeypatch.setattr(curation, "MAX_CACHED_FILE_BYTES", len(CURVE_CSV) - 1)
+    for _ in range(2):
+        assert await get_contribution_file(make_request(), 7, path) == CURVE_CSV
+    assert reads.count(path) == 3
+
+
+async def test_curves_reads_every_curve_once(monkeypatch):
+    """The edit step's loader (#336): every curve in one answer, nothing else."""
+    client = FakeClient(
+        files=PR_FILES
+        + [{"path": "braces/force_displacement/B10.csv", "status": "added"}]
+    )
+    client.texts[("braces/force_displacement/B10.csv", "head-sha")] = "u,F\n0,1\n"
+    use_client(monkeypatch, client)
+
+    response = await get_contribution_curves(make_request(), 7)
+
+    assert response.pr_number == 7
+    assert response.head_sha == "head-sha"
+    assert [(f.path, f.text) for f in response.files] == [
+        ("braces/force_displacement/B9.csv", CURVE_CSV),
+        ("braces/force_displacement/B10.csv", "u,F\n0,1\n"),
+    ]
+    curve_reads = [p for p in client.text_calls if "/force_displacement/" in p]
+    assert sorted(curve_reads) == [
+        "braces/force_displacement/B10.csv",
+        "braces/force_displacement/B9.csv",
+    ]
+
+    # The second open of the same head is served from the cache.
+    calls = len(client.text_calls)
+    again = await get_contribution_curves(make_request(), 7)
+    assert again == response
+    assert len(client.text_calls) == calls
+
+
+async def test_curves_fail_whole_when_one_curve_is_missing(monkeypatch):
+    """Never a partial answer: the next save would delete the missing curve."""
+    client = FakeClient(
+        files=PR_FILES
+        + [{"path": "braces/force_displacement/B10.csv", "status": "added"}]
+    )
+    # B10 is in the pull request but its read fails (the fake raises KeyError).
+    use_client(monkeypatch, client)
+
+    with pytest.raises(HTTPException) as caught:
+        await get_contribution_curves(make_request(), 7)
+    assert caught.value.status_code == 502
+
+
+async def test_curves_cache_keeps_small_batches_only(monkeypatch):
+    """A batch over the cache limit is read again each time (#264 Low)."""
+    client = FakeClient()
+    use_client(monkeypatch, client)
+    monkeypatch.setattr(curation, "MAX_CACHED_FILE_BYTES", len(CURVE_CSV) - 1)
+
+    for _ in range(2):
+        await get_contribution_curves(make_request(), 7)
+    curve_reads = [p for p in client.text_calls if "/force_displacement/" in p]
+    assert curve_reads == ["braces/force_displacement/B9.csv"] * 2
+
+
 # --- comments ---------------------------------------------------------------
 
 
@@ -729,6 +843,7 @@ async def test_comments_open_with_the_pull_request_body(monkeypatch):
     assert body.id == 0
     assert body.author_type == "Bot"
     assert "Ada Lovelace" in body.body
+    assert "@example.edu" not in body.body
     assert body.html_url == "https://github.com/x/pull/7"
 
 

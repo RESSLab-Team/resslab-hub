@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import SimpleParallelChart from '@/components/commons/charts/SimpleParallelChart.vue'
+import DataLegend, { type DataLegendItem } from '@/components/curation/DataLegend.vue'
 import { GHOST_CONFIGS, isEmptyBrush, requestFieldsFor } from '@/components/curation/ghost'
 import type { ParallelSelection } from '@/composables/chart'
+import TextSubscript from '@/components/commons/TextSubscript.vue'
 import ToolSwitch from '@/components/commons/tools/ToolSwitch.vue'
 import { useDataset } from '@/composables/useDataset'
-import { CONTRIBUTION_DATABASES, fieldLabel } from '@/utils/contribution'
+import { displaySymbol, useDictionaryStore } from '@/stores/dictionary'
+import { CONTRIBUTION_DATABASES, fieldDisplay } from '@/utils/contribution'
 import { cellValue, isMissing, type ReviewBatch } from '@/utils/curation'
 import type { DatabaseId } from '@/utils/navigation'
 import { mdiAccountGroupOutline, mdiAlertOutline, mdiInformationOutline } from '@mdi/js'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 /**
  * Ghost mode (prototype "comparison with similar experiments" section): the
@@ -79,6 +83,13 @@ interface Candidate {
   active: boolean
 }
 
+const dictionary = useDictionaryStore()
+
+function symbolOf(field: string): string | undefined {
+  const column = dictionary.columnFor(props.database, field)
+  return column ? displaySymbol(column) : undefined
+}
+
 /**
  * Every field the curator may use as a similarity criterion, with the selected
  * specimen's value. Fields the specimen leaves at NR stay visible but inert, so
@@ -90,7 +101,7 @@ const candidates = computed<Candidate[]>(() => {
     const missing = isMissing(selected.value.cells[field])
     return {
       field,
-      label: fieldLabel(props.database, field),
+      label: fieldDisplay(props.database, field, symbolOf(field)),
       value: (selected.value.cells[field] ?? '').trim(),
       missing,
       active: !missing && props.fields.includes(field)
@@ -156,6 +167,26 @@ const brushedCount = computed(() => {
   return dataset.countRowsSync(props.cohortQuery)
 })
 
+const { t } = useI18n({ useScope: 'global' })
+
+/** Submitted in red, the brushed subset, the existing cohort faded (#268). */
+const legendItems = computed<DataLegendItem[]>(() => {
+  const items: DataLegendItem[] = [
+    { kind: 'submitted', label: t('curation.cohort.legend_new', { id: selected.value?.id ?? '' }) }
+  ]
+  if (brushedCount.value !== null) {
+    items.push({
+      kind: 'brushed',
+      label: t('curation.cohort.legend_brushed', { count: brushedCount.value })
+    })
+  }
+  items.push({
+    kind: 'existing',
+    label: t('curation.cohort.legend_ghost', { count: chart.value?.drawnCount ?? 0 })
+  })
+  return items
+})
+
 function onBrushCommit(selection: ParallelSelection): void {
   emit('update:brush', isEmptyBrush(selection) ? null : selection)
 }
@@ -197,7 +228,7 @@ const labelPrefix = computed(() => `${CONTRIBUTION_DATABASES[props.database].nam
             type="button"
             @click="toggle(entry)"
           >
-            {{ entry.label }}:
+            <text-subscript :text="entry.label" />:
             <b v-if="!entry.missing">{{ entry.value }}</b>
             <span v-else class="nr">{{ $t('curation.cohort.not_reported') }}</span>
           </button>
@@ -236,20 +267,7 @@ const labelPrefix = computed(() => `${CONTRIBUTION_DATABASES[props.database].nam
           @brush:commit="onBrushCommit"
           @update:zoomed="zoomed = $event"
         />
-        <div class="chartleg">
-          <span class="li">
-            <span class="sw sel"></span>
-            {{ $t('curation.cohort.legend_new', { id: selected?.id ?? '' }) }}
-          </span>
-          <span v-if="brushedCount !== null" class="li">
-            <span class="sw brushed"></span>
-            {{ $t('curation.cohort.legend_brushed', { count: brushedCount }) }}
-          </span>
-          <span class="li">
-            <span class="sw ghost"></span>
-            {{ $t('curation.cohort.legend_ghost', { count: chart.drawnCount }) }}
-          </span>
-        </div>
+        <data-legend class="chartleg" :items="legendItems" />
         <p class="charthint">{{ $t('curation.cohort.hint') }}</p>
         <p class="charthint">{{ $t('curation.cohort.brush_hint') }}</p>
       </div>
@@ -392,39 +410,9 @@ const labelPrefix = computed(() => `${CONTRIBUTION_DATABASES[props.database].nam
   gap: 12px;
 }
 .chartleg {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--border-subtle);
-}
-.chartleg .li {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--fg-muted);
-}
-.chartleg .sw {
-  flex: 0 0 auto;
-}
-.chartleg .sw.sel {
-  width: 12px;
-  height: 12px;
-  background: var(--epfl-red);
-}
-.chartleg .sw.brushed {
-  width: 16px;
-  height: 0;
-  border-top: 2px solid var(--epfl-red);
-  opacity: 0.75;
-}
-.chartleg .sw.ghost {
-  width: 16px;
-  height: 0;
-  border-top: 2px solid var(--border-strong);
 }
 .charthint {
   font-size: 12.5px;

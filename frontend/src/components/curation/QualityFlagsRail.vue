@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { fieldLabel } from '@/utils/contribution'
 import { toExperimentRows, type ReviewBatch } from '@/utils/curation'
 import type { DatabaseId } from '@/utils/navigation'
 import {
@@ -80,10 +79,6 @@ function category(issue: ValidationIssue): string {
   return 'format'
 }
 
-function columnLabel(column: string): string {
-  return fieldLabel(props.database, column)
-}
-
 function kindLabel(kindKey: string | null): string {
   const key = `contribute.timeseries.kind.${kindKey}`
   return kindKey && te(key) ? t(key) : t('curation.flags.file')
@@ -153,7 +148,8 @@ function issueKey(entry: ReportedIssue, index: number): string {
             <span class="fmark"><v-icon :icon="markIcon(entry.severity)" size="13" /></span>
             <span class="fbody">
               <span class="ftitle">
-                {{ columnLabel(entry.ref.column) }}
+                <!-- The CSV column, as the reviewer finds it in the file. -->
+                <code class="col-name">{{ entry.ref.column }}</code>
                 <span class="fsev" :class="entry.severity === 'error' ? 'high' : 'med'">
                   {{
                     entry.severity === 'error'

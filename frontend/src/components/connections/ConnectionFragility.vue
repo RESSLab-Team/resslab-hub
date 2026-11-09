@@ -180,6 +180,7 @@ const thumbOptions = computed<Record<FocusId, EChartsOption>>(
           <a
             href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0000214"
             target="_blank"
+            rel="noopener noreferrer"
             >{{ $t('tools.connection_fragility.intro_lignos') }}</a
           >
         </template>
@@ -187,6 +188,7 @@ const thumbOptions = computed<Record<FocusId, EChartsOption>>(
           <a
             href="https://www.sciencedirect.com/science/article/abs/pii/S0141029612003689"
             target="_blank"
+            rel="noopener noreferrer"
             >{{ $t('tools.connection_fragility.intro_ramirez') }}</a
           >
         </template>
@@ -197,7 +199,12 @@ const thumbOptions = computed<Record<FocusId, EChartsOption>>(
       <div class="tool-card">
         <div class="tfield">
           <div class="tfield-label">{{ $t('tools.connection_fragility.steel_type') }}</div>
-          <tool-segmented v-model="material" full :items="materials" />
+          <tool-segmented
+            v-model="material"
+            full
+            :items="materials"
+            :label="$t('tools.connection_fragility.steel_type')"
+          />
         </div>
         <div class="tfield">
           <div class="tfield-label">

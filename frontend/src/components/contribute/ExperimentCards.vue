@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import IntakeReport from '@/components/contribute/IntakeReport.vue'
+import DataLegend, { type DataLegendItem } from '@/components/curation/DataLegend.vue'
 import { useContributionStore, type CardIssue, type IntakeSummary } from '@/stores/contribution'
 import { useNotificationStore } from '@/stores/notification'
-import { fieldLabel } from '@/utils/contribution'
 import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
 import {
   classifyIntake,
@@ -25,7 +25,6 @@ import {
   mdiAlertCircleOutline,
   mdiAlertOutline,
   mdiBellOffOutline,
-  mdiBookOpenPageVariantOutline,
   mdiCheckCircleOutline,
   mdiChevronRight,
   mdiClose,
@@ -328,6 +327,8 @@ function intakeLine(summary: IntakeSummary, plan: IntakePlan): string {
   }
   const attached = Object.values(summary.attached).reduce((total, count) => total + count, 0)
   if (attached) parts.push(t('contribute.intake.attached', { count: attached }))
+  const assumed = Object.values(summary.assumed).reduce((total, count) => total + count, 0)
+  if (assumed) parts.push(t('contribute.intake.assumed', { count: assumed }))
   if (plan.pending.length)
     parts.push(t('contribute.intake.to_resolve', { count: plan.pending.length }))
   if (parts.length === 0) parts.push(t('contribute.intake.nothing'))
@@ -395,6 +396,13 @@ async function onSlotDrop(uid: number, kind: TimeSeriesKind, event: DragEvent): 
   await attachFile(uid, kind, files[0])
 }
 
+// The same colour convention as the curation review (#268): what the contributor
+// submits is drawn in --data-submitted, so the two screens read alike.
+const hasCurves = computed(() => Object.keys(store.timeSeries).length > 0)
+const legendItems = computed<DataLegendItem[]>(() => [
+  { kind: 'submitted', label: t('contribute.legend.submitted') }
+])
+
 function chart(uid: number, kind: TimeSeriesKind) {
   const attached = store.timeSeries[`${uid}:${kind.key}`]
   return attached ? sparkline(attached.report.x, attached.report.y) : null
@@ -451,13 +459,9 @@ function noteFor(kind: TimeSeriesKind): string {
         >
           <v-icon :icon="mdiDownloadOutline" size="14" />{{ $t('contribute.editor.dictionary') }}
         </button>
-        <button class="btn btn-ghost btn-sm" type="button" @click="emit('open-guide', 'guide')">
-          <v-icon :icon="mdiBookOpenPageVariantOutline" size="14" />{{
-            $t('contribute.editor.guide')
-          }}
-        </button>
       </div>
     </div>
+    <data-legend v-if="hasCurves" class="legend" :items="legendItems" />
 
     <div v-if="isEmptyBatch" class="intro">
       <p>{{ $t('contribute.editor.intro') }}</p>
@@ -540,7 +544,9 @@ function noteFor(kind: TimeSeriesKind): string {
         </span>
         <span class="headline">
           <span v-for="column in headlineColumns" :key="column.name" class="headline-item">
-            <span class="k">{{ fieldLabel(store.database!, column.name) }}</span>
+            <span class="k"
+              ><code class="col-name">{{ column.name }}</code></span
+            >
             <span class="v">{{ row.cells[column.name]?.trim() || '—' }}</span>
           </span>
         </span>
@@ -634,7 +640,8 @@ function noteFor(kind: TimeSeriesKind): string {
               <v-icon :icon="mdiAlertOutline" size="14" />
               <span>
                 <template v-if="issue.column"
-                  >{{ fieldLabel(store.database!, issue.column) }}:
+                  ><code class="col-name">{{ issue.column }}</code
+                  >:
                 </template>
                 <template v-else-if="issue.kindKey">
                   {{ $t(`contribute.timeseries.kind.${issue.kindKey}`) }}:
@@ -683,7 +690,8 @@ function noteFor(kind: TimeSeriesKind): string {
                   <v-icon :icon="mdiBellOffOutline" size="14" />
                   <span>
                     <template v-if="issue.column">
-                      {{ fieldLabel(store.database!, issue.column) }}:
+                      <code class="col-name">{{ issue.column }}</code
+                      >:
                     </template>
                     <template v-else-if="issue.kindKey">
                       {{ $t(`contribute.timeseries.kind.${issue.kindKey}`) }}:
@@ -763,7 +771,7 @@ function noteFor(kind: TimeSeriesKind): string {
                 ]"
               >
                 <label :for="`f-${row.uid}-${column.name}`">
-                  {{ fieldLabel(store.database!, column.name) }}
+                  <code class="col-name">{{ column.name }}</code>
                   <span v-if="!column.nullable" class="required">*</span>
                   <span v-if="column.unit && column.unit !== '-'" class="unit">{{
                     column.unit
@@ -943,6 +951,9 @@ function noteFor(kind: TimeSeriesKind): string {
 <style scoped>
 /* Section chrome — mirrors ContributeView's blocks so both stacks share one
    left edge and one header rhythm. */
+.legend {
+  margin: -6px 0 16px;
+}
 .block-bar {
   display: flex;
   align-items: baseline;
@@ -1229,6 +1240,11 @@ function noteFor(kind: TimeSeriesKind): string {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+/* The small uppercase key holds a raw column name: keep its case and size. */
+.headline-item .k .col-name {
+  font-size: 10.5px;
+  font-weight: 500;
 }
 .headline-item .v {
   font-size: 12.5px;
@@ -1879,7 +1895,7 @@ function noteFor(kind: TimeSeriesKind): string {
 }
 .spark polyline {
   fill: none;
-  stroke: var(--epfl-red);
+  stroke: var(--data-submitted);
   stroke-width: 1.4;
   stroke-linejoin: round;
   stroke-linecap: round;

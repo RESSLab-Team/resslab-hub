@@ -6,7 +6,7 @@ step-by-step for a new tab is in [adding-a-new-tab.md](adding-a-new-tab.md).
 
 ## The shape of a tab
 
-One view (`views/EbfView.vue`) renders one dashboard
+The route renders one dashboard directly
 (`components/ebf/EbfDashboard.vue`), which is a good example to read. A
 dashboard is `components/commons/DashboardShell.vue` (head, toolbar, active
 filter chips, and three slots: `#table`, `#charts`, `#detail`) wired to three
@@ -86,7 +86,11 @@ three frames instead of one long task.
 
 Shared chart components live in `components/commons/charts/` (`SingleChart`,
 `DoubleChart`, `LegendChart`, the parallel and surface charts) and each cell
-is a `ChartCell.vue`. The tooltip chrome is in `plugins/echarts-theme.ts`,
+is a `ChartCell.vue`. A dashboard does not use them directly: it uses
+`DatasetSingleChart`, `DatasetDoubleChart` and `DatasetParallelChart`, which
+bind a chart to `useDataset()`. They take the dataset as
+`:source="EBF_SOURCE"`, exported by `components/ebf/data.ts` (dataset key,
+fetcher, i18n prefix, id and number fields). The tooltip chrome is in `plugins/echarts-theme.ts`,
 because a tooltip is raw DOM outside the app's CSS.
 
 ### Category colours
@@ -128,8 +132,43 @@ dictionary's `group` column first, [variable-categories.md](variable-categories.
 Rendered by `AutoFilterRail.vue` and `AutoFilterRow.vue`; the widgets are in
 `components/commons/sliders/`: `DistributionBrush` (a histogram with a
 context and focus brush, dragged through a pointer overlay rather than
-ECharts' `dataZoom`), `DateDistributionBrush`, and the plain two-handle
-`RangeSlider` and `DateRangeSlider`.
+ECharts' `dataZoom`) and `DateDistributionBrush`.
+
+**The counts follow the filters.** Each filter shows its values and counts with
+all the other active filters applied, but not its own, so a selection can still
+be widened. The profile stays the one-time classification (kinds, value lists,
+bin edges). `utils/filterCounts.ts` only counts one column again over the rows
+that pass the other filters, and puts the result on top of that profile:
+
+- The values keep their order and the histogram keeps its bins, so nothing jumps
+  when a filter changes. A value with no rows left stays in the list, muted, and
+  can still be ticked.
+- When other filters narrow the list, the whole-dataset count shows in grey next
+  to the live one (`RBS 12 / 40`). Without other filters it is just `40`.
+- The bars keep the whole-dataset scale, so they shrink as the filters narrow.
+- Text filters keep their static shortcuts. A shortcut writes its value as plain
+  text (a substring match, like the search box), and a second click clears it.
+  So `Jain` also keeps a longer name holding `Jain`. The exact `=value` would
+  match the count, but it cost about 50 ms more per click on braces 10k in the
+  bench, for a reason we did not find (#329). A value with a comma still goes as
+  `=value`, or the query would split it into a set.
+
+`useAutoFilters` provides `countsFor` through `filterCountsKey`, so the rail and
+the table's header menus get the same behaviour with no prop. It reads the
+committed query, so a brush drag recounts nothing: drag frames go through the
+bus.
+
+The cost is one count per **open** row, because a closed row has no
+`FilterInput`. The filtering behind it is memoised in `queryEngine.ts`
+(`MEMO_CAPACITY`): the open rows with no filter of their own share one entry,
+and each active filter adds one. A row only counts when another filter is
+active. The `filters:counts` measure shows it in the bench report.
+
+**Open and close.** "Expand all" and "Collapse all" at the top of the panel act
+on the groups, not the rows: a group of closed rows costs a few buttons, while an
+open row mounts its histogram. A filter set from elsewhere (a chart click, a
+chip, a table header, the URL) opens its group and its row. Closing is always the
+reader's gesture.
 
 ## The drawer
 
@@ -262,11 +301,12 @@ Four things are worth knowing before you blame the wrong piece:
 - **The load is mostly the fetch.** `fetchAllPages` drains the list endpoint
   1000 rows at a time, the pages after the first in parallel. The table splits
   the fetch from the network span inside it.
-- **The filter rail's counts are computed once**, by `profileColumns` over the
+- **The filter rail's profile is computed once**, by `profileColumns` over the
   unfiltered rows. That pass is O(rows x fields) and it is the one to watch on
-  connections (153 columns). A filter toggle never redoes it, the option
-  counts you see are the unfiltered ones, and it runs at idle after the table
-  has painted, so it no longer sits between the data and the first rows.
+  connections (153 columns). A filter toggle never redoes it, and it runs at idle
+  after the table has painted, so it no longer sits between the data and the
+  first rows. The live counts are a separate, much smaller pass, one column at a
+  time and only for the open rows (see "The filter rail").
 - **The table is already windowed** (`useVirtualRows`), so its cost follows the
   page size, not the row count. What follows the row count is the filter and
   the sort behind it.
@@ -362,13 +402,35 @@ The two heavier items, one bulk endpoint per database and a shared filtered set
 across charts during a drag, are parked in their own issue until a database
 actually grows past a few thousand rows.
 
+### Live counts in the rail (#329), 2026-11-09
+
+Same setup, 5 runs, median of runs 2 to 5, 10 000 rows. "Before" is `dev`
+without the live counts, "after" is with them. Milliseconds.
+
+| | braces before | braces after | connections before | connections after |
+|---|---|---|---|---|
+| Filter: charts settled | 98 | 96 | 173 | 160 |
+| Filter: table updated | 44 | 44 | 62 | 58 |
+| Brush: median live frame | 11 | 11 | 48 | 47 |
+| Brush: longest frame | 39 | 42 | 123 | 125 |
+| Counts, a few rows open | | 2 | | 5 |
+| Counts, every row open | | 5 | | 20 |
+| Every row open: longest task | | 83 | | 190 |
+
+- A filter click costs the same as before. The counts are a few milliseconds.
+- The worst case is every row of connections open at once (147 rows, each
+  with its histogram): the click has one 190 ms task, and the counts are only
+  20 ms of it. Nobody opens every row by hand; "Expand all" opens the groups
+  only, not the rows.
+- The braces "after" column is with the text shortcuts writing a plain value.
+  With the exact `=value`, "Filter: charts settled" was 155 ms on braces (see
+  "The filter rail").
+
 One more caveat:
-- The second measured click ticks a *different* value rather than unticking the
-  first. Clicking an option twice does not clear it today: the filter applies
-  and the chip shows, but the box never reads back as checked, so the second
-  click re-sends the same query and nothing recomputes. Seen on the braces rail
-  with a real investigator name, it needs its own issue and is not a
-  benchmarking artefact.
+- The second measured click of the "Filter" scenario still ticks a *different*
+  value, so its numbers stay comparable with older reports. The untick has its
+  own row in the "Counts" scenario, which also measures the rail with a few rows
+  open and with all of them open.
 
 ## What a new tab must implement
 

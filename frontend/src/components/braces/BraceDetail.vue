@@ -4,6 +4,7 @@ import CommonDetail, { type DetailCarouselItem } from '@/components/commons/Comm
 import PropertyItem from '@/components/commons/PropertyItem.vue'
 import { bracesApi } from '@/plugins/axios'
 import { publicPath } from '@/utils/common'
+import { formatNumber, formatString } from '@/utils/formatter'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -17,6 +18,12 @@ const emit = defineEmits<{
 }>()
 
 const carouselItems = ref<DetailCarouselItem[][]>([])
+
+// The database stores `nr` and `na` both as null for numbers. For braces most
+// of them are `nr`, so an empty stress says "Not Reported". See #427.
+function formatStress(value?: number | null, fractionDigits = 0): string {
+  return value == null ? t('enum.notReported') : formatNumber(value, fractionDigits)
+}
 
 const isGussetPlate = computed<boolean>(() => props.brace.boundary_condition === 'Gusset plate')
 
@@ -53,19 +60,6 @@ watch(
     immediate: true
   }
 )
-
-function formatNumber(value?: number | null) {
-  return value ?? t('detail.brace.not_reported')
-}
-function formatString(value?: string | null): string {
-  if (value == null) {
-    return t('detail.brace.no')
-  } else if (value === 'NR') {
-    return t('detail.brace.not_reported')
-  } else {
-    return value
-  }
-}
 </script>
 
 <template>
@@ -87,26 +81,42 @@ function formatString(value?: string | null): string {
           <v-row>
             <v-col>
               <h2>{{ $t('detail.brace.section_loading_geometric') }}</h2>
-              <property-item :name="$t('detail.brace.loading_protocol')">
+              <property-item column="loading_protocol" :name="$t('detail.brace.loading_protocol')">
                 {{ brace.loading_protocol }}
               </property-item>
-              <property-item :name="$t('detail.brace.brace_boundary_conditions')">
+              <property-item
+                column="boundary_condition"
+                :name="$t('detail.brace.brace_boundary_conditions')"
+              >
                 {{ brace.boundary_condition }}
               </property-item>
-              <property-item :name="$t('detail.brace.brace_cross_section_shape')">
+              <property-item
+                column="cross_section_shape"
+                :name="$t('detail.brace.brace_cross_section_shape')"
+              >
                 {{ brace.cross_section_shape }}
               </property-item>
-              <property-item :name="$t('detail.brace.brace_cross_section_size')">
+              <property-item
+                column="cross_section_size"
+                :name="$t('detail.brace.brace_cross_section_size')"
+              >
                 {{ brace.cross_section_size }}
               </property-item>
-              <property-item :name="$t('detail.brace.member_slenderness_ratio')">
+              <property-item column="kl_r" :name="$t('detail.brace.member_slenderness_ratio')">
                 {{ brace.kl_r }}
               </property-item>
               <template v-if="isGussetPlate">
-                <property-item :name="$t('detail.brace.gusset_plate_thickness')" unit="mm">
+                <property-item
+                  column="t_t"
+                  :name="$t('detail.brace.gusset_plate_thickness')"
+                  unit="mm"
+                >
                   {{ brace.t_t }}
                 </property-item>
-                <property-item :name="$t('detail.brace.reinforcement_plate')">
+                <property-item
+                  column="reinforcement_pl"
+                  :name="$t('detail.brace.reinforcement_plate')"
+                >
                   {{ formatString(brace.reinforcement_pl) }}
                 </property-item>
               </template>
@@ -116,31 +126,55 @@ function formatString(value?: string | null): string {
             <v-col>
               <h2>{{ $t('detail.brace.section_steel_material_designation') }}</h2>
               <h3>{{ $t('detail.brace.sub_brace') }}</h3>
-              <property-item :name="$t('detail.brace.steel_type')">
+              <property-item column="steel" :name="$t('detail.brace.steel_type')">
                 {{ brace.steel }}
               </property-item>
-              <property-item :name="$t('detail.brace.nominal_yield_stress')" unit="MPa">
-                {{ formatNumber(brace.f_yn) }}
+              <property-item
+                column="f_yn"
+                :name="$t('detail.brace.nominal_yield_stress')"
+                unit="MPa"
+              >
+                {{ formatStress(brace.f_yn) }}
               </property-item>
-              <property-item :name="$t('detail.brace.measured_yield_stress')" unit="MPa">
-                {{ formatNumber(brace.fy_m) }}
+              <property-item
+                column="fy_m"
+                :name="$t('detail.brace.measured_yield_stress')"
+                unit="MPa"
+              >
+                {{ formatStress(brace.fy_m) }}
               </property-item>
-              <property-item :name="$t('detail.brace.ultimate_tensile_stress')" unit="MPa">
-                {{ formatNumber(brace.f_um) }}
+              <property-item
+                column="f_um"
+                :name="$t('detail.brace.ultimate_tensile_stress')"
+                unit="MPa"
+              >
+                {{ formatStress(brace.f_um) }}
               </property-item>
               <h3>{{ $t('detail.brace.sub_gusset_plate') }}</h3>
               <template v-if="isGussetPlate">
-                <property-item :name="$t('detail.brace.steel_type')">
+                <property-item column="steel_gp" :name="$t('detail.brace.steel_type')">
                   {{ brace.steel_gp }}
                 </property-item>
-                <property-item :name="$t('detail.brace.nominal_yield_stress')" unit="MPa">
-                  {{ formatNumber(brace.f_yn_gp) }}
+                <property-item
+                  column="f_yn_gp"
+                  :name="$t('detail.brace.nominal_yield_stress')"
+                  unit="MPa"
+                >
+                  {{ formatStress(brace.f_yn_gp) }}
                 </property-item>
-                <property-item :name="$t('detail.brace.measured_yield_stress')" unit="MPa">
-                  {{ formatNumber(brace.f_ym_gp) }}
+                <property-item
+                  column="f_ym_gp"
+                  :name="$t('detail.brace.measured_yield_stress')"
+                  unit="MPa"
+                >
+                  {{ formatStress(brace.f_ym_gp, 2) }}
                 </property-item>
-                <property-item :name="$t('detail.brace.ultimate_tensile_stress')" unit="MPa">
-                  {{ formatNumber(brace.f_um_gp) }}
+                <property-item
+                  column="f_um_gp"
+                  :name="$t('detail.brace.ultimate_tensile_stress')"
+                  unit="MPa"
+                >
+                  {{ formatStress(brace.f_um_gp, 2) }}
                 </property-item>
               </template>
               <template v-else>{{ $t('detail.brace.no_gusset_plates') }}</template>
