@@ -82,16 +82,23 @@ const publicationLink = computed(() => {
               <property-item :name="$t('detail.tensile_coupon.profile_type')">
                 {{ profileTypeWithSource }}
               </property-item>
-              <property-item :name="$t('detail.tensile_coupon.cross_section')">
+              <property-item column="profile" :name="$t('detail.tensile_coupon.cross_section')">
                 {{ tensileCoupon.profile }}
               </property-item>
-              <property-item :name="$t('detail.tensile_coupon.reference_tensile_coupon')">
+              <property-item
+                column="specimen_type"
+                :name="$t('detail.tensile_coupon.reference_tensile_coupon')"
+              >
                 {{ tensileCoupon.specimen_type }}
               </property-item>
-              <property-item :name="$t('detail.tensile_coupon.temperature')" unit="°C">
+              <property-item
+                column="t_a__deg_c_"
+                :name="$t('detail.tensile_coupon.temperature')"
+                unit="°C"
+              >
                 {{ tensileCoupon.t_a__deg_c_ }}
               </property-item>
-              <property-item :name="$t('detail.tensile_coupon.standard')">
+              <property-item column="standard" :name="$t('detail.tensile_coupon.standard')">
                 {{ tensileCoupon.standard }}
               </property-item>
             </p>
@@ -99,37 +106,54 @@ const publicationLink = computed(() => {
           <div class="mb-5">
             <h2 class="mb-2">{{ $t('detail.tensile_coupon.steel_material_designation') }}</h2>
             <p>
-              <property-item :name="$t('detail.tensile_coupon.steel_type')">
+              <property-item column="steel_grade" :name="$t('detail.tensile_coupon.steel_type')">
                 {{ tensileCoupon.steel_grade }}
               </property-item>
-              <property-item :name="$t('detail.tensile_coupon.nominal_yield_stress')" unit="MPa">
+              <property-item
+                column="fy_n__mpa_"
+                :name="$t('detail.tensile_coupon.nominal_yield_stress')"
+                unit="MPa"
+              >
                 {{ formatNumber(tensileCoupon.fy_n__mpa_) }}
               </property-item>
-              <property-item :name="$t('detail.tensile_coupon.measured_yield_stress')" unit="MPa">
+              <property-item
+                column="yield_stress_02__mpa_"
+                :name="$t('detail.tensile_coupon.measured_yield_stress')"
+                unit="MPa"
+              >
                 {{ formatNumber(tensileCoupon.yield_stress_02__mpa_, 1) }}
               </property-item>
-              <property-item :name="$t('detail.tensile_coupon.nominal_ultimate_stress')" unit="MPa">
+              <property-item
+                column="fu_n__mpa_"
+                :name="$t('detail.tensile_coupon.nominal_ultimate_stress')"
+                unit="MPa"
+              >
                 {{ formatNumber(tensileCoupon.fu_n__mpa_) }}
               </property-item>
               <property-item
+                column="tensile_strength__mpa_"
                 :name="$t('detail.tensile_coupon.measured_ultimate_stress')"
                 unit="MPa"
               >
                 {{ formatNumber(tensileCoupon.tensile_strength__mpa_, 1) }}
               </property-item>
-              <property-item :name="$t('detail.tensile_coupon.youngs_modulus_e')" unit="MPa">
+              <property-item
+                column="elastic_modulus__mpa_"
+                :name="$t('detail.tensile_coupon.youngs_modulus_e')"
+                unit="MPa"
+              >
                 {{ formatNumber(tensileCoupon.elastic_modulus__mpa_, 1) }}
               </property-item>
-              <property-item name="εy">
+              <property-item column="yield_strain_02" name="εy">
                 {{ formatNumber(tensileCoupon.yield_strain_02, 5) }}
               </property-item>
-              <property-item name="εu" unit="%">
+              <property-item column="elongation_at_fracture" name="εu" unit="%">
                 {{ formatNumber(tensileCoupon.elongation_at_fracture, 2) }}
               </property-item>
-              <property-item name="εf" unit="%">
+              <property-item column="elongation_after_fracture" name="εf" unit="%">
                 {{ formatNumber(tensileCoupon.elongation_after_fracture, 2) }}
               </property-item>
-              <property-item name="Z" unit="%">
+              <property-item column="reduction_of_area" name="Z" unit="%">
                 {{ formatNumber(tensileCoupon.reduction_of_area, 2) }}
               </property-item>
             </p>

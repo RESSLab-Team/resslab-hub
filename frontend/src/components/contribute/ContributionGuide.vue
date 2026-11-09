@@ -21,7 +21,7 @@ import {
   useDictionaryStore,
   type DictColumn
 } from '@/stores/dictionary'
-import { contributionGuideUrl } from '@/utils/contribution'
+import { contributionGuideUrl, dataDictionaryUrl } from '@/utils/contribution'
 import { MANAGED_COLUMNS } from '@/utils/curationStatus'
 import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
 import type { DatabaseId } from '@/utils/navigation'
@@ -48,6 +48,7 @@ watch(
 
 const readme = computed(() => dictionary.readmes[props.database])
 const githubUrl = computed(() => contributionGuideUrl(props.database))
+const dictionaryUrl = computed(() => dataDictionaryUrl(props.database))
 
 /**
  * Relative links in the README (`steel_braces_data_dictionary.csv`,
@@ -235,7 +236,13 @@ defineExpose({ show })
         <v-icon :icon="mdiMagnify" size="16" />
         <input v-model="query" type="search" :placeholder="$t('contribute.guide.search')" />
       </label>
-      <p class="state">{{ $t('contribute.guide.dictionary_hint', { count: columns.length }) }}</p>
+      <p class="state">
+        {{ $t('contribute.guide.dictionary_hint', { count: columns.length }) }}
+        <a class="dict-github" :href="dictionaryUrl" rel="noopener noreferrer" target="_blank">
+          {{ $t('contribute.guide.dictionary_github') }}
+          <v-icon :icon="mdiOpenInNew" size="12" />
+        </a>
+      </p>
       <p v-if="groups.length === 0" class="state">{{ $t('contribute.guide.no_match') }}</p>
       <div v-for="group in groups" :key="group.id" class="group">
         <button
@@ -403,6 +410,17 @@ defineExpose({ show })
 }
 .state a {
   color: inherit;
+}
+/* The dictionary as a file in the data repository, on its own line (#241). */
+.dict-github {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  margin-top: 4px;
+}
+.dict-github:hover {
+  color: var(--epfl-red);
 }
 
 /* Rendered README. Headings step down one level visually: the card already

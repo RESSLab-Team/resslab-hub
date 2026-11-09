@@ -91,6 +91,16 @@ export function contributionGuideUrl(database: DatabaseId): string {
   return `${DATA_REPOSITORY_URL}/blob/main/${directory}/README.md`
 }
 
+/**
+ * The data dictionary of the database in the data repository (#241). Every
+ * folder names it after its primary CSV: `steel_braces.csv` sits next to
+ * `steel_braces_data_dictionary.csv`.
+ */
+export function dataDictionaryUrl(database: DatabaseId): string {
+  const path = CONTRIBUTION_DATABASES[database].csvPath.replace(/\.csv$/, '')
+  return `${DATA_REPOSITORY_URL}/blob/main/${path}_data_dictionary.csv`
+}
+
 /** `f_yn` → `F yn`; a readable fallback when a column has no translation. */
 export function prettify(column: string): string {
   const spaced = column.replace(/_/g, ' ')
