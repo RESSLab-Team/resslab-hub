@@ -94,21 +94,42 @@ def test_admin_email_needs_a_verified_address(monkeypatch):
 
 
 def test_academic_addresses_are_recognised(monkeypatch):
+    """The swot rules (#375), on real domains of the vendored snapshot."""
     monkeypatch.setattr(roles.settings, "contributor_domains", "")
-    # On the pyswot list.
+    # Listed in the swot tree.
     assert roles.is_academic("ada@epfl.ch")
     assert roles.is_academic("ada@ethz.ch")
     assert roles.is_academic("ada@u-tokyo.ac.jp")
     # A subdomain matches its institution.
+    assert roles.is_academic("ada@sti.epfl.ch")
     assert roles.is_academic("ada@cs.stanford.edu")
-    # Free mailboxes never pass, and the list is an allowlist: a domain it
-    # does not know is not academic, whatever its ending.
-    assert not roles.is_academic("ada@gmail.com")
-    assert not roles.is_academic("ada@example.com")
-    assert not roles.is_academic("ada@example.edu")
+    # Anything under an academic second-level domain passes.
+    assert roles.is_academic("ada@anything.edu.cn")
+    # Listed by swot, but refused by pyswot's free-mail list: we follow swot.
+    assert roles.is_academic("ada@nus.edu.sg")
     # Nothing to read.
     assert not roles.is_academic("")
     assert not roles.is_academic("nobody")
+
+
+def test_the_swot_stoplist_wins(monkeypatch):
+    monkeypatch.setattr(roles.settings, "contributor_domains", "")
+    # swot leaves out alumni domains on purpose, even under a listed school.
+    assert not roles.is_academic("ada@alumni.stanford.edu")
+    # In the swot tree, but stoplisted: looks academic, is not trusted.
+    assert not roles.is_academic("ada@glion.ch")
+    # The stoplist matches subdomains too.
+    assert not roles.is_academic("ada@mail.glion.ch")
+
+
+def test_unlisted_and_free_domains_are_refused(monkeypatch):
+    monkeypatch.setattr(roles.settings, "contributor_domains", "")
+    # Free mailboxes are on no list.
+    assert not roles.is_academic("ada@gmail.com")
+    assert not roles.is_academic("ada@example.com")
+    # The list is an allowlist: ``.edu`` or ``.ac.uk`` alone is not enough.
+    assert not roles.is_academic("ada@example.edu")
+    assert not roles.is_academic("ada@foo.ac.uk")
 
 
 def test_configured_domains_fill_the_gaps(monkeypatch):

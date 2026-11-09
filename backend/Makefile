@@ -9,10 +9,15 @@ help: ## Show available targets
 
 # `benchmark` collides with the benchmark/ directory; mark targets phony so make
 # always runs the recipe instead of treating the directory as an up-to-date file.
-.PHONY: install dev test test-cov benchmark bench-rows lint lint-check sample-data
+.PHONY: install swot-update dev test test-cov benchmark bench-rows lint lint-check sample-data
 
 install:                ## uv sync
 	uv sync
+
+swot-update:            ## bump pyswot to the latest JetBrains swot snapshot (academic emails), print its swot commit
+	uv lock --upgrade-package pyswot
+	uv sync
+	@uv run python -c "import pyswot.vendor.tlds as m; print(open(m.__file__).read().splitlines()[1])"
 
 dev:                    ## uvicorn with reload on BACKEND_PORT (default 8000); log level info, debug would log every SQL statement
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run uvicorn resslab_hub.main:app --reload --log-level info --port $(BACKEND_PORT)

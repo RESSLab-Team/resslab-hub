@@ -33,9 +33,10 @@ dependencies = [
   "aiosmtplib>=3,<4",
   # Backs pydantic's EmailStr, used on the sign-in form.
   "email-validator>=2,<3",
-  # Academic email check behind the contributor grant (#248): the JetBrains
-  # student-licence domain list, vendored in the wheel, so no network call.
-  "pyswot>=0.5,<0.6",
+  # Academic email check behind the contributor grant (#248, #375): a
+  # snapshot of the JetBrains swot list, vendored in the wheel, so no
+  # network call. Each patch release is a newer snapshot: `make swot-update`.
+  "pyswot>=0.6,<1",
 ]
 
 [dependency-groups]
