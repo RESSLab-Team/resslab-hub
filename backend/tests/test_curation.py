@@ -31,6 +31,7 @@ from resslab_hub.routers.curation import (
     _parse_pr_body,
     get_contribution,
     get_contribution_comments,
+    get_contribution_curves,
     get_contribution_file,
     get_contribution_validation,
     list_contributions,
@@ -159,6 +160,8 @@ class FakeClient:
         self.comments = comments if comments is not None else list(PR_COMMENTS)
         #: Counts GitHub round-trips so a test can prove the TTL cache holds.
         self.comment_calls = 0
+        #: Every path read with get_file_text, in call order.
+        self.text_calls = []
         # (path, ref) -> text; ref None = base branch.
         self.texts = (
             texts
@@ -189,6 +192,7 @@ class FakeClient:
         return self.commits
 
     async def get_file_text(self, path, ref=None):
+        self.text_calls.append(path)
         return self.texts[(path, ref)]
 
     async def list_issue_comments(self, number):
@@ -612,6 +616,7 @@ async def _read_everything(request):
     await get_contribution_validation(request, 7)
     await get_contribution_comments(request, 7)
     await get_contribution_file(request, 7, "braces/force_displacement/B9.csv")
+    await get_contribution_curves(request, 7)
 
 
 @pytest.fixture
@@ -636,6 +641,7 @@ async def test_anyone_else_is_refused(monkeypatch, no_validation, user):
         get_contribution_validation(make_request(user), 7),
         get_contribution_comments(make_request(user), 7),
         get_contribution_file(make_request(user), 7, "braces/steel_braces.csv"),
+        get_contribution_curves(make_request(user), 7),
     ):
         with pytest.raises(HTTPException) as caught:
             await call
@@ -765,6 +771,62 @@ async def test_files_cache_keeps_small_texts_only(monkeypatch):
     for _ in range(2):
         assert await get_contribution_file(make_request(), 7, path) == CURVE_CSV
     assert reads.count(path) == 3
+
+
+async def test_curves_reads_every_curve_once(monkeypatch):
+    """The edit step's loader (#336): every curve in one answer, nothing else."""
+    client = FakeClient(
+        files=PR_FILES
+        + [{"path": "braces/force_displacement/B10.csv", "status": "added"}]
+    )
+    client.texts[("braces/force_displacement/B10.csv", "head-sha")] = "u,F\n0,1\n"
+    use_client(monkeypatch, client)
+
+    response = await get_contribution_curves(make_request(), 7)
+
+    assert response.pr_number == 7
+    assert response.head_sha == "head-sha"
+    assert [(f.path, f.text) for f in response.files] == [
+        ("braces/force_displacement/B9.csv", CURVE_CSV),
+        ("braces/force_displacement/B10.csv", "u,F\n0,1\n"),
+    ]
+    curve_reads = [p for p in client.text_calls if "/force_displacement/" in p]
+    assert sorted(curve_reads) == [
+        "braces/force_displacement/B10.csv",
+        "braces/force_displacement/B9.csv",
+    ]
+
+    # The second open of the same head is served from the cache.
+    calls = len(client.text_calls)
+    again = await get_contribution_curves(make_request(), 7)
+    assert again == response
+    assert len(client.text_calls) == calls
+
+
+async def test_curves_fail_whole_when_one_curve_is_missing(monkeypatch):
+    """Never a partial answer: the next save would delete the missing curve."""
+    client = FakeClient(
+        files=PR_FILES
+        + [{"path": "braces/force_displacement/B10.csv", "status": "added"}]
+    )
+    # B10 is in the pull request but its read fails (the fake raises KeyError).
+    use_client(monkeypatch, client)
+
+    with pytest.raises(HTTPException) as caught:
+        await get_contribution_curves(make_request(), 7)
+    assert caught.value.status_code == 502
+
+
+async def test_curves_cache_keeps_small_batches_only(monkeypatch):
+    """A batch over the cache limit is read again each time (#264 Low)."""
+    client = FakeClient()
+    use_client(monkeypatch, client)
+    monkeypatch.setattr(curation, "MAX_CACHED_FILE_BYTES", len(CURVE_CSV) - 1)
+
+    for _ in range(2):
+        await get_contribution_curves(make_request(), 7)
+    curve_reads = [p for p in client.text_calls if "/force_displacement/" in p]
+    assert curve_reads == ["braces/force_displacement/B9.csv"] * 2
 
 
 # --- comments ---------------------------------------------------------------

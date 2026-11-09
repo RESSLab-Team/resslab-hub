@@ -1306,7 +1306,6 @@
       "description": "Change the experiments or the files of an open submission. Submitting again updates the same review request.",
       "banner": "You are editing submission #{number}.",
       "loading": "Loading submission #{number}…",
-      "loading_files": "Loading {done} of {total} files…",
       "not_open": "This submission does not exist, or it is no longer open.",
       "unknown_database": "This submission is for a database the editor does not know.",
       "load_failed": "The submission could not be loaded. Check your connection and try again.",

@@ -1306,7 +1306,6 @@
       "description": "Changez les expériences ou les fichiers d'une soumission ouverte. Soumettre à nouveau met à jour la même demande de relecture.",
       "banner": "Vous modifiez la soumission n°{number}.",
       "loading": "Chargement de la soumission n°{number}…",
-      "loading_files": "Chargement de {done} fichiers sur {total}…",
       "not_open": "Cette soumission n'existe pas, ou elle n'est plus ouverte.",
       "unknown_database": "Cette soumission concerne une base que l'éditeur ne connaît pas.",
       "load_failed": "La soumission n'a pas pu être chargée. Vérifiez votre connexion et réessayez.",

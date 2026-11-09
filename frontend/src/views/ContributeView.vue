@@ -285,13 +285,7 @@ async function confirmSubmit(): Promise<void> {
         <progress-line
           v-if="store.loadStatus === 'loading'"
           :active="true"
-          :label="
-            store.loadProgress
-              ? $t('contribute.edit.loading_files', store.loadProgress)
-              : $t('contribute.edit.loading', { number: prNumber })
-          "
-          :done="store.loadProgress?.done"
-          :total="store.loadProgress?.total"
+          :label="$t('contribute.edit.loading', { number: prNumber })"
         />
         <div v-else-if="store.loadStatus === 'error'" class="load-error">
           <p class="load-error-text">

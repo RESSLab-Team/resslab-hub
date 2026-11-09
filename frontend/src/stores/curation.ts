@@ -16,7 +16,7 @@ import { ref } from 'vue'
  * The API client, imported once and shared.
  *
  * Lazy, to keep axios out of the entry bundle (see stores/counts.ts), but not
- * once per call: loading a submission asks for several files at a time, and
+ * once per call: the review page asks for several things at a time, and
  * firing a dynamic import per call resolves the module over and over.
  */
 let apiModule: Promise<typeof import('@/plugins/axios')> | null = null
@@ -94,6 +94,25 @@ export const useCurationStore = defineStore('curation', () => {
   }
 
   /**
+   * Every curve of a submission in one request (#336), for the edit step.
+   *
+   * The texts also land in the per-file cache, under the same keys as
+   * `fetchFileText`, so `invalidate` forgets them too.
+   */
+  async function fetchCurves(
+    prNumber: number
+  ): Promise<{ headSha: string; texts: Map<string, string> }> {
+    const { defaultApi } = await api()
+    const { data } = await defaultApi.getContributionCurves(prNumber)
+    const texts = new Map<string, string>()
+    for (const file of data.files) {
+      texts.set(file.path, file.text)
+      fileTexts.value.set(`${prNumber}:${file.path}`, file.text)
+    }
+    return { headSha: data.head_sha, texts }
+  }
+
+  /**
    * Forget everything cached about one submission.
    *
    * Called after the editor pushes an update: what is held here still
@@ -119,6 +138,7 @@ export const useCurationStore = defineStore('curation', () => {
     fetchDetail,
     fetchValidation,
     fetchFileText,
+    fetchCurves,
     fetchComments
   }
 })
