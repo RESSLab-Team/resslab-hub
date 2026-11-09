@@ -134,6 +134,38 @@ Rendered by `AutoFilterRail.vue` and `AutoFilterRow.vue`; the widgets are in
 context and focus brush, dragged through a pointer overlay rather than
 ECharts' `dataZoom`) and `DateDistributionBrush`.
 
+**The counts follow the filters.** Each filter shows its values and counts with
+all the other active filters applied, but not its own, so a selection can still
+be widened. The profile stays the one-time classification (kinds, value lists,
+bin edges). `utils/filterCounts.ts` only counts one column again over the rows
+that pass the other filters, and puts the result on top of that profile:
+
+- The values keep their order and the histogram keeps its bins, so nothing jumps
+  when a filter changes. A value with no rows left stays in the list, muted, and
+  can still be ticked.
+- When other filters narrow the list, the whole-dataset count shows in grey next
+  to the live one (`RBS 12 / 40`). Without other filters it is just `40`.
+- The bars keep the whole-dataset scale, so they shrink as the filters narrow.
+- Text filters keep their static shortcuts. A shortcut picks its exact value
+  (`=value`), and a second click clears it.
+
+`useAutoFilters` provides `countsFor` through `filterCountsKey`, so the rail and
+the table's header menus get the same behaviour with no prop. It reads the
+committed query, so a brush drag recounts nothing: drag frames go through the
+bus.
+
+The cost is one count per **open** row, because a closed row has no
+`FilterInput`. The filtering behind it is memoised in `queryEngine.ts`
+(`MEMO_CAPACITY`): the open rows with no filter of their own share one entry,
+and each active filter adds one. A row only counts when another filter is
+active. The `filters:counts` measure shows it in the bench report.
+
+**Open and close.** "Expand all" and "Collapse all" at the top of the panel act
+on the groups, not the rows: a group of closed rows costs a few buttons, while an
+open row mounts its histogram. A filter set from elsewhere (a chart click, a
+chip, a table header, the URL) opens its group and its row. Closing is always the
+reader's gesture.
+
 ## The drawer
 
 `components/commons/CommonDetail.vue` is the detail drawer every
@@ -265,11 +297,12 @@ Four things are worth knowing before you blame the wrong piece:
 - **The load is mostly the fetch.** `fetchAllPages` drains the list endpoint
   1000 rows at a time, the pages after the first in parallel. The table splits
   the fetch from the network span inside it.
-- **The filter rail's counts are computed once**, by `profileColumns` over the
+- **The filter rail's profile is computed once**, by `profileColumns` over the
   unfiltered rows. That pass is O(rows x fields) and it is the one to watch on
-  connections (153 columns). A filter toggle never redoes it, the option
-  counts you see are the unfiltered ones, and it runs at idle after the table
-  has painted, so it no longer sits between the data and the first rows.
+  connections (153 columns). A filter toggle never redoes it, and it runs at idle
+  after the table has painted, so it no longer sits between the data and the
+  first rows. The live counts are a separate, much smaller pass, one column at a
+  time and only for the open rows (see "The filter rail").
 - **The table is already windowed** (`useVirtualRows`), so its cost follows the
   page size, not the row count. What follows the row count is the filter and
   the sort behind it.
@@ -366,12 +399,10 @@ across charts during a drag, are parked in their own issue until a database
 actually grows past a few thousand rows.
 
 One more caveat:
-- The second measured click ticks a *different* value rather than unticking the
-  first. Clicking an option twice does not clear it today: the filter applies
-  and the chip shows, but the box never reads back as checked, so the second
-  click re-sends the same query and nothing recomputes. Seen on the braces rail
-  with a real investigator name, it needs its own issue and is not a
-  benchmarking artefact.
+- The second measured click of the "Filter" scenario still ticks a *different*
+  value, so its numbers stay comparable with older reports. The untick has its
+  own row in the "Counts" scenario, which also measures the rail with a few rows
+  open and with all of them open.
 
 ## What a new tab must implement
 

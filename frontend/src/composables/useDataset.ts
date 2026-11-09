@@ -206,6 +206,14 @@ export function useDataset<M extends { id: string }>(
     return filterRows(entry.rows, query, entry.fieldTypes).length
   }
 
+  // The rows behind a query, for a consumer that counts them itself (the filter
+  // rail, see useAutoFilters). Memoised and shared: never mutate the result.
+  function filteredRowsSync(query?: string): M[] {
+    const entry = load()
+    if (!entry.rows.length) return []
+    return filterRows(entry.rows, query, entry.fieldTypes) as unknown as M[]
+  }
+
   // Shared filter → sort → slice for a page request. Returns the page items plus
   // the pre-slice filtered total (for the pager).
   function slicePage(
@@ -271,6 +279,7 @@ export function useDataset<M extends { id: string }>(
     getMatrix,
     matrixSync,
     countRowsSync,
+    filteredRowsSync,
     getPage,
     pageSync,
     ready: () => load().ready,

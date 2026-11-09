@@ -48,7 +48,10 @@ export function inferFieldTypes(rows: Row[]): FieldTypes {
 // chart strips its own clause (`stripOwned` in composables/chart.ts) and so asks
 // for a second string. A single-entry memo ping-pongs between the two and misses
 // on every call; a handful of slots makes the hit rate order-independent.
-const MEMO_CAPACITY = 8
+// The filter rail adds one string per active filter: an open row counts its
+// values with all the filters but its own (#329). The cached arrays only hold
+// references to the same row objects, so a slot costs little.
+const MEMO_CAPACITY = 24
 
 const TRUE_PREDICATE: RowPredicate = () => true
 
@@ -171,17 +174,18 @@ function compilePredicate(expression: string, type: FieldType): ValuePredicate {
     const inner = compilePredicate(expression.slice(1), type)
     return (value) => !inner(value)
   }
-  if (expression.includes(',')) {
-    const set = new Set(expression.split(','))
-    return (value) => set.has(formatValue(value))
-  }
   // Exact match (`=value`). Client-side only, like the derived-ratio keys: a
   // single-value selection in the filter rail must not behave like the default
-  // substring match, or picking `RBS` would also keep `RBS-b` rows. Multi-value
-  // selections already match exactly through the ',' branch above.
+  // substring match, or picking `RBS` would also keep `RBS-b` rows. It comes before
+  // the set, because the value can hold a comma: `=Fell, Kanvinde` is one value. A
+  // set never starts with `=`, it is the bare values joined by commas.
   if (expression.startsWith('=')) {
     const target = expression.slice(1)
     return (value) => formatValue(value) === target
+  }
+  if (expression.includes(',')) {
+    const set = new Set(expression.split(','))
+    return (value) => set.has(formatValue(value))
   }
   if (expression.includes('<<')) {
     const [min, max] = expression.split('<<')

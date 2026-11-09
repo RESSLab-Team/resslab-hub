@@ -82,6 +82,35 @@ async function settle(): Promise<void> {
   await flushPromises()
 }
 
+describe('useDashboard filters in the URL', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.useFakeTimers()
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('keeps an exact value with a comma in one piece through the URL', async () => {
+    const { dashboard, router } = await openPage('/db')
+    dashboard.changeSearches('connection_type', '=Fell, Kanvinde & Deierlein')
+    await settle()
+    expect(router.currentRoute.value.query.connection_type).toBe('=Fell, Kanvinde & Deierlein')
+    expect(dashboard.searches.value.connection_type).toBe('=Fell, Kanvinde & Deierlein')
+  })
+
+  it('reads the same value from a shared link', async () => {
+    const url = `/db?connection_type=${encodeURIComponent('=Fell, Kanvinde & Deierlein')}`
+    const { dashboard } = await openPage(url)
+    expect(dashboard.searches.value.connection_type).toBe('=Fell, Kanvinde & Deierlein')
+  })
+
+  it('still reads a bare value with a comma as a set', async () => {
+    const { dashboard } = await openPage(`/db?connection_type=${encodeURIComponent('RBS,WUF-W')}`)
+    expect(dashboard.searches.value.connection_type).toEqual(['RBS', 'WUF-W'])
+  })
+})
+
 describe('useDashboard specimen link (#417)', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
