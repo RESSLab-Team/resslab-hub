@@ -61,37 +61,49 @@ const testConfigurationImageSrc = computed<string>(() =>
         <v-col class="mt-6" cols="12" sm="6">
           <h2 class="mb-2">{{ $t('detail.hss.loading_geometric_parameters') }}</h2>
           <p class="mb-6">
-            <property-item :name="$t('detail.hss.loading_protocol')">
+            <property-item column="loading_protocol" :name="$t('detail.hss.loading_protocol')">
               {{ hssColumn.loading_protocol }}
             </property-item>
-            <property-item :name="$t('detail.hss.axial_load_ratio')">
+            <property-item column="axial_load_sequence" :name="$t('detail.hss.axial_load_ratio')">
               {{ hssColumn.axial_load_sequence }}
             </property-item>
-            <property-item name="Pg/Py">
+            <property-item column="axial_load_ratio" name="Pg/Py">
               {{ hssColumn.axial_load_ratio }}
             </property-item>
-            <property-item :name="$t('detail.hss.test_configuration')">
+            <property-item column="test_configuration" :name="$t('detail.hss.test_configuration')">
               {{ hssColumn.test_configuration }}
             </property-item>
-            <property-item :name="$t('detail.hss.column_cross_section')">
+            <property-item column="tube_section" :name="$t('detail.hss.column_cross_section')">
               {{ hssColumn.tube_section }}
             </property-item>
-            <property-item :name="$t('detail.hss.member_length')" unit="mm">
+            <property-item column="length__mm" :name="$t('detail.hss.member_length')" unit="mm">
               {{ hssColumn.length__mm }}
             </property-item>
           </p>
           <h2 class="mb-2">{{ $t('detail.hss.steel_material_designation') }}</h2>
           <p class="mb-6">
-            <property-item :name="$t('detail.hss.steel_type')">
+            <property-item column="steel_type" :name="$t('detail.hss.steel_type')">
               {{ hssColumn.steel_type }}
             </property-item>
-            <property-item :name="$t('detail.hss.nominal_yield_stress')" unit="MPa">
+            <property-item
+              column="fy_nominal__n_mm2"
+              :name="$t('detail.hss.nominal_yield_stress')"
+              unit="MPa"
+            >
               {{ formatNumber(hssColumn.fy_nominal__n_mm2) }}
             </property-item>
-            <property-item :name="$t('detail.hss.measured_yield_stress')" unit="MPa">
+            <property-item
+              column="fy_measured__n_mm2"
+              :name="$t('detail.hss.measured_yield_stress')"
+              unit="MPa"
+            >
               {{ formatNumber(hssColumn.fy_measured__n_mm2) }}
             </property-item>
-            <property-item :name="$t('detail.hss.measured_ultimate_stress')" unit="MPa">
+            <property-item
+              column="f_ultimate__n_mm2"
+              :name="$t('detail.hss.measured_ultimate_stress')"
+              unit="MPa"
+            >
               {{ formatNumber(hssColumn.f_ultimate__n_mm2) }}
             </property-item>
           </p>

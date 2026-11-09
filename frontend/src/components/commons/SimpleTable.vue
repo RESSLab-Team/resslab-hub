@@ -52,6 +52,8 @@ interface TableHeader {
   shortTitle?: { text: string; isSymbol: boolean }
   /** Dictionary unit shown in the header menu, when the title doesn't already carry it. */
   unit?: string
+  /** Dictionary description, shown in the header menu under the title (#330). */
+  description?: string
   align?: 'start' | 'end'
 }
 
@@ -648,6 +650,12 @@ function unitFor(dict: DictColumn | undefined, title: string): string | undefine
   return unit && !title.includes(`[${unit}]`) ? unit : undefined
 }
 
+// The dictionary marks a missing description with `-`, like a missing unit.
+function descriptionFor(dict: DictColumn | undefined): string | undefined {
+  const description = dict?.description.trim()
+  return description && description !== '-' ? description : undefined
+}
+
 function getTableHeader(column: Column): TableHeader {
   // Locale key behind the title: explicit `titleKey`, else the prefix
   // convention — absent when the title is a literal string.
@@ -662,6 +670,7 @@ function getTableHeader(column: Column): TableHeader {
     title,
     shortTitle: shortLabelFor(column, titleKey, title, dict),
     unit: unitFor(dict, title),
+    description: descriptionFor(dict),
     type: column.type,
     format: column.format,
     cellVariant: column.cellVariant,
@@ -920,11 +929,16 @@ function downloadZip(): void {
                       </button>
                       <div class="stbl-menu-sep" />
                       <!-- Full column title (+ unit) as a caption — the visible
-                           header may be ellipsised or swapped to its short label. -->
+                           header may be ellipsised or swapped to its short label.
+                           The dictionary description under it is the glossary
+                           entry of the column (#330). -->
                       <div class="stbl-menu-title">
                         <text-subscript :text="header.title" />
                         <span v-if="header.unit" class="stbl-menu-unit">[{{ header.unit }}]</span>
                       </div>
+                      <p v-if="header.description" class="stbl-menu-desc">
+                        {{ header.description }}
+                      </p>
                     </div>
                   </v-menu>
                 </th>
@@ -1382,6 +1396,15 @@ function downloadZip(): void {
 .stbl-menu-unit {
   margin-left: 4px;
   font-weight: 400;
+  color: var(--fg-muted);
+}
+/* Capped so a long description wraps instead of widening the popover. */
+.stbl-menu-desc {
+  max-width: 280px;
+  margin: -3px 0 0;
+  padding: 0 10px 7px;
+  font-size: 12px;
+  line-height: 1.45;
   color: var(--fg-muted);
 }
 .stbl-menu-item {

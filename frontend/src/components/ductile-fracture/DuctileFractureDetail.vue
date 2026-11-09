@@ -100,16 +100,30 @@ const figureSrc = computed(() =>
           <div class="mb-5">
             <h2 class="mb-2">{{ $t('detail.ductile_fracture.structural_steel_element') }}</h2>
             <p>
-              <property-item :name="$t('detail.ductile_fracture.coupon_location')">
+              <property-item
+                column="location_coupon"
+                :name="$t('detail.ductile_fracture.coupon_location')"
+              >
                 {{ ductileFracture.location_coupon }}
               </property-item>
-              <property-item :name="$t('detail.ductile_fracture.section_profile')">
+              <property-item
+                column="section_profile"
+                :name="$t('detail.ductile_fracture.section_profile')"
+              >
                 {{ ductileFracture.section_profile }}
               </property-item>
-              <property-item :name="$t('detail.ductile_fracture.plate_thickness')" unit="mm">
+              <property-item
+                column="plate_thickness"
+                :name="$t('detail.ductile_fracture.plate_thickness')"
+                unit="mm"
+              >
                 {{ formatNumber(ductileFracture.plate_thickness) }}
               </property-item>
-              <property-item :name="$t('detail.ductile_fracture.temperature')" unit="°C">
+              <property-item
+                column="temperature"
+                :name="$t('detail.ductile_fracture.temperature')"
+                unit="°C"
+              >
                 {{ formatNumber(ductileFracture.temperature) }}
               </property-item>
             </p>
@@ -117,22 +131,32 @@ const figureSrc = computed(() =>
           <div class="mb-5">
             <h2 class="mb-2">{{ $t('detail.ductile_fracture.steel_material_designation') }}</h2>
             <p>
-              <property-item :name="$t('detail.ductile_fracture.steel_type')">
+              <property-item column="steel_type" :name="$t('detail.ductile_fracture.steel_type')">
                 {{ ductileFracture.steel_type }}
               </property-item>
-              <property-item :name="$t('detail.ductile_fracture.nominal_yield_stress')" unit="MPa">
+              <property-item
+                column="f_yn"
+                :name="$t('detail.ductile_fracture.nominal_yield_stress')"
+                unit="MPa"
+              >
                 {{ formatNumber(ductileFracture.f_yn) }}
               </property-item>
-              <property-item :name="$t('detail.ductile_fracture.measured_yield_stress')" unit="MPa">
+              <property-item
+                column="fy_m"
+                :name="$t('detail.ductile_fracture.measured_yield_stress')"
+                unit="MPa"
+              >
                 {{ formatNumber(ductileFracture.fy_m) }}
               </property-item>
               <property-item
+                column="f_un"
                 :name="$t('detail.ductile_fracture.nominal_ultimate_stress')"
                 unit="MPa"
               >
                 {{ formatNumber(ductileFracture.f_un) }}
               </property-item>
               <property-item
+                column="fu_m"
                 :name="$t('detail.ductile_fracture.measured_ultimate_stress')"
                 unit="MPa"
               >
@@ -143,22 +167,26 @@ const figureSrc = computed(() =>
           <div class="mb-5">
             <h2 class="mb-2">{{ $t('detail.ductile_fracture.fracture_model_parameters') }}</h2>
             <p>
-              <property-item name="SWDFM C">
+              <property-item column="swdfm_C" name="SWDFM C">
                 {{ formatNumber(ductileFracture.swdfm_C, 3) }}
               </property-item>
-              <property-item name="SWDFM κ">
+              <property-item column="swdfm_kappa" name="SWDFM κ">
                 {{ formatNumber(ductileFracture.swdfm_kappa, 3) }}
               </property-item>
-              <property-item name="SWDFM β">
+              <property-item column="swdfm_beta" name="SWDFM β">
                 {{ formatNumber(ductileFracture.swdfm_beta, 3) }}
               </property-item>
-              <property-item name="CVGM η">
+              <property-item column="cvgm_etamono" name="CVGM η">
                 {{ formatNumber(ductileFracture.cvgm_etamono, 3) }}
               </property-item>
-              <property-item name="CVGM λ">
+              <property-item column="cvgm_lambda" name="CVGM λ">
                 {{ formatNumber(ductileFracture.cvgm_lambda, 3) }}
               </property-item>
-              <property-item :name="$t('detail.ductile_fracture.characteristic_length')" unit="mm">
+              <property-item
+                column="l_star"
+                :name="$t('detail.ductile_fracture.characteristic_length')"
+                unit="mm"
+              >
                 {{ formatNumber(ductileFracture.l_star, 3) }}
               </property-item>
             </p>

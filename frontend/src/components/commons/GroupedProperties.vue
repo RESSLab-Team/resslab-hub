@@ -91,6 +91,7 @@ function toggle(id: FieldGroupId): void {
           :key="row.column.name"
           :name="row.label"
           :unit="row.unit"
+          :column="row.column.name"
         >
           {{ row.value }}
         </property-item>

@@ -25,7 +25,6 @@ import {
   mdiAlertCircleOutline,
   mdiAlertOutline,
   mdiBellOffOutline,
-  mdiBookOpenPageVariantOutline,
   mdiCheckCircleOutline,
   mdiChevronRight,
   mdiClose,
@@ -459,11 +458,6 @@ function noteFor(kind: TimeSeriesKind): string {
           @click="downloadDictionary(store.database!, store.columns)"
         >
           <v-icon :icon="mdiDownloadOutline" size="14" />{{ $t('contribute.editor.dictionary') }}
-        </button>
-        <button class="btn btn-ghost btn-sm" type="button" @click="emit('open-guide', 'guide')">
-          <v-icon :icon="mdiBookOpenPageVariantOutline" size="14" />{{
-            $t('contribute.editor.guide')
-          }}
         </button>
       </div>
     </div>

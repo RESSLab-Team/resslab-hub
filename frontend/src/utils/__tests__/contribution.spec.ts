@@ -1,4 +1,9 @@
-import { fieldDisplay, prettify } from '@/utils/contribution'
+import {
+  contributionGuideUrl,
+  dataDictionaryUrl,
+  fieldDisplay,
+  prettify
+} from '@/utils/contribution'
 import { describe, expect, it, vi } from 'vitest'
 
 // A local i18n instance: the real plugin reads localStorage at import time.
@@ -34,5 +39,24 @@ describe('fieldDisplay', () => {
       'Uniform elongation'
     )
     expect(fieldDisplay('tensile', 'fy_n', 'f_{y,n}')).toBe('Fy n')
+  })
+})
+
+const REPO = 'https://github.com/RESSLab-Team/resslab-hub-data/blob/main'
+
+describe('links to the data repository', () => {
+  it('points the guide at the README next to the primary CSV', () => {
+    expect(contributionGuideUrl('braces')).toBe(`${REPO}/braces/README.md`)
+  })
+
+  // #241: the dictionary is named after the primary CSV, nested folders included.
+  it('points the dictionary at <primary CSV>_data_dictionary.csv', () => {
+    expect(dataDictionaryUrl('braces')).toBe(`${REPO}/braces/steel_braces_data_dictionary.csv`)
+    expect(dataDictionaryUrl('ebf')).toBe(
+      `${REPO}/eccentric_braced_frames/eccentric_braced_frames_data_dictionary.csv`
+    )
+    expect(dataDictionaryUrl('cyclic')).toBe(
+      `${REPO}/material/cyclic_coupons/steel_material_data_dictionary.csv`
+    )
   })
 })

@@ -79,22 +79,28 @@ watch(
     <template #parameters>
       <v-row>
         <v-col cols="12" sm="6">
-          <property-item :name="$t('detail.column.loading_protocol')">
+          <property-item column="lateral_lp" :name="$t('detail.column.loading_protocol')">
             {{ column.lateral_lp }}
           </property-item>
           <property-item :name="$t('detail.column.axial_load_ratio')">
             {{ column.axial_lp }} (Pg/Py = {{ column.p_g_over_p_ym }})
           </property-item>
-          <property-item :name="$t('detail.column.axis_of_bending')">
+          <property-item column="axis_of_bending" :name="$t('detail.column.axis_of_bending')">
             {{ column.axis_of_bending }}
           </property-item>
-          <property-item :name="$t('detail.column.boundary_conditions')">
+          <property-item
+            column="boundary_condition"
+            :name="$t('detail.column.boundary_conditions')"
+          >
             {{ column.boundary_condition }}
           </property-item>
-          <property-item :name="$t('detail.column.column_cross_section')">
+          <property-item column="section_c" :name="$t('detail.column.column_cross_section')">
             {{ column.section_c }}
           </property-item>
-          <property-item :name="$t('detail.column.member_slenderness_ratio')">
+          <property-item
+            column="l_b_over_r_yc"
+            :name="$t('detail.column.member_slenderness_ratio')"
+          >
             {{ column.l_b_over_r_yc }}
           </property-item>
         </v-col>
@@ -104,16 +110,20 @@ watch(
       </v-row>
     </template>
     <template #designation>
-      <property-item :name="$t('detail.column.steel_type')">
+      <property-item column="steel_c" :name="$t('detail.column.steel_type')">
         {{ column.steel_c }}
       </property-item>
-      <property-item :name="$t('detail.column.nominal_yield_stress')" unit="MPa">
+      <property-item column="f_yn" :name="$t('detail.column.nominal_yield_stress')" unit="MPa">
         {{ column.f_yn }}
       </property-item>
-      <property-item :name="$t('detail.column.nominal_yield_stress_flange')" unit="MPa">
+      <property-item
+        column="f_ymf"
+        :name="$t('detail.column.nominal_yield_stress_flange')"
+        unit="MPa"
+      >
         {{ column.f_ymf }}
       </property-item>
-      <property-item :name="$t('detail.column.nominal_yield_stress_web')" unit="MPa">
+      <property-item column="f_ymw" :name="$t('detail.column.nominal_yield_stress_web')" unit="MPa">
         {{ column.f_ymw }}
       </property-item>
     </template>
