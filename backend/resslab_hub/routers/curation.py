@@ -54,6 +54,7 @@ from resslab_hub.contributions.submission import (
     _read_csv,
     _write_csv,
     read_provenance,
+    redact_emails,
 )
 from resslab_hub.contributions.trailers import Provenance, owns_submission
 from resslab_hub.contributions.verification import type_for_verify_branch
@@ -126,6 +127,11 @@ class _TTLCache:
 
 _cache = _TTLCache()
 
+#: A file text over this size is served but not kept in the cache. With 256
+#: entries, a few big curve files would hold a lot of memory per pod for
+#: their whole TTL (#264 Low).
+MAX_CACHED_FILE_BYTES = 2**20  # 1 MB
+
 
 def invalidate_pull(pr_number: int) -> None:
     """Forget what we know about one pull request.
@@ -157,21 +163,27 @@ def invalidate_open_pulls() -> None:
 
 
 def _parse_pr_body(body: str) -> Tuple[Optional[int], Optional[CurationContributor]]:
-    """Best-effort parse of build_pr_body's deterministic format."""
+    """Best-effort parse of build_pr_body's deterministic format.
+
+    Each field is read only at the start of its own `- **Field**:` line, so
+    a dismissed warning further down cannot pose as one (#264 H4).
+    """
     count = None
-    match = re.search(r"\*\*Experiments\*\*: (\d+)", body)
+    match = re.search(r"^- \*\*Experiments\*\*: (\d+)", body, re.M)
     if match:
         count = int(match.group(1))
     contributor = None
-    match = re.search(r"\*\*Contributor\*\*: (.*?) \([^)]*\)(?:, (.*))?$", body, re.M)
+    match = re.search(
+        r"^- \*\*Contributor\*\*: (.*?) \([^)]*\)(?:, (.*))?$", body, re.M
+    )
     if match:
         contributor = CurationContributor(
             name=match.group(1).strip(), institution=(match.group(2) or "").strip()
         )
-        orcid = re.search(r"\*\*ORCID\*\*: (.*)$", body, re.M)
+        orcid = re.search(r"^- \*\*ORCID\*\*: (.*)$", body, re.M)
         if orcid:
             contributor.orcid = orcid.group(1).strip()
-        github = re.search(r"\*\*GitHub\*\*: @(\S+)$", body, re.M)
+        github = re.search(r"^- \*\*GitHub\*\*: @(\S+)$", body, re.M)
         if github:
             contributor.github_login = github.group(1).strip()
     return count, contributor
@@ -301,7 +313,7 @@ async def _build_detail(
         **_summary(pull, Resolved(kind, input_type)).model_dump(),
         state=pull["state"],
         head_sha=head_sha,
-        body=pull["body"],
+        body=redact_emails(pull["body"]),
         submitted_at="",
         dismissed_warnings=[],
         columns=[],
@@ -683,7 +695,7 @@ async def get_contribution_comments(
             id=0,
             author=pull.get("author", ""),
             author_type=pull.get("author_type", ""),
-            body=pull.get("body", ""),
+            body=redact_emails(pull.get("body") or ""),
             html_url=pull["html_url"],
             created_at=pull["created_at"],
             updated_at=pull["created_at"],
@@ -751,5 +763,6 @@ async def get_contribution_file(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="The file could not be read from the data repository.",
         )
-    _cache.put(("file", head_sha, path_param), text, DETAIL_TTL_SECONDS)
+    if len(text) <= MAX_CACHED_FILE_BYTES:
+        _cache.put(("file", head_sha, path_param), text, DETAIL_TTL_SECONDS)
     return text

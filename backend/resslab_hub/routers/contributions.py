@@ -4,7 +4,7 @@ or push a new commit on an open one.
 """
 
 import json
-from logging import exception
+from logging import exception, warning
 from tempfile import TemporaryDirectory
 from typing import Union
 
@@ -24,7 +24,8 @@ from githubkit.exception import RequestFailed
 
 from resslab_hub.auth import roles
 from resslab_hub.auth.deps import require_contributions_enabled, require_role
-from resslab_hub.contributions.github import configured
+from resslab_hub.config import settings
+from resslab_hub.contributions.github import DataRepoClient, configured
 from resslab_hub.contributions.submission import (
     Contributor,
     SubmissionError,
@@ -37,8 +38,16 @@ from resslab_hub.data.uploader import Type
 from resslab_hub.models.contribution import ContributionResponse
 from resslab_hub.models.database.auth import User
 from resslab_hub.models.validation import ValidationResponse
-from resslab_hub.routers.curation import invalidate_open_pulls, invalidate_pull
-from resslab_hub.routers.root import _build_response, enforce_request_size
+from resslab_hub.routers.curation import (
+    invalidate_open_pulls,
+    invalidate_pull,
+    open_pulls,
+)
+from resslab_hub.routers.root import (
+    _build_response,
+    enforce_request_size,
+    reject_oversized,
+)
 from resslab_hub.utils.rate_limit import limiter
 from resslab_hub.utils.safe_archive import (
     ArchiveError,
@@ -48,6 +57,12 @@ from resslab_hub.utils.safe_archive import (
 
 # Router-level, so it runs before the sign-in check of each route.
 router = APIRouter(dependencies=[Depends(require_contributions_enabled)])
+
+
+# The editor sends the warnings the contributor saw and dismissed. They go in
+# the pull request body and the commit trailers, so they are bounded (#264 H4).
+MAX_DISMISSED_WARNINGS = 100
+MAX_DISMISSED_WARNING_LENGTH = 500
 
 
 def _parse_dismissed(raw: str) -> list:
@@ -65,7 +80,49 @@ def _parse_dismissed(raw: str) -> list:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="dismissed_warnings must be a JSON array of strings.",
         )
-    return parsed
+    if len(parsed) > MAX_DISMISSED_WARNINGS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Too many dismissed warnings (at most {MAX_DISMISSED_WARNINGS}). "
+                "Fix some of them first."
+            ),
+        )
+    if any(len(entry) > MAX_DISMISSED_WARNING_LENGTH for entry in parsed):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "A dismissed warning is too long "
+                f"(at most {MAX_DISMISSED_WARNING_LENGTH} characters)."
+            ),
+        )
+    return [entry.strip() for entry in parsed if entry.strip()]
+
+
+async def _check_queue_capacity() -> None:
+    """Refuse a new submission when too many wait for review (#264 H4).
+
+    The rate limit is per account and per pod, in memory. Many accounts, or
+    a pod restart, get past it. This counts the open submissions on GitHub
+    itself, from the queue listing the curation page already caches.
+    """
+    if not configured():
+        return  # _run_on_archive answers 503 for that
+    try:
+        pulls = await open_pulls(DataRepoClient())
+    except Exception as exc:  # noqa: BLE001
+        # The submission itself will fail with GitHub's reason, if any.
+        warning(f"Open pull requests not counted: {exc}")
+        return
+    waiting = sum(1 for pull in pulls if pull["head_ref"].startswith("contrib/"))
+    if waiting >= int(settings.max_open_contributions):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "The review queue is full. Try again once the open "
+                "submissions are reviewed."
+            ),
+        )
 
 
 def _contributor(user: User) -> Contributor:
@@ -113,6 +170,7 @@ async def _run_on_archive(
             detail="Submissions are not enabled on this deployment.",
         )
     try:
+        reject_oversized(file)
         with TemporaryDirectory() as tmpdir:
             safe_extract_targz(file.file, tmpdir)
             try:
@@ -180,6 +238,7 @@ async def create_contribution(
     """
     dismissed = _parse_dismissed(dismissed_warnings)
     contributor = _contributor(user)
+    await _check_queue_capacity()
     response = await _run_on_archive(
         file,
         lambda tmpdir: submit_contribution(tmpdir, type, contributor, dismissed),

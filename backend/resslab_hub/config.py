@@ -53,6 +53,12 @@ settings = Dynaconf(
         # "none": nobody (local setups on the test fork). Else a comma list
         # of GitHub logins, used as is.
         Validator("data_repo_reviewers", default="admins"),
+        # How many submissions (`contrib/*` pull requests) may wait for review
+        # at once. Past it, a new submission answers 503 until curators catch
+        # up. The per-account rate limit lives in memory and resets with the
+        # pod, so this is the backstop against a flood of pull requests (#264
+        # H4).
+        Validator("max_open_contributions", default=25),
         # --- Sign-in (#247) --------------------------------------------------
         # Absolute URL the app is reached at, without the /api prefix:
         # "https://resslab-hub.epfl.ch" in prod, the Vite dev server locally.

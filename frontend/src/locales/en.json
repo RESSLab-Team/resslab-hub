@@ -1251,7 +1251,7 @@
       "edit_identity": "Edit",
       "identity_incomplete": "This account has no confirmed email address. Sign in with your email address to submit.",
       "link_github_hint": "Link GitHub on your account page to be mentioned on the pull request and follow its review.",
-      "note": "These details are recorded with the submission so curators can credit and contact you. They appear publicly in the data repository.",
+      "note": "Your name and email address are recorded with the submission so curators can credit and contact you. They appear in a public pull request on GitHub and in the history of the data repository.",
       "cancel": "Cancel",
       "confirm": "Submit"
     },

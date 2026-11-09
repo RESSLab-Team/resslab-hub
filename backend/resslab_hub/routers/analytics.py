@@ -120,7 +120,11 @@ def _fetch_user_count(days: int | None) -> int:
 
 
 @router.get("/users", response_model=int)
-async def get_users(days: int | None = Query(None)) -> int:
+async def get_users(
+    # Bounded: each value is a key of the result cache, so a caller must not
+    # be able to fill it with any number it likes (#264 Low).
+    days: int | None = Query(None, ge=1, le=3650),
+) -> int:
     """
     Get user count using Google Analytics Data API.
     """

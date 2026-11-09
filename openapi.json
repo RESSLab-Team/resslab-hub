@@ -1547,7 +1547,9 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "integer"
+                  "type": "integer",
+                  "maximum": 3650,
+                  "minimum": 1
                 },
                 {
                   "type": "null"

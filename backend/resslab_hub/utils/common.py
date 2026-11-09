@@ -1,14 +1,15 @@
 from abc import ABC
 from datetime import date, datetime
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from functools import reduce
 from math import ceil, isnan
 from typing import Any, Dict, Generic, List, Optional, Set, TypeVar, Union
 
+from fastapi import HTTPException, status
 from fastapi.responses import StreamingResponse
 from fastapi_pagination.default import Page
 from pydantic.main import BaseModel
-from sqlalchemy import and_, desc, distinct, func, not_, select, tuple_
+from sqlalchemy import and_, desc, distinct, func, inspect, not_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import BooleanClauseList, ColumnElement
 from sqlalchemy.sql.schema import Column
@@ -111,6 +112,13 @@ class Component(ABC, Generic[D, M]):
             for key, column in database_type.__dict__.items()
             if not key.startswith("_") and column not in ignored_columns
         }
+        # What `query` and `sort_by` may name: the mapped columns, nothing
+        # else. A bare `__dict__` lookup also reached `__class__` or
+        # `metadata`, and an unknown key was a KeyError, so a 500 (#264 M7).
+        self.queryable_columns: Dict[str, Column] = {
+            attr.key: getattr(database_type, attr.key)
+            for attr in inspect(database_type).column_attrs
+        }
 
     async def get_page(
         self,
@@ -120,9 +128,12 @@ class Component(ABC, Generic[D, M]):
         sort_desc: List[bool],
     ) -> Page[M]:
         where_clauses = self.__get_where_clauses(query)
+        # Check every key first: the zip below stops at the shorter list, so a
+        # key with no `sort_desc` would never be looked at.
+        sort_columns = [self.__get_column(key) for key in sort_by]
         order_clauses = [
-            desc(self.__get_column(key)) if is_desc else self.__get_column(key)
-            for key, is_desc in zip(sort_by, sort_desc)
+            desc(column) if is_desc else column
+            for column, is_desc in zip(sort_columns, sort_desc)
         ]
         page = await paginate(
             session,
@@ -306,7 +317,13 @@ class Component(ABC, Generic[D, M]):
         return value
 
     def __get_column(self, key: str) -> Column[Any]:
-        return self.database_type.__dict__[key]
+        column = self.queryable_columns.get(key)
+        if column is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Unknown column: {key}",
+            )
+        return column
 
     def __get_where_clauses(
         self, query: Optional[str]
@@ -322,6 +339,7 @@ class Component(ABC, Generic[D, M]):
         """
         if ":" not in query:
             return self.__get_global_predicate(query)
+        # Split once: the value itself may hold a colon.
         key, expression = query.split(":", 1)
         column: Column[Any] = self.__get_column(key)
         return self.__get_predicate(column, expression)
@@ -345,34 +363,46 @@ class Component(ABC, Generic[D, M]):
         )
 
     @staticmethod
+    def __cast(column: Column[Any], text: str) -> Any:
+        """The value of a filter, typed like its column.
+
+        A value that does not parse is the caller's mistake: 400, not 500.
+        """
+        try:
+            if isinstance(column.type, Integer):
+                return int(text)
+            if isinstance(column.type, Numeric):
+                return Decimal(text)
+            if isinstance(column.type, Date):
+                return date.fromisoformat(text)
+            if isinstance(column.type, Boolean):
+                return bool(strtobool(text))
+        except (ValueError, InvalidOperation):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Bad value for {column.key}: {text}",
+            )
+        return text
+
+    @staticmethod
     def __get_predicate(
         column: Column[Any], expression: str
     ) -> Union[BooleanClauseList, ColumnElement]:
+        cast = Component.__cast
         if expression.startswith("!"):
             return not_(Component.__get_predicate(column, expression[1:]))
         if "," in expression:
-            return column.in_(expression.split(","))
-        if "<<" in expression:
-            [min, max] = expression.split("<<", 1)
-            if isinstance(column.type, Integer):
-                return column.between(int(min), int(max))
-            if isinstance(column.type, Numeric):
-                return column.between(Decimal(min), Decimal(max))
-            if isinstance(column.type, Date):
-                return column.between(date.fromisoformat(min), date.fromisoformat(max))
+            return column.in_([cast(column, value) for value in expression.split(",")])
+        if "<<" in expression and isinstance(column.type, (Integer, Numeric, Date)):
+            min, max = expression.split("<<", 1)
+            return column.between(cast(column, min), cast(column, max))
         if expression.startswith("<"):
-            return column < int(expression[1:])
+            return column < cast(column, expression[1:])
         if expression.startswith(">"):
-            return column > int(expression[1:])
+            return column > cast(column, expression[1:])
         if isinstance(column.type, String):
             return column.ilike(f"%{expression}%")
-        if isinstance(column.type, Integer):
-            return column == int(expression)
-        if isinstance(column.type, Numeric):
-            return column == Decimal(expression)
-        if isinstance(column.type, Boolean):
-            return column == bool(strtobool(expression))
-        return column == expression
+        return column == cast(column, expression)
 
     @staticmethod
     def __format_value(
