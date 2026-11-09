@@ -7,9 +7,8 @@ from urllib.parse import quote_plus
 
 from alembic.command import upgrade
 from alembic.config import Config
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import declarative_base
 
 from resslab_hub.config import settings
 
@@ -20,7 +19,9 @@ __host: str = settings.postgres_host  # type: ignore
 __port: str = settings.postgres_port  # type: ignore
 __credential = f"{__username}:{quote_plus(__password)}"
 __url_without_driver = f"://{__credential}@{__host}:{__port}/{__database}"
-url = "postgresql" + __url_without_driver
+# Two drivers on purpose: the API runs on asyncpg, the sync side (uploader COPY,
+# validator, alembic, tests) on psycopg 3.
+url = "postgresql+psycopg" + __url_without_driver
 async_url = "postgresql+asyncpg" + __url_without_driver
 
 engine = create_async_engine(
@@ -37,9 +38,7 @@ engine = create_async_engine(
 # an async session cannot do outside its greenlet and which raises
 # MissingGreenlet. Only the sign-in code commits through this maker; the
 # uploader has its own sync session.
-async_session = sessionmaker(  # type: ignore
-    engine, class_=AsyncSession, expire_on_commit=False
-)
+async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 
 # qualify the base with __allow_unmapped__.

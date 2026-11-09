@@ -43,7 +43,6 @@ from resslab_hub.routers import (
 from resslab_hub.routers import map as map_router
 from resslab_hub.utils.caching import HTTPCacheMiddleware
 from resslab_hub.utils.database import upgrade_database
-from resslab_hub.utils.fastapi import use_route_names_as_operation_ids
 from resslab_hub.utils.rate_limit import limiter
 from resslab_hub.utils.warmup import install as install_warmup
 
@@ -69,6 +68,8 @@ app = FastAPI(
     debug=is_debug_mode(),  # Set debug mode based on log level
     version=__version__,
     root_path=settings.root_path,  # type: ignore
+    # Short operation ids, so the generated client has short function names.
+    generate_unique_id_function=lambda route: route.name,
 )
 app.state.limiter = limiter
 
@@ -188,7 +189,6 @@ app.include_router(tensile_coupon.router)
 app.include_router(ductile_fracture.router)
 app.include_router(map_router.router)
 add_pagination(app)
-use_route_names_as_operation_ids(app)
 
 # Warm the response cache at startup (readinessProbe on /readyz waits for it)
 # and refresh entries before they expire, so no visitor ever pays the cold

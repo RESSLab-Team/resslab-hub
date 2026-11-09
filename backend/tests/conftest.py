@@ -59,7 +59,7 @@ def _maintenance_url() -> str:
     """
     credential = f"{settings.postgres_user}:{quote_plus(settings.postgres_password)}"
     return (
-        f"postgresql://{credential}"
+        f"postgresql+psycopg://{credential}"
         f"@{settings.postgres_host}:{settings.postgres_port}"
         f"/{settings.postgres_maintenance_db}"
     )
