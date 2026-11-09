@@ -28,11 +28,9 @@ const COLUMNS: DictColumn[] = [
   }
 ]
 
-// Renders the activator and the content side by side, so the test can read the
-// tooltip text without opening a real overlay.
-const TooltipStub = {
-  template: '<div><slot name="activator" :props="{}" /><div class="tip"><slot /></div></div>'
-}
+// Renders the content in place, so the test can read the tooltip text without
+// opening a real overlay.
+const TooltipStub = { template: '<div class="tip"><slot /></div>' }
 
 // `null` for no drawer: a default parameter would swallow an explicit `undefined`.
 function mountItem(column: string | undefined, database: DatabaseId | null = 'braces') {
@@ -54,11 +52,11 @@ describe('PropertyItem glossary tooltip (#330)', () => {
     dictionary.state = 'ready'
   })
 
-  it('shows the description, symbol and unit of a known column', () => {
+  it('shows the description and symbol of a known column, not the unit', () => {
     const wrapper = mountItem('t_t')
-    expect(wrapper.find('.prop-name.has-definition').text()).toBe('Label')
+    expect(wrapper.find('.prop-item').classes()).toContain('has-definition')
     expect(wrapper.find('.prop-def').text()).toBe('Gusset plate thickness')
-    expect(wrapper.find('.prop-def-meta').text()).toBe('tt · mm')
+    expect(wrapper.find('.prop-def-meta').text()).toBe('tt')
     expect(wrapper.find('.prop-def-meta sub').text()).toBe('t')
   })
 
