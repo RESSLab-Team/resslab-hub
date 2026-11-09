@@ -26,7 +26,12 @@ function open(message: string, url?: string): void {
       {{ messageRef }}
     </span>
     <template #actions>
-      <v-btn color="primary" :icon="mdiClose" @click="snackbar = false" />
+      <v-btn
+        color="primary"
+        :icon="mdiClose"
+        :aria-label="$t('commons.close')"
+        @click="snackbar = false"
+      />
     </template>
   </v-snackbar>
 </template>

@@ -308,6 +308,11 @@ code.col-name {
     display: flex;
   }
   .sidebar-scrim {
+    /* A <button>, so the keyboard and screen readers can close the menu. */
+    appearance: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
     display: block;
     position: fixed;
     inset: 0;
@@ -1800,9 +1805,12 @@ body.theme-dark .logos img {
   justify-content: center;
   cursor: pointer;
   color: var(--fg-muted);
+  background: transparent;
+  font: inherit;
+  border: 0;
   border-left: 1px solid var(--border-subtle);
   margin-left: 4px;
-  padding-left: 4px;
+  padding: 0 0 0 4px;
 }
 .fchip-x:hover {
   color: var(--epfl-red);
@@ -2115,6 +2123,11 @@ body.theme-dark .logos img {
 
 /* DETAIL DRAWER */
 .drawer-scrim {
+  /* A <button>, so the keyboard and screen readers can close the drawer. */
+  appearance: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
@@ -2142,6 +2155,11 @@ body.theme-dark .logos img {
 }
 .drawer.open {
   right: 0;
+}
+/* The drawer takes the focus on open so the keyboard starts inside it. It is
+   not a control, so no focus ring on the panel itself. */
+.drawer:focus {
+  outline: none;
 }
 @media (max-width: 900px) {
   .drawer {

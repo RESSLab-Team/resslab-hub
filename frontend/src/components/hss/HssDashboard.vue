@@ -7,12 +7,17 @@ import DatasetParallelChart from '@/components/commons/charts/DatasetParallelCha
 import DatasetSingleChart from '@/components/commons/charts/DatasetSingleChart.vue'
 import HssDetail from '@/components/hss/HssDetail.vue'
 import HssTable from '@/components/hss/HssTable.vue'
-import { HSS_KEY, HSS_SOURCE, PARALLEL_FIELDS, fetchHsss } from '@/components/hss/data'
+import {
+  HSS_KEY,
+  HSS_SOURCE,
+  fetchHsss,
+  parallelFields as buildParallelFields
+} from '@/components/hss/data'
 import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
@@ -26,11 +31,12 @@ const { clickTableRow, closeDetail, item, query, search, searches, changeSearche
 const countsStore = useCountsStore()
 onMounted(() => countsStore.fetch())
 
-const parallelFields = PARALLEL_FIELDS
+// Computed, so the configuration labels follow a language switch.
+const parallelFields = computed(() => buildParallelFields())
 
 const parallelFilterFields: string[] = [
   HSSColumnField.Id,
-  ...parallelFields.flatMap((f) =>
+  ...buildParallelFields().flatMap((f) =>
     typeof f.id === 'string'
       ? [f.id]
       : 'dividend' in f.id

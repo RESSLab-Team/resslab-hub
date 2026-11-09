@@ -22,15 +22,21 @@ export const HSS_SOURCE: DatasetSource<HSSColumnField> = {
   numberFields: HSSColumnNumberField
 }
 
-/** Parallel-coordinates axes, shared by the dashboard and the curation ghost view. */
-export const PARALLEL_FIELDS: ParallelField<HSSColumnField>[] = [
-  { id: HSSColumnField.ThetaPPos100fitRad, name: 'θp [rad]' },
-  { id: HSSColumnField.DepthOverT, name: 'D/t' },
-  { id: HSSColumnField.AxialLoadRatio, name: 'Pg/Py' },
-  { id: HSSColumnField.LoadingAngle, name: 'Load Angle [degrees]' },
-  {
-    id: HSSColumnField.TestConfiguration,
-    name: 'Configuration',
-    mapping: testConfigurationNameMapping
-  }
-]
+/**
+ * Parallel-coordinates axes, shared by the dashboard and the curation ghost
+ * view. A function, unlike the other databases' PARALLEL_FIELDS, because the
+ * configuration axis carries translated labels.
+ */
+export function parallelFields(): ParallelField<HSSColumnField>[] {
+  return [
+    { id: HSSColumnField.ThetaPPos100fitRad, name: 'θp [rad]' },
+    { id: HSSColumnField.DepthOverT, name: 'D/t' },
+    { id: HSSColumnField.AxialLoadRatio, name: 'Pg/Py' },
+    { id: HSSColumnField.LoadingAngle, name: 'Load Angle [degrees]' },
+    {
+      id: HSSColumnField.TestConfiguration,
+      name: 'Configuration',
+      mapping: testConfigurationNameMapping()
+    }
+  ]
+}

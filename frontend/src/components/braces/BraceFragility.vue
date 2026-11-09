@@ -313,6 +313,7 @@ function correlatedBivariate(
         <tool-segmented
           full
           :items="options"
+          :label="$t('tools.brace_fragility.cross_section')"
           :model-value="option"
           @update:model-value="option = $event as Option"
         />

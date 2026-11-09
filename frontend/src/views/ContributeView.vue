@@ -7,7 +7,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useContributionStore, type CardIssue } from '@/stores/contribution'
 import { useDictionaryStore } from '@/stores/dictionary'
 import { CONTRIBUTION_DATABASES } from '@/utils/contribution'
-import { DATABASES, type DatabaseId } from '@/utils/navigation'
+import { databases, type DatabaseId } from '@/utils/navigation'
 import {
   mdiAlertOutline,
   mdiArrowRight,
@@ -32,6 +32,8 @@ const props = defineProps<{ prNumber?: string }>()
 const { t } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const store = useContributionStore()
+// Computed, so the names follow a language switch.
+const databaseList = computed(() => databases())
 const dictionary = useDictionaryStore()
 const auth = useAuthStore()
 
@@ -49,7 +51,7 @@ const atRisk = computed(() => (store.hasAnyId ? store.experimentCount : 0))
 
 /** Name of the picked database, echoed next to the section title. */
 const selectedName = computed(
-  () => DATABASES.find((entry) => entry.id === store.database)?.name ?? ''
+  () => databaseList.value.find((entry) => entry.id === store.database)?.name ?? ''
 )
 
 // The two routes share this component and `<router-view>` has no key, so the
@@ -253,7 +255,7 @@ async function confirmSubmit(): Promise<void> {
           </div>
           <div class="db-grid">
             <button
-              v-for="entry in DATABASES"
+              v-for="entry in databaseList"
               :key="entry.id"
               class="db"
               :class="{ active: store.database === entry.id, pending: pending === entry.id }"

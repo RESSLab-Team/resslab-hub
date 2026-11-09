@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { publicPath } from '@/utils/common'
-import { DATABASES, TOOLS } from '@/utils/navigation'
+import { databases, tools } from '@/utils/navigation'
+import { computed } from 'vue'
 
-const components = DATABASES.filter((db) => db.group === 'components')
-const materials = DATABASES.filter((db) => db.group === 'materials')
+// Computed, so the names follow a language switch.
+const components = computed(() => databases().filter((db) => db.group === 'components'))
+const materials = computed(() => databases().filter((db) => db.group === 'materials'))
+const toolList = computed(() => tools())
 </script>
 
 <template>
@@ -23,7 +26,7 @@ const materials = DATABASES.filter((db) => db.group === 'materials')
       </div>
       <div class="ftr-col">
         <h6>{{ $t('shell.tools') }}</h6>
-        <router-link v-for="tool in TOOLS" :key="tool.to" :to="tool.to">
+        <router-link v-for="tool in toolList" :key="tool.to" :to="tool.to">
           {{ tool.name }}
         </router-link>
         <a

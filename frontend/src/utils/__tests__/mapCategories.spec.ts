@@ -8,7 +8,7 @@ import {
   colorFor,
   routeFor
 } from '@/utils/mapCategories'
-import { DATABASES } from '@/utils/navigation'
+import { databases } from '@/utils/navigation'
 import { describe, expect, it } from 'vitest'
 
 describe('mapCategories', () => {
@@ -25,7 +25,7 @@ describe('mapCategories', () => {
   })
 
   it('links each category to an existing database page', () => {
-    const pages = new Set(DATABASES.map((database) => database.to))
+    const pages = new Set(databases().map((database) => database.to))
     for (const entry of MAP_CATEGORIES) expect(pages).toContain(entry.to)
   })
 

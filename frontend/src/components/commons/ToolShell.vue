@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import PageHeader from '@/components/commons/PageHeader.vue'
+import { useEscapeKey } from '@/composables/useEscapeKey'
+import { useMediaQuery } from '@/composables/useMediaQuery'
 import { mdiClose } from '@mdi/js'
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -38,6 +40,10 @@ withDefaults(
 
 /* the Parameters drawer is only reachable at ≤899px */
 const paramsOpen = ref(false)
+// Same breakpoint as tool-pages.css. Closed, the drawer is `inert`, so Tab
+// never lands on inputs nobody can see.
+const narrow = useMediaQuery('(max-width: 899px)')
+useEscapeKey(paramsOpen, () => (paramsOpen.value = false))
 
 /* close the drawer on navigation, mirroring the app sidebar behaviour */
 const route = useRoute()
@@ -64,7 +70,7 @@ watch(
     <div class="tool-body">
       <!-- ── rail layout (default) ─────────────────────────────── -->
       <template v-if="layout === 'rail'">
-        <aside class="rail">
+        <aside class="rail" :inert="(narrow && !paramsOpen) || undefined">
           <div class="drawer-close">
             <span class="dt">{{ $t('tools.common.parameters') }}</span>
             <button class="x" :aria-label="$t('commons.close')" @click="paramsOpen = false">
@@ -102,6 +108,12 @@ watch(
       </template>
     </div>
 
-    <div class="tool-scrim" @click="paramsOpen = false" />
+    <button
+      class="tool-scrim"
+      type="button"
+      :aria-label="$t('commons.close')"
+      :inert="!paramsOpen || undefined"
+      @click="paramsOpen = false"
+    />
   </div>
 </template>

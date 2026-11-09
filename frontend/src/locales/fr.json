@@ -600,6 +600,8 @@
     "close": "Fermer",
     "previous": "Précédent",
     "next": "Suivant",
+    "select_all": "Tout sélectionner",
+    "select_row": "Sélectionner {id}",
     "reset_all": "Tout réinitialiser",
     "expand_filters": "Développer les filtres",
     "collapse_filters": "Réduire les filtres",
@@ -766,7 +768,8 @@
     "cdf_x_axis": "Diamètre des cupules [mm]",
     "dimple_load_error": "Échec du chargement des données de cupules ({error}).",
     "legend_test_data": "Données d'essai",
-    "legend_simulation": "Simulation"
+    "legend_simulation": "Simulation",
+    "zoom_hotspot": "Zoomer sur {location}"
   },
   "tools": {
     "common": {

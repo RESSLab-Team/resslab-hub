@@ -89,7 +89,7 @@ const imageSrc = computed(() => {
             <property-item :name="$t('detail.ebf.test_setup')">
               {{
                 eccentricBracedFrame.l_confi
-                  ? linkConfigurationMapping.get(eccentricBracedFrame.l_confi)
+                  ? linkConfigurationMapping().get(eccentricBracedFrame.l_confi)
                   : 'Not defined'
               }}
             </property-item>
