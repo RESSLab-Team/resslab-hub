@@ -7,7 +7,7 @@ import DistributionBrush, {
   type BrushSeries
 } from '@/components/commons/sliders/DistributionBrush.vue'
 import { invertMapping, type DoubleField, type DoubleFields } from '@/composables/chart'
-import { SANS } from '@/plugins/echarts-theme'
+import { NAME, SANS } from '@/plugins/echarts-theme'
 import i18n from '@/plugins/i18n'
 import { categoryColorScale, categoryDomain, type ColorScale } from '@/utils/categoryColors'
 import { type Value } from '@/utils/common'
@@ -355,7 +355,9 @@ function buildOption(countsData: CountModel[]): EChartsOption {
   const headerFont = `12px ${SANS}`
   const titleText = i18n.global.t(props.labelPrefix + secondField.value).toString()
   const titleWidth = measureTextWidth(titleText, headerFont)
-  const titleGap = 12 // space between the title and the first legend item
+  // Space between the title and the first legend item. Wide enough that the
+  // title doesn't read as the first legend value (#328).
+  const titleGap = 20
   // Estimate the legend's rendered width so the whole group can be centred.
   // Per item ECharts lays out: marker (itemWidth) + ~5px marker-to-text gap +
   // label; consecutive items are separated by itemGap (10).
@@ -372,10 +374,12 @@ function buildOption(countsData: CountModel[]): EChartsOption {
     animation: props.animate,
     title: {
       text: titleText,
-      // fontWeight/family/colour come from the theme (normal weight); only the
-      // compact 12px size is set here (theme title default is larger).
+      // fontWeight/family come from the theme (normal weight). The compact 12px
+      // size is set here (theme title default is larger), and the muted axis-name
+      // ink so the title reads as the legend's title, not as one of its items.
       textStyle: {
-        fontSize: 12
+        fontSize: 12,
+        color: NAME
       },
       left: groupLeft,
       // The title text is drawn dominant-baseline:central, so its top === its

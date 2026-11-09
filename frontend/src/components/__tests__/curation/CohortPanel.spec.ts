@@ -3,6 +3,7 @@ import CohortPanel from '@/components/curation/CohortPanel.vue'
 import type { ParallelSelection } from '@/composables/chart'
 import en from '@/locales/en.json'
 import { flushPromises, mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 
@@ -57,6 +58,8 @@ function chart(wrapper: ReturnType<typeof mountPanel>) {
 
 describe('CohortPanel brush wiring', () => {
   beforeEach(() => {
+    // The chips read the dictionary store for the column symbols.
+    setActivePinia(createPinia())
     matrixSync.mockClear()
     countRowsSync.mockClear()
   })

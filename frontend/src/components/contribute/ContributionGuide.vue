@@ -13,6 +13,7 @@
  * Two placements: `docked` fills the page's right rail (own scroll, always
  * open); otherwise it is a collapsible card above the editor.
  */
+import { stripSubSup } from '@/components/commons/TextSubscript.vue'
 import {
   displaySymbol,
   displayUnit,
@@ -95,7 +96,8 @@ function matches(column: DictColumn, needle: string): boolean {
   return (
     column.name.toLowerCase().includes(needle) ||
     column.description.toLowerCase().includes(needle) ||
-    column.symbol.toLowerCase().includes(needle)
+    // `dpz` finds `d<sub>pz</sub>`: search the symbol without its markup.
+    stripSubSup(column.symbol).toLowerCase().includes(needle)
   )
 }
 
@@ -557,11 +559,6 @@ defineExpose({ show })
   align-items: baseline;
   flex-wrap: wrap;
   gap: 8px;
-}
-.col-name {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--fg);
 }
 .col-symbol {
   font-style: italic;

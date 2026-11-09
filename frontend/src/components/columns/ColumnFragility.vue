@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/fragility_curves_steel_columns
-import LegendChart from '@/components/commons/charts/LegendChart.vue'
+import LegendChart, { LINE_DOTTED, LINE_SOLID } from '@/components/commons/charts/LegendChart.vue'
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import ToolShell from '@/components/commons/ToolShell.vue'
 import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
@@ -61,14 +61,14 @@ const legendItems = ref([
     label: `DS${index + 1}`,
     indexToFilter: index,
     color: alphaColorPalette[index],
-    icon: 'mdi-rectangle',
+    icon: LINE_SOLID,
     selected: true
   })),
   {
     id: 'univariate',
     label: t('tools.column_fragility.legend_univariate'),
     color: 'black',
-    icon: 'mdi-rectangle',
+    icon: LINE_SOLID,
     selected: true,
     indexToFilter: -1
   },
@@ -76,7 +76,7 @@ const legendItems = ref([
     id: 'multivariate',
     label: t('tools.column_fragility.legend_multivariate'),
     color: 'black',
-    icon: 'mdi-dots-horizontal',
+    icon: LINE_DOTTED,
     selected: true,
     indexToFilter: -1
   }
