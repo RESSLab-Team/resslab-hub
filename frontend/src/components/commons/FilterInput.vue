@@ -1,9 +1,9 @@
 <script setup lang="ts">
 /**
- * The input a column's filter calls for, over a small static distribution of
- * the whole dataset: a checkbox list for repeated values, a histogram brush for
- * numbers and dates, a search box (with the recurring values as shortcuts) for
- * free text.
+ * The input a column's filter calls for, over the distribution of the rows that
+ * pass the other filters (see {@link filterCountsKey}): a checkbox list for
+ * repeated values, a histogram brush for numbers and dates, a search box (with
+ * the recurring values as shortcuts) for free text.
  *
  * Shared by the filter rail ({@link AutoFilterRow}) and the table's column
  * header menu, so both write the same value grammar into the dashboard's
@@ -17,8 +17,10 @@ import DistributionBrush, {
 import { publishLive, publishSettle } from '@/composables/crossfilterBus'
 import { dashboardQueryKey, withFieldClause } from '@/composables/dashboard'
 import { isBrushDragging } from '@/composables/interactionState'
+import { filterCountsKey } from '@/composables/useAutoFilters'
 import type { Value } from '@/utils/common'
 import { mapDateToNumber } from '@/utils/date'
+import { staticCounts, type LiveCounts, type LiveOption } from '@/utils/filterCounts'
 import type { FilterDescriptor } from '@/utils/filterProfile'
 import { computed, inject, ref } from 'vue'
 
@@ -49,6 +51,23 @@ const query = inject(dashboardQueryKey, ref<string | undefined>(undefined))
 function publishDrag(value: string | undefined): void {
   publishLive(withFieldClause(query.value, props.filter.key, value))
 }
+
+/* ---- what the other filters leave ---- */
+
+const countsFor = inject(filterCountsKey, undefined)
+
+// The committed query, so a drag recounts nothing: its frames go through the bus.
+const othersQuery = computed<string | undefined>(() =>
+  withFieldClause(query.value, props.filter.key)
+)
+
+/** Show the whole-dataset count next to the live one, only when they can differ. */
+const narrowed = computed<boolean>(() => countsFor !== undefined && Boolean(othersQuery.value))
+
+const counts = computed<LiveCounts>(() =>
+  countsFor ? countsFor(props.filter, othersQuery.value) : staticCounts(props.filter)
+)
+const liveOptions = computed<LiveOption[]>(() => counts.value.options ?? [])
 
 /* ---- value-set filters (categorical, boolean, and the text shortcuts) ---- */
 
@@ -81,7 +100,8 @@ function toggleOption(option: string): void {
   emit('update', next.length === 1 ? `=${next[0]}` : next)
 }
 
-/** Share of the column's largest bucket, for the bar behind each option. */
+/** Share of the column's largest bucket in the whole dataset, for the bar behind
+ *  each option: the scale stays put, so a bar shrinks as the filters narrow. */
 const optionScale = computed<number>(() =>
   Math.max(1, ...(props.filter.options ?? []).map((option) => option.count))
 )
@@ -103,12 +123,23 @@ function changeText(raw: string): void {
   emit('update', text.length > 0 ? text : undefined)
 }
 
+/** A shortcut writes its value as plain text, so it is a substring match like the
+ *  search box: `Jain` also keeps a longer name holding `Jain`, and the rows can be
+ *  more than the count it shows. On purpose: the exact `=value` cost about 50 ms
+ *  more per click in the 10k bench (#329), for a reason we did not find. A value
+ *  with a comma still goes as `=value`, or the query would read it as a set of
+ *  two values and match nothing. A click on the selected one clears the filter. */
+function toggleShortcut(option: string): void {
+  if (textValue.value === option) return emit('update', undefined)
+  emit('update', option.includes(',') ? `=${option}` : option)
+}
+
 /* ---- numeric (the histogram is the input) ---- */
 
 const numericSeries = computed<BrushSeries[]>(() => [
   {
     color: BRUSH_COLOR,
-    data: (props.filter.bins ?? []).map(
+    data: (counts.value.bins ?? []).map(
       (bin) => [(bin[2] + bin[3]) / 2, typeof bin[1] === 'number' ? bin[1] : 0] as [number, number]
     )
   }
@@ -184,7 +215,7 @@ function endNumericDrag(): void {
 const dateSeries = computed<BrushSeries[]>(() => [
   {
     color: BRUSH_COLOR,
-    data: (props.filter.options ?? []).map(
+    data: liveOptions.value.map(
       (option) => [mapDateToNumber(option.value), option.count] as [number, number]
     )
   }
@@ -237,10 +268,10 @@ function endDateDrag(): void {
       role="group"
     >
       <label
-        v-for="option in filter.options"
+        v-for="option in liveOptions"
         :key="option.value"
         class="afr-option"
-        :class="{ on: isSelected(option.value) }"
+        :class="{ on: isSelected(option.value), zero: option.count === 0 }"
       >
         <span class="afr-option-bar" :style="{ width: optionWidth(option.count) }" />
         <input
@@ -249,7 +280,12 @@ function endDateDrag(): void {
           @change="toggleOption(option.value)"
         />
         <span class="afr-option-value">{{ option.value }}</span>
-        <span class="afr-option-count">{{ option.count.toLocaleString('en-CH') }}</span>
+        <span class="afr-option-count">
+          {{ option.count.toLocaleString('en-CH')
+          }}<span v-if="narrowed" class="afr-option-total">
+            / {{ option.total.toLocaleString('en-CH') }}</span
+          >
+        </span>
       </label>
     </div>
 
@@ -295,8 +331,10 @@ function endDateDrag(): void {
           v-for="option in filter.options"
           :key="option.value"
           class="afr-option"
+          :class="{ on: textValue === option.value }"
           type="button"
-          @click="changeText(option.value)"
+          :aria-pressed="textValue === option.value"
+          @click="toggleShortcut(option.value)"
         >
           <span class="afr-option-bar" :style="{ width: optionWidth(option.count) }" />
           <span class="afr-option-value">{{ option.value }}</span>

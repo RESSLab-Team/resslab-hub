@@ -152,14 +152,14 @@ describe('queryEngine.filterRows memoization', () => {
 
   it('evicts the coldest query past capacity, still filtering correctly', () => {
     const oldest = filterRows(rows, 't_dp:>0', types)
-    // 8 further distinct queries push the first one out of an 8-slot memo.
-    const recent = Array.from({ length: 8 }, (_, i) => `date:>${1900 + i}`)
+    // 24 further distinct queries push the first one out of a 24-slot memo.
+    const recent = Array.from({ length: 24 }, (_, i) => `date:>${1900 + i}`)
     recent.forEach((query) => filterRows(rows, query, types))
     const evicted = filterRows(rows, 't_dp:>0', types)
     expect(evicted).not.toBe(oldest)
     expect(evicted).toEqual(oldest)
     // the most recent query is still warm
-    expect(filterRows(rows, recent[7], types)).toBe(filterRows(rows, recent[7], types))
+    expect(filterRows(rows, recent[23], types)).toBe(filterRows(rows, recent[23], types))
   })
 
   it('caches per rows array, so two datasets do not evict each other', () => {
@@ -180,6 +180,17 @@ describe('queryEngine.filterRows memoization', () => {
 })
 
 describe('queryEngine exact match (`=`)', () => {
+  it('takes a value holding a comma as one value, not as a set', () => {
+    const rows = [
+      { name: 'Fell, Kanvinde & Deierlein' },
+      { name: 'Fell' },
+      { name: ' Kanvinde & Deierlein' }
+    ]
+    const types = { name: 'string' as const }
+    expect(filterRows(rows, 'name:=Fell, Kanvinde & Deierlein', types)).toEqual([rows[0]])
+    expect(filterRows(rows, 'name:!=Fell, Kanvinde & Deierlein', types)).toEqual(rows.slice(1))
+  })
+
   it('matches the whole value, not a substring', () => {
     // The default string predicate would also keep 'WUF-W' and 'WUF-B'.
     expect(ids('connection_type:=WUF-W')).toEqual(['1'])

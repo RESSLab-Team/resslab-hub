@@ -1066,6 +1066,18 @@ body.theme-dark .logos img {
 .dash-filters-head .reset:hover {
   color: var(--epfl-red-dark);
 }
+.dash-filters-head .expand {
+  font-size: 11px;
+  color: var(--fg-muted);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: inherit;
+}
+.dash-filters-head .expand:hover {
+  color: var(--fg);
+}
 .dash-filters-collapse-btn {
   width: 24px;
   height: 24px;
@@ -1586,6 +1598,17 @@ body.theme-dark .logos img {
   color: var(--fg-muted);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
+}
+.afr-option-total {
+  color: var(--fg-subtle);
+}
+/* No row left with the other filters: muted, but still tickable. */
+.afr-option.zero .afr-option-value,
+.afr-option.zero .afr-option-count {
+  color: var(--fg-subtle);
+}
+.afr-option.zero:not(.on) .afr-option-bar {
+  border-left-color: transparent;
 }
 /* Read-only shortcuts under a text search — quieter than a checkbox list. */
 .afr-options-quiet {

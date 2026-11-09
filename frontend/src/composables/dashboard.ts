@@ -209,6 +209,10 @@ function parseValue(value: string | null | (string | null)[]): Value | undefined
     return undefined
   }
   if (typeof value === 'string') {
+    // An exact value stays in one piece, even with a comma: `=Fell, Kanvinde`.
+    if (value.startsWith('=')) {
+      return value
+    }
     if (value.includes(',')) {
       return value.split(',')
     }

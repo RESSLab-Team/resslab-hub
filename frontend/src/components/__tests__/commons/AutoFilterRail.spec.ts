@@ -5,6 +5,7 @@ import type { DictColumn } from '@/stores/dictionary'
 import type { Searches } from '@/utils/common'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import { nextTick, reactive } from 'vue'
 import { createI18n } from 'vue-i18n'
 
 // A local instance rather than `@/plugins/i18n`: the plugin reads localStorage at
@@ -103,6 +104,94 @@ describe('AutoFilterRail: toggling', () => {
     await wrapper.findAll('.afr-group-head')[1].trigger('click')
     expect(expanded(wrapper)).toEqual(['Experimental program details', 'Section properties'])
     await wrapper.findAll('.afr-group-head')[1].trigger('click')
+    expect(expanded(wrapper)).toEqual(['Experimental program details'])
+  })
+})
+
+describe('AutoFilterRail: expand all, collapse all', () => {
+  it('opens every group, then closes every group', async () => {
+    const wrapper = mountRail()
+    const button = wrapper.get('button.expand')
+    expect(button.text()).toBe('Expand all')
+    await button.trigger('click')
+    expect(expanded(wrapper)).toEqual(headers(wrapper))
+    expect(button.text()).toBe('Collapse all')
+    await button.trigger('click')
+    expect(expanded(wrapper)).toEqual([])
+    expect(button.text()).toBe('Expand all')
+  })
+
+  it('says collapse as soon as the reader has opened the last group by hand', async () => {
+    const wrapper = mountRail()
+    await wrapper.findAll('.afr-group-head')[1].trigger('click')
+    expect(wrapper.get('button.expand').text()).toBe('Expand all')
+    await wrapper.findAll('.afr-group-head')[2].trigger('click')
+    expect(wrapper.get('button.expand').text()).toBe('Collapse all')
+  })
+
+  it('touches the groups only, not the rows inside', async () => {
+    const wrapper = mountRail()
+    await wrapper.get('button.expand').trigger('click')
+    const rows = wrapper.findAll('auto-filter-row-stub')
+    expect(rows).toHaveLength(5)
+    expect(rows.every((row) => row.attributes('open') === 'false')).toBe(true)
+  })
+
+  it('is hidden while searching, and the hits stay visible after a collapse', async () => {
+    const wrapper = mountRail()
+    await wrapper.get('button.expand').trigger('click')
+    await wrapper.get('button.expand').trigger('click')
+    await wrapper.get('.afr-search input').setValue('brace depth')
+    expect(wrapper.find('button.expand').exists()).toBe(false)
+    expect(expanded(wrapper)).toEqual(['Section properties'])
+  })
+
+  it('is not offered before the filters exist', () => {
+    const wrapper = mount(AutoFilterRail, {
+      props: { groups: [], searches: {} },
+      global: { plugins: [i18n], stubs: { VIcon: true, AutoFilterRow: true } }
+    })
+    expect(wrapper.find('button.expand').exists()).toBe(false)
+  })
+})
+
+describe('AutoFilterRail: a filter that becomes active after mount', () => {
+  function rowOpen(wrapper: ReturnType<typeof mountRail>, index: number): string | undefined {
+    return wrapper.findAll('auto-filter-row-stub')[index].attributes('open')
+  }
+
+  it('opens its group and its row', async () => {
+    const wrapper = mountRail()
+    expect(expanded(wrapper)).toEqual(['Experimental program details'])
+    await wrapper.setProps({ searches: { steel: '=S355' } })
+    expect(expanded(wrapper)).toEqual(['Experimental program details', 'Material properties'])
+    expect(rowOpen(wrapper, 2)).toBe('true')
+  })
+
+  it('reacts to a key added in place, the way the dashboard writes it', async () => {
+    const searches = reactive<Searches>({})
+    const wrapper = mountRail(searches)
+    searches.steel = '=S355'
+    await nextTick()
+    expect(expanded(wrapper)).toEqual(['Experimental program details', 'Material properties'])
+  })
+
+  it('never closes anything when a filter goes away', async () => {
+    const wrapper = mountRail({ steel: '=S355' })
+    await wrapper.setProps({ searches: {} })
+    expect(expanded(wrapper)).toEqual(['Experimental program details', 'Material properties'])
+  })
+
+  it('leaves a group alone if the reader closed it and its value only changes', async () => {
+    const wrapper = mountRail({ steel: '=S355' })
+    await wrapper.findAll('.afr-group-head')[2].trigger('click')
+    await wrapper.setProps({ searches: { steel: '=S460' } })
+    expect(expanded(wrapper)).toEqual(['Experimental program details'])
+  })
+
+  it('ignores a key that has no filter, like a ratio brushed on a chart', async () => {
+    const wrapper = mountRail()
+    await wrapper.setProps({ searches: { 'a/b': '0<<1' } })
     expect(expanded(wrapper)).toEqual(['Experimental program details'])
   })
 })

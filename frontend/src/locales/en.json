@@ -506,6 +506,8 @@
     "select_all": "Select all",
     "select_row": "Select {id}",
     "reset_all": "Reset all",
+    "expand_all": "Expand all",
+    "collapse_all": "Collapse all",
     "expand_filters": "Expand filters",
     "collapse_filters": "Collapse filters",
     "close_filters": "Close filters",

@@ -603,6 +603,8 @@
     "select_all": "Tout sélectionner",
     "select_row": "Sélectionner {id}",
     "reset_all": "Tout réinitialiser",
+    "expand_all": "Tout déplier",
+    "collapse_all": "Tout replier",
     "expand_filters": "Développer les filtres",
     "collapse_filters": "Réduire les filtres",
     "close_filters": "Fermer les filtres",

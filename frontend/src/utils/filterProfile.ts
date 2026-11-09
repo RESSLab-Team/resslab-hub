@@ -88,7 +88,7 @@ const DSL_CHARS = /[,;]/
 const NUMERIC_TYPES = new Set(['SmallInteger', 'Integer', 'BigInteger', 'Numeric', 'DecimalFloat'])
 
 /** Missing-value sentinels produced by `formatValue` (null and NaN). */
-const MISSING = new Set(['NA', 'NR'])
+export const MISSING = new Set(['NA', 'NR'])
 export const MISSING_OPTION = 'NA'
 
 interface Accumulator {
