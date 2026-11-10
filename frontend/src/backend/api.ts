@@ -192,6 +192,7 @@ export const BraceField = {
     Latitude: 'latitude',
     Longitude: 'longitude',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     DisplacementCount: 'displacement_count',
 } as const;
 
@@ -270,6 +271,7 @@ export interface BraceModel {
     'latitude': number | null;
     'longitude': number | null;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'displacement_count': number;
 }
 
@@ -421,6 +423,7 @@ export const ColumnField = {
     Latitude: 'latitude',
     Longitude: 'longitude',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     BuiltUp: 'built_up',
     AxialShorteningCount: 'axial_shortening_count',
     MomentStrongCount: 'moment_strong_count',
@@ -529,6 +532,7 @@ export interface ColumnModel {
     'latitude': number;
     'longitude': number;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'built_up': boolean;
     'axial_shortening_count': number;
     'moment_strong_count': number;
@@ -776,6 +780,7 @@ export const ConnectionField = {
     Latitude: 'latitude',
     Longitude: 'longitude',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     BeamCount: 'beam_count',
     BeamWestCount: 'beam_west_count',
     GlobalCount: 'global_count',
@@ -944,6 +949,7 @@ export interface ConnectionModel {
     'latitude': number | null;
     'longitude': number;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'beam_count': number;
     'beam_west_count': number;
     'global_count': number;
@@ -1321,6 +1327,7 @@ export const DuctileFractureField = {
     Longitude: 'longitude',
     HasSem: 'has_sem',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     ForceElongationCount: 'force_elongation_count',
     ForceElongationSimulationCount: 'force_elongation_simulation_count',
     ForceRadialCount: 'force_radial_count',
@@ -1413,6 +1420,7 @@ export interface DuctileFractureModel {
     'longitude': number;
     'has_sem': boolean | null;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'force_elongation_count': number;
     'force_elongation_simulation_count': number;
     'force_radial_count': number;
@@ -1591,6 +1599,7 @@ export const EccentricBracedFrameField = {
     Latitude: 'latitude',
     Longitude: 'longitude',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     ShearLinkAngleCount: 'shear_link_angle_count',
 } as const;
 
@@ -1697,6 +1706,7 @@ export interface EccentricBracedFrameModel {
     'latitude': number;
     'longitude': number;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'shear_link_angle_count': number;
 }
 
@@ -1941,6 +1951,7 @@ export const HSSColumnField = {
     Latitude: 'latitude',
     Longitude: 'longitude',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     MomentRotationCount: 'moment_rotation_count',
 } as const;
 
@@ -2009,6 +2020,7 @@ export interface HSSColumnModel {
     'latitude': number | null;
     'longitude': number | null;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'moment_rotation_count': number;
 }
 
@@ -2283,6 +2295,7 @@ export const MaterialField = {
     UvcRhoKin: 'uvc_rho_kin',
     UvcRhoD: 'uvc_rho_d',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     Type: 'type',
     Year: 'year',
     StressStrainCount: 'stress_strain_count',
@@ -2368,6 +2381,7 @@ export interface MaterialModel {
     'uvc_rho_kin': number | null;
     'uvc_rho_d': number | null;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'type': string;
     'year': number;
     'stress_strain_count': number;
@@ -2485,6 +2499,7 @@ export const ResidualStressField = {
     Latitude: 'latitude',
     Longitude: 'longitude',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     QpCoefficientCount: 'qp_coefficient_count',
     DistributionF1Count: 'distribution_F1_count',
     DistributionF2Count: 'distribution_F2_count',
@@ -2522,6 +2537,7 @@ export interface ResidualStressModel {
     'latitude': number | null;
     'longitude': number | null;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'qp_coefficient_count': number;
     'distribution_F1_count': number;
     'distribution_F2_count': number;
@@ -2630,6 +2646,7 @@ export const TensileCouponField = {
     PublicationKey: 'publication_key',
     DatacolVersion: 'datacol_version',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     StressStrainCount: 'stress_strain_count',
 } as const;
 
@@ -2708,6 +2725,7 @@ export interface TensileCouponModel {
     'publication_key': string | null;
     'datacol_version': number;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'stress_strain_count': number;
 }
 

@@ -16,13 +16,15 @@
  *   substring (string), equality (number/boolean) or SQL ilike wildcard matching.
  */
 import { queryFieldSeparator, queryKeyValueSeparator } from '@/composables/dashboard'
+import { missingKey } from '@/utils/missing'
 
 export type FieldType = 'string' | 'number' | 'date' | 'boolean'
 export type FieldTypes = Record<string, FieldType>
 export type Row = Record<string, unknown>
 
 type RowPredicate = (row: Row) => boolean
-type ValuePredicate = (value: unknown) => boolean
+/** `row` and `key` let an exact or set match tell `NR` from `NA` (#427). */
+type ValuePredicate = (value: unknown, row?: Row, key?: string) => boolean
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}/
 
@@ -34,6 +36,9 @@ export function inferFieldTypes(rows: Row[]): FieldTypes {
       if (types[key]) continue
       const value = row[key]
       if (value === null || value === undefined) continue
+      // A list (the `not_reported` names, #427) is not a field you can query,
+      // and the global search must not match column names in it, like the API.
+      if (Array.isArray(value)) continue
       if (typeof value === 'number') types[key] = 'number'
       else if (typeof value === 'boolean') types[key] = 'boolean'
       else if (typeof value === 'string' && ISO_DATE.test(value)) types[key] = 'date'
@@ -146,7 +151,7 @@ function compileClause(clause: string, fieldTypes: FieldTypes): RowPredicate {
     }
   }
   const predicate = compilePredicate(expression, fieldTypes[key] ?? 'string')
-  return (row) => predicate(row[key])
+  return (row) => predicate(row[key], row, key)
 }
 
 /**
@@ -172,7 +177,7 @@ function compileGlobal(expression: string, fieldTypes: FieldTypes): RowPredicate
 function compilePredicate(expression: string, type: FieldType): ValuePredicate {
   if (expression.startsWith('!')) {
     const inner = compilePredicate(expression.slice(1), type)
-    return (value) => !inner(value)
+    return (value, row, key) => !inner(value, row, key)
   }
   // Exact match (`=value`). Client-side only, like the derived-ratio keys: a
   // single-value selection in the filter rail must not behave like the default
@@ -181,11 +186,11 @@ function compilePredicate(expression: string, type: FieldType): ValuePredicate {
   // set never starts with `=`, it is the bare values joined by commas.
   if (expression.startsWith('=')) {
     const target = expression.slice(1)
-    return (value) => formatValue(value) === target
+    return (value, row, key) => keyOf(value, row, key) === target
   }
   if (expression.includes(',')) {
     const set = new Set(expression.split(','))
-    return (value) => set.has(formatValue(value))
+    return (value, row, key) => set.has(keyOf(value, row, key))
   }
   if (expression.includes('<<')) {
     const [min, max] = expression.split('<<')
@@ -233,6 +238,22 @@ function compilePredicate(expression: string, type: FieldType): ValuePredicate {
 }
 
 /** Format a value the way the backend `__format_value` + `str()` would. */
+/**
+ * Like `formatValue(row[field])`, but an empty cell gives `NR` when the row
+ * lists the field as not reported and `NA` otherwise (#427). The filters, the
+ * chart counts and the table all group on this key, so they agree.
+ */
+export function cellKey(row: Row, field: string): string {
+  const value = row[field]
+  if (value === null || value === undefined) return missingKey(row, field)
+  return formatValue(value)
+}
+
+function keyOf(value: unknown, row: Row | undefined, key: string | undefined): string {
+  if ((value === null || value === undefined) && row && key) return missingKey(row, key)
+  return formatValue(value)
+}
+
 export function formatValue(value: unknown): string {
   if (value === null || value === undefined) return 'NA'
   if (typeof value === 'number') return Number.isNaN(value) ? 'NR' : String(value)

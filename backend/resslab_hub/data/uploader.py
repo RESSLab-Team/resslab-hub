@@ -36,6 +36,11 @@ from sqlalchemy.orm import sessionmaker
 from resslab_hub.data.common import get_abs_path, get_file_encoding, is_empty_row
 from resslab_hub.data.count_flags import COUNT_FLAGS, recompute_count_flags
 from resslab_hub.data.curation_status import ALLOWED, STATUS_COLUMN, UNVERIFIED
+from resslab_hub.data.not_reported import (
+    NOT_REPORTED_COLUMN,
+    is_not_reported,
+    not_reported_columns,
+)
 from resslab_hub.models.database.brace import Brace, BraceDisplacement
 from resslab_hub.models.database.column import (
     ColumnAxialShortening,
@@ -331,6 +336,8 @@ class TableUploader(Uploader):
             existing_ids = {row[0] for row in session.query(self.id_column).all()}
             # derived flags have no CSV header; recomputed after the upload
             derived = COUNT_FLAGS.get(self.base_model, {})
+            # filled from the whole row below, it has no CSV header either
+            computed = set(derived) | {NOT_REPORTED_COLUMN}
             debug(
                 f"Opened file {path.basename(file_path)}, "
                 f"encoding: {encoding}, id_index: {id_index}"
@@ -350,8 +357,11 @@ class TableUploader(Uploader):
                     data = {
                         column.key: self.__get_value(column, headers, row)
                         for column in self.base_model.__table__.c
-                        if column.key not in derived
+                        if column.key not in computed
                     }
+                    data[NOT_REPORTED_COLUMN] = not_reported_columns(
+                        self.base_model, headers, row
+                    )
                     if row[id_index] in existing_ids:
                         modified_count += 1
                     else:
@@ -399,7 +409,9 @@ class TableUploader(Uploader):
             if isinstance(column.type, String):
                 return "Not applicable"
             return None
-        if value.upper() == "NR":
+        if is_not_reported(value):
+            # For a non-text column, `not_reported_columns` keeps the
+            # difference with `na` (#427).
             if isinstance(column.type, String):
                 return "Not reported"
             return None

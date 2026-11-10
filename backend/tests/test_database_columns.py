@@ -8,8 +8,9 @@ schema and a new column without a category gets through.
 import json
 from pathlib import Path
 
-from resslab_hub.data.columns import database_columns
+from resslab_hub.data.columns import DATABASE_MODELS, database_columns
 from resslab_hub.data.curation_status import STATUS_COLUMN
+from resslab_hub.data.not_reported import NOT_REPORTED_COLUMN
 
 COLUMNS_FILE = Path(__file__).resolve().parents[2] / "database-columns.json"
 
@@ -39,3 +40,15 @@ def test_leaves_out_the_columns_the_hub_fills():
     for database, columns in database_columns().items():
         assert STATUS_COLUMN not in columns, database
         assert not [name for name in columns if name.endswith("_count")], database
+
+
+def test_leaves_out_the_not_reported_list():
+    for database, columns in database_columns().items():
+        assert NOT_REPORTED_COLUMN not in columns, database
+
+
+def test_every_main_table_has_the_not_reported_list():
+    # A new tab that forgets the column would say "Not applicable" for every
+    # empty value (#427).
+    for model in DATABASE_MODELS.values():
+        assert NOT_REPORTED_COLUMN in model.__table__.c, model.__name__

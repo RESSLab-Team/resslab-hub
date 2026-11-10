@@ -33,6 +33,8 @@ const filter: FilterDescriptor = {
   distinct: 2,
   nonNull: 8,
   missing: 0,
+  notReported: 0,
+  notApplicable: 0,
   options: [
     { value: 'RBS', count: 5 },
     { value: 'WUF-W', count: 3 }

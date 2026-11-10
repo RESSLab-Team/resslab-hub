@@ -25,6 +25,8 @@ function filter(key: string, label: string, description = key): LabeledFilter {
     distinct: 2,
     nonNull: 10,
     missing: 0,
+    notReported: 0,
+    notApplicable: 0,
     options: [{ value: 'a', count: 10 }]
   }
 }

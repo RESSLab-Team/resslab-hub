@@ -17,6 +17,8 @@ from sqlalchemy import Boolean, Column, Date, Numeric, SmallInteger, String
 from sqlalchemy.exc import OperationalError
 
 from resslab_hub.data.count_flags import recompute_count_flags
+from resslab_hub.data.curation_status import STATUS_COLUMN
+from resslab_hub.data.not_reported import NOT_REPORTED_COLUMN, not_reported_columns
 from resslab_hub.data.uploader import (
     CsvFileUploader,
     TableUploader,
@@ -119,6 +121,41 @@ def test_table_uploader_roundtrip(tmp_path, db_session):
     assert b1.f_yn == Decimal("355.5")
     assert b1.area is None
     assert b1.b_br is None
+    # A NULL keeps why it is empty (#427): `NA` stays out of the list, a blank
+    # counts as not reported.
+    assert b1.not_reported == ["b_br"]
+    assert rows["B2"].not_reported == []
+
+
+def test_not_reported_columns_picks_nr_and_blank_cells_only():
+    headers = ["id", "investigator", "f_yn", "area", "b_br", "date", STATUS_COLUMN]
+    row = ["B1", "nr", "NR", "na", "", "NaN", "nr"]
+    # `investigator` and the status are text, `area` is NA, `date` is NaN.
+    assert not_reported_columns(Brace, headers, row) == ["b_br", "f_yn"]
+
+
+def test_not_reported_columns_follows_the_model_order_and_the_header():
+    headers = ["b_br", "f_yn", "id"]
+    assert not_reported_columns(Brace, headers, ["nr", "Nr", "B1"]) == ["b_br", "f_yn"]
+    # A column with no header says nothing; a short row reads as blank cells.
+    assert not_reported_columns(Brace, ["id", "f_yn"], ["B1"]) == ["f_yn"]
+    assert "area" not in not_reported_columns(Brace, ["id"], ["B1"])
+    assert NOT_REPORTED_COLUMN not in not_reported_columns(Brace, headers, ["nr"] * 3)
+
+
+def test_table_uploader_refreshes_the_not_reported_list(tmp_path, db_session):
+    csv_path = tmp_path / "steel_braces.csv"
+    write_main_csv(csv_path, Brace, [{"id": "B1", "area": "NR", "b_br": "NA"}])
+    upload_one(Type.BRACE, str(csv_path))
+    assert db_session.query(Brace).one().not_reported == ["area"]
+
+    # The paper is read again and gives the value: the list empties.
+    write_main_csv(csv_path, Brace, [{"id": "B1", "area": "12.5", "b_br": "NA"}])
+    upload_one(Type.BRACE, str(csv_path))
+    db_session.expire_all()
+    brace = db_session.query(Brace).one()
+    assert brace.area == Decimal("12.5")
+    assert brace.not_reported == []
 
 
 def test_status_is_read_from_the_file():

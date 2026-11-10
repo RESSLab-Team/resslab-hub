@@ -111,21 +111,21 @@ const imageSrc = computed(() => {
                 :name="$t('detail.ebf.nominal_yield_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(eccentricBracedFrame.f_y_n_flg) }}
+                {{ formatNumber(eccentricBracedFrame, 'f_y_n_flg') }}
               </property-item>
               <property-item
                 column="f_y_m_flg"
                 :name="$t('detail.ebf.measured_yield_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(eccentricBracedFrame.f_y_m_flg) }}
+                {{ formatNumber(eccentricBracedFrame, 'f_y_m_flg') }}
               </property-item>
               <property-item
                 column="f_u_m_flg"
                 :name="$t('detail.ebf.measured_ultimate_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(eccentricBracedFrame.f_u_m_flg) }}
+                {{ formatNumber(eccentricBracedFrame, 'f_u_m_flg') }}
               </property-item>
             </v-col>
             <v-col cols="12">
@@ -138,21 +138,21 @@ const imageSrc = computed(() => {
                 :name="$t('detail.ebf.nominal_yield_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(eccentricBracedFrame.f_y_n_web) }}
+                {{ formatNumber(eccentricBracedFrame, 'f_y_n_web') }}
               </property-item>
               <property-item
                 column="f_y_m_web"
                 :name="$t('detail.ebf.measured_yield_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(eccentricBracedFrame.f_y_m_web) }}
+                {{ formatNumber(eccentricBracedFrame, 'f_y_m_web') }}
               </property-item>
               <property-item
                 column="f_u_m_web"
                 :name="$t('detail.ebf.measured_ultimate_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(eccentricBracedFrame.f_u_m_web) }}
+                {{ formatNumber(eccentricBracedFrame, 'f_u_m_web') }}
               </property-item>
             </v-col>
           </v-row>

@@ -37,6 +37,7 @@ component = Component(
     model_type=TensileCouponModel,
     id_column=TensileCoupon.id,
     ignored_columns={
+        TensileCoupon.not_reported,
         TensileCoupon.stress_strain_count,
     },
 )

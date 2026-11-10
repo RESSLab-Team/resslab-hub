@@ -16,6 +16,7 @@ from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.selectable import Select
 from sqlalchemy.sql.sqltypes import Boolean, Date, Float, Integer, Numeric, String
 
+from resslab_hub.data.not_reported import NOT_REPORTED_COLUMN
 from resslab_hub.models.api import (
     CountModel,
     DateRangeModel,
@@ -233,11 +234,23 @@ class Component(ABC, Generic[D, M]):
     ) -> StreamingResponse:
         time = datetime.now().strftime("%Y%m%d-%H%M%S")
         filename = f"{self.name}-{time}.csv"
+        # The `not_reported` list is not written as a column: it is selected
+        # last and turns its NULL cells into `NR`, like the source CSV (#427).
+        columns = {
+            key: column
+            for key, column in self.model_columns.items()
+            if key != NOT_REPORTED_COLUMN
+        }
+        not_reported = self.model_columns.get(NOT_REPORTED_COLUMN)
+        selected = [*columns.values()]
+        if not_reported is not None:
+            selected.append(not_reported)
         return self.get_csv_response(
             session,
-            select(*self.model_columns.values()).where(self.id_column.in_(ids)),
-            list(self.model_columns.keys()),
+            select(*selected).where(self.id_column.in_(ids)),
+            list(columns.keys()),
             filename,
+            with_not_reported=not_reported is not None,
         )
 
     async def get_distinct(
@@ -297,6 +310,7 @@ class Component(ABC, Generic[D, M]):
         statement: Select,
         headers: List[str],
         filename: str,
+        with_not_reported: bool = False,
     ) -> StreamingResponse:
         # The request-scoped `session` is closed as soon as this handler returns
         # the StreamingResponse, before the body generator runs. The generator
@@ -305,6 +319,7 @@ class Component(ABC, Generic[D, M]):
             Component.__get_csv_stream(
                 statement,
                 headers,
+                with_not_reported=with_not_reported,
             ),
             headers={HttpHeader.CONTENT_DISPOSITION.value: attachment(filename)},
             media_type=MediaType.CSV.value,
@@ -433,7 +448,13 @@ class Component(ABC, Generic[D, M]):
         headers: List[str],
         partition_size=128,
         separator=",",
+        with_not_reported: bool = False,
     ):
+        """
+        With `with_not_reported`, the last item of each row is its
+        `not_reported` list: a NULL cell of a listed column is written `NR`,
+        the other NULL cells `NA`.
+        """
         yield separator.join(headers) + "\n"
         # Own a dedicated session: the request-scoped one is already closed by
         # the time Starlette consumes this generator.
@@ -441,9 +462,16 @@ class Component(ABC, Generic[D, M]):
             result = await session.stream(statement)
             async for partition in result.partitions(partition_size):  # type: ignore
                 for row in partition:
+                    items = list(row)
+                    listed = set(items.pop() or []) if with_not_reported else set()
                     yield (
                         separator.join(
-                            [str(Component.__format_value(item)) for item in row]
+                            [
+                                "NR"
+                                if item is None and name in listed
+                                else str(Component.__format_value(item))
+                                for name, item in zip(headers, items)
+                            ]
                         )
                         + "\n"
                     )

@@ -23,6 +23,8 @@ const categorical: LabeledFilter = {
   distinct: 3,
   nonNull: 10,
   missing: 2,
+  notReported: 0,
+  notApplicable: 2,
   options: [
     { value: 'RBS', count: 5 },
     { value: 'WUF-W', count: 3 },
@@ -94,6 +96,8 @@ describe('AutoFilterRow: booleans', () => {
     distinct: 2,
     nonNull: 8,
     missing: 0,
+    notReported: 0,
+    notApplicable: 0,
     options: [
       { value: 'True', count: 5 },
       { value: 'False', count: 3 }
@@ -123,6 +127,8 @@ describe('AutoFilterRow: text', () => {
     distinct: 40,
     nonNull: 50,
     missing: 0,
+    notReported: 0,
+    notApplicable: 0,
     options: [{ value: 'Demo et al.', count: 4 }]
   }
 
@@ -168,6 +174,8 @@ describe('AutoFilterRow: collapsed row', () => {
       distinct: 20,
       nonNull: 20,
       missing: 0,
+      notReported: 0,
+      notApplicable: 0,
       min: 0,
       max: 100
     }

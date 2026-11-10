@@ -42,7 +42,9 @@ async def paginate(
         count_query = select(func.count()).select_from(query.subquery())
     total = await session.scalar(count_query) or 0
     result = await session.execute(create_paginate_query(query, params))
-    items = result.unique().all()
+    # No `.unique()`: the rows are plain columns with the primary key, so they
+    # are unique already, and it can't hash the `not_reported` list (#427).
+    items = result.all()
     mapped_items = [
         {k: map_value(v) for k, v in item._mapping.items()} for item in items
     ]
