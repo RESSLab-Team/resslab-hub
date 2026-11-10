@@ -735,9 +735,19 @@ export const useContributionStore = defineStore('contribution', () => {
         summary.assumed[match.kind.key] = (summary.assumed[match.kind.key] ?? 0) + 1
     }
     // A file dropped again replaces its earlier pending entry (same path).
+    // Rivals of one flat drop share their path, they all come from `plan`.
     const paths = new Set(plan.pending.map((entry) => entry.file.path))
+    // A file now attached by its folder settles the same file left pending by
+    // an earlier flat drop (#437), or the "extract the zip" warning stays.
+    const settled = (entry: IntakePending) =>
+      !!entry.lostFolder &&
+      plan.matched.some(
+        (match) =>
+          match.file.name.toLowerCase() === entry.file.name.toLowerCase() &&
+          entry.kinds.some((kind) => kind.key === match.kind.key)
+      )
     pendingFiles.value = [
-      ...pendingFiles.value.filter((entry) => !paths.has(entry.file.path)),
+      ...pendingFiles.value.filter((entry) => !paths.has(entry.file.path) && !settled(entry)),
       ...plan.pending
     ]
     lastIntake.value = summary
