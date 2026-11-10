@@ -253,9 +253,7 @@ class Component(ABC, Generic[D, M]):
             with_not_reported=not_reported is not None,
         )
 
-    async def get_distinct(
-        self, session: AsyncSession, fields: List[str]
-    ) -> Optional[int]:
+    async def get_distinct(self, session: AsyncSession, fields: List[str]) -> int:
         columns = [self.database_type.__dict__[field] for field in fields]
         count = await session.scalar(
             select(
@@ -264,7 +262,7 @@ class Component(ABC, Generic[D, M]):
                 else func.count()
             ).select_from(self.database_type)
         )
-        return count
+        return count or 0
 
     def get_sub(
         self,

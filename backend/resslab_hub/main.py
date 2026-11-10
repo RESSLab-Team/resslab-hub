@@ -6,6 +6,7 @@ https://fastapi.tiangolo.com/tutorial/bigger-applications/
 import logging
 import sys
 import time
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
@@ -44,7 +45,7 @@ from resslab_hub.routers import map as map_router
 from resslab_hub.utils.caching import HTTPCacheMiddleware
 from resslab_hub.utils.database import upgrade_database
 from resslab_hub.utils.rate_limit import limiter
-from resslab_hub.utils.warmup import install as install_warmup
+from resslab_hub.utils.warmup import warmup
 
 
 # Function to determine if --log-level debug is set
@@ -63,7 +64,25 @@ logger.propagate = True
 
 logger.debug("Debug logging enabled")
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Say in the log where the sign-in mails go, loud when nowhere (#247).
+    mailer.check_at_startup()
+    try:
+        # Warm the response cache at startup (readinessProbe on /readyz waits
+        # for it) and refresh entries before they expire, so no visitor ever
+        # pays the cold database path. Refresh at 80% of the cache TTL;
+        # disabled with caching (dev).
+        async with warmup(app, interval=settings.cache_max_age * 0.8):
+            yield
+    finally:
+        # Release the GitHub App's shared connection pool (contributions).
+        await aclose_github()
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title=title,
     debug=is_debug_mode(),  # Set debug mode based on log level
     version=__version__,
@@ -189,24 +208,6 @@ app.include_router(tensile_coupon.router)
 app.include_router(ductile_fracture.router)
 app.include_router(map_router.router)
 add_pagination(app)
-
-# Warm the response cache at startup (readinessProbe on /readyz waits for it)
-# and refresh entries before they expire, so no visitor ever pays the cold
-# database path. Refresh at 80% of the cache TTL; disabled with caching (dev).
-install_warmup(app, interval=settings.cache_max_age * 0.8)
-
-
-@app.on_event("startup")
-async def _check_mail_relay() -> None:
-    """Say in the log where the sign-in mails go, loud when nowhere (#247)."""
-    mailer.check_at_startup()
-
-
-@app.on_event("shutdown")
-async def _close_github_client() -> None:
-    """Release the GitHub App's shared connection pool (contributions)."""
-    await aclose_github()
-
 
 if settings.database_upgrade:
     upgrade_database()

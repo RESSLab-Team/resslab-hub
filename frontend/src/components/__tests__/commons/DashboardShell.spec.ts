@@ -2,7 +2,7 @@ import DashboardShell from '@/components/commons/DashboardShell.vue'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createI18n } from 'vue-i18n'
+import { createI18n, type Composer } from 'vue-i18n'
 import { createVuetify } from 'vuetify'
 
 // Same local i18n as SimpleTable.spec.ts: the real plugin reads localStorage at import.
@@ -90,5 +90,43 @@ describe('DashboardShell drawers', () => {
     await remove.trigger('click')
     expect(wrapper.emitted('change:searches')).toEqual([['name', undefined]])
     wrapper.unmount()
+  })
+})
+
+describe('DashboardShell search placeholder', () => {
+  function placeholder(props: Record<string, unknown> = {}): string | undefined {
+    const wrapper = mount(DashboardShell, {
+      props: {
+        eyebrow: 'Database',
+        title: 'Braces',
+        i18nPrefix: 'brace.',
+        filters: [],
+        filterGroups: [],
+        searches: {},
+        ...props
+      },
+      global: {
+        plugins: [i18n.value, createVuetify()],
+        stubs: { 'v-icon': true, AutoFilterRail: true }
+      }
+    })
+    const value = wrapper.find('input[type="search"]').attributes('placeholder')
+    wrapper.unmount()
+    return value
+  }
+
+  it('translates the default and keeps a given one as is', () => {
+    const global = i18n.value.global as unknown as Composer
+    global.setLocaleMessage('fr', { commons: { dash_search_placeholder: 'Chercher partout…' } })
+    global.locale.value = 'fr'
+    try {
+      expect(placeholder()).toBe('Chercher partout…')
+      expect(placeholder({ searchPlaceholder: 'Search ids' })).toBe('Search ids')
+      // The English text passed on purpose is not swapped for the translation.
+      expect(placeholder({ searchPlaceholder: 'Search all columns…' })).toBe('Search all columns…')
+    } finally {
+      global.locale.value = 'en'
+    }
+    expect(placeholder()).toBe('Search all columns…')
   })
 })

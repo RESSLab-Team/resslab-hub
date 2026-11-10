@@ -125,7 +125,7 @@ async def get_hss_columns_distinct(
     """
     Get distinct count
     """
-    return await component.get_distinct(session, [field.value for field in fields]) or 0
+    return await component.get_distinct(session, [field.value for field in fields])
 
 
 @router.get("/{HSSColumn_id}/moment-rotation", response_model=List[List[float]])
