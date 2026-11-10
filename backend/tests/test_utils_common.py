@@ -22,3 +22,17 @@ class TestStrtobool:
     def test_invalid_values_raise(self, value):
         with pytest.raises(ValueError):
             strtobool(value)
+
+
+class _NoRowSession:
+    """A session whose COUNT gives no row, so ``scalar`` returns None."""
+
+    async def scalar(self, statement):
+        return None
+
+
+async def test_get_distinct_returns_zero_when_count_is_none():
+    from resslab_hub.routers.braces import component
+
+    assert await component.get_distinct(_NoRowSession(), []) == 0
+    assert await component.get_distinct(_NoRowSession(), ["investigator"]) == 0

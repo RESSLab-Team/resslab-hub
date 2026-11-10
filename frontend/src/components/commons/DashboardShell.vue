@@ -50,7 +50,7 @@ const props = withDefaults(
     description: undefined,
     databaseId: undefined,
     search: '',
-    searchPlaceholder: 'Search all columns…',
+    searchPlaceholder: undefined,
     detailOpen: false
   }
 )
@@ -187,11 +187,7 @@ function shareView(): void {
             <input
               v-model="searchModel"
               type="search"
-              :placeholder="
-                searchPlaceholder === 'Search all columns…'
-                  ? $t('commons.dash_search_placeholder')
-                  : searchPlaceholder
-              "
+              :placeholder="searchPlaceholder ?? $t('commons.dash_search_placeholder')"
             />
           </div>
           <div class="dash-toolbar-spacer" />

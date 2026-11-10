@@ -163,7 +163,7 @@ async def get_residual_stresses_distinct(
     """
     Get distinct count
     """
-    return await component.get_distinct(session, [field.value for field in fields]) or 0
+    return await component.get_distinct(session, [field.value for field in fields])
 
 
 @router.get("/{ResidualStress_id}/distribution-f1", response_model=List[List[float]])

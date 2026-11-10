@@ -19,6 +19,8 @@ until they are warm.
 
 import asyncio
 import logging
+from contextlib import asynccontextmanager, suppress
+from typing import AsyncIterator
 
 import httpx
 
@@ -65,31 +67,42 @@ async def _render_all(client: httpx.AsyncClient, refresh: bool) -> None:
             logger.warning("warmup: %s failed: %s", path, exc)
 
 
-def install(app, interval: float) -> None:
-    """
-    Register startup warming + periodic refresh on ``app``.
+async def _run(app, interval: float) -> None:
+    transport = httpx.ASGITransport(app=app)
+    client = httpx.AsyncClient(transport=transport, base_url="http://warmup")
+    async with client:
+        await _render_all(client, refresh=False)
+        app.state.warmed = True
+        logger.info("initial warmup done (%d URLs)", len(warm_paths()))
+        while True:
+            await asyncio.sleep(interval)
+            await _render_all(client, refresh=True)
 
-    ``interval`` is the refresh period in seconds — pass something below the
+
+@asynccontextmanager
+async def warmup(app, interval: float) -> AsyncIterator[None]:
+    """
+    Warm the cache at startup and refresh it, for the app's lifespan.
+
+    ``interval`` is the refresh period in seconds: pass something below the
     response cache's max_age so entries are re-rendered before they expire.
     Non-positive (dev: caching disabled) marks the app warmed and does
     nothing else.
+
+    The task is kept on ``app.state.warmup_task``: the event loop holds only a
+    weak reference to a task, so a dropped handle can be garbage collected
+    mid-run. It is cancelled at shutdown.
     """
     app.state.warmed = interval <= 0
     if interval <= 0:
+        yield
         return
 
-    @app.on_event("startup")
-    async def _start_warmup() -> None:
-        async def _run() -> None:
-            transport = httpx.ASGITransport(app=app)
-            async with httpx.AsyncClient(
-                transport=transport, base_url="http://warmup"
-            ) as client:
-                await _render_all(client, refresh=False)
-                app.state.warmed = True
-                logger.info("initial warmup done (%d URLs)", len(warm_paths()))
-                while True:
-                    await asyncio.sleep(interval)
-                    await _render_all(client, refresh=True)
-
-        asyncio.create_task(_run())
+    task = asyncio.create_task(_run(app, interval))
+    app.state.warmup_task = task
+    try:
+        yield
+    finally:
+        task.cancel()
+        with suppress(asyncio.CancelledError):
+            await task
