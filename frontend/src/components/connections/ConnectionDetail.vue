@@ -2,6 +2,7 @@
 import type { ConnectionModel } from '@/backend'
 import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
+import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { connectionsApi } from '@/plugins/axios'
 import { isHttpUrl } from '@/utils/common'
 import { getConnectionSpecimenImage, getConnectionTypeImage } from '@/utils/component'
@@ -153,7 +154,12 @@ watch(
         <div class="cd-schematic">
           <template v-if="connectionTypeImageSrc">
             <div class="cd-schematic-frame">
-              <img :src="connectionTypeImageSrc" :alt="`${connection.connection_type} schematic`" />
+              <zoomable-image
+                :src="connectionTypeImageSrc"
+                :alt="`${connection.connection_type} ${$t(
+                  'detail.connection.caption_connection_schematic'
+                )}`"
+              />
             </div>
             <div class="cd-schematic-cap">
               {{ connection.connection_type }}
@@ -162,7 +168,12 @@ watch(
           </template>
           <template v-if="specimenTypeImageSrc">
             <div class="cd-schematic-frame cd-schematic-frame-sm">
-              <img :src="specimenTypeImageSrc" :alt="`${connection.specimen_type} schematic`" />
+              <zoomable-image
+                :src="specimenTypeImageSrc"
+                :alt="`${connection.specimen_type} ${$t(
+                  'detail.connection.caption_configuration'
+                )}`"
+              />
             </div>
             <div class="cd-schematic-cap">
               {{ connection.specimen_type }} {{ $t('detail.connection.caption_configuration') }}

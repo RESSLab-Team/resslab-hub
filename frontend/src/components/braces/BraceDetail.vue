@@ -2,6 +2,7 @@
 import type { BraceModel } from '@/backend'
 import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
+import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { bracesApi } from '@/plugins/axios'
 import { publicPath } from '@/utils/common'
 import { formatNumber, formatString } from '@/utils/formatter'
@@ -182,7 +183,11 @@ watch(
           </v-row>
         </v-col>
         <v-col cols="12" sm="6">
-          <v-img :src="imageTypeSrc" />
+          <zoomable-image
+            v-if="imageTypeSrc"
+            :src="imageTypeSrc"
+            :alt="$t('detail.brace.figure_alt')"
+          />
         </v-col>
       </v-row>
     </template>

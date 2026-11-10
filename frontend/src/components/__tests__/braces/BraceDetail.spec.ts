@@ -18,7 +18,7 @@ const render = (brace: Partial<BraceModel>) =>
         PropertyItem: { template: '<p><slot /></p>' },
         VRow: { template: '<div><slot /></div>' },
         VCol: { template: '<div><slot /></div>' },
-        VImg: true
+        ZoomableImage: true
       }
     }
   }).text()

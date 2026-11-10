@@ -2,6 +2,7 @@
 import type { EccentricBracedFrameModel } from '@/backend'
 import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
+import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { ebfApi } from '@/plugins/axios'
 import { formatNumber } from '@/utils/formatter'
 import { computed, ref, watch } from 'vue'
@@ -157,7 +158,12 @@ const imageSrc = computed(() => {
           </v-row>
         </v-col>
         <v-col cols="12" sm="6">
-          <v-img v-if="imageSrc" :src="imageSrc" max-height="400" contain />
+          <zoomable-image
+            v-if="imageSrc"
+            :src="imageSrc"
+            :alt="$t('detail.ebf.figure_alt')"
+            :max-height="400"
+          />
         </v-col>
       </v-row>
     </template>

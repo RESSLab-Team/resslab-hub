@@ -365,7 +365,8 @@
       "chart_moment_weak": "Moment axe faible",
       "axis_chord_rotation": "Rotation de corde [rads]",
       "axis_axial_shortening": "Raccourcissement axial [mm]",
-      "axis_moment": "Moment [kN-mm]"
+      "axis_moment": "Moment [kN-mm]",
+      "figure_alt": "Montage d'essai de la colonne"
     },
     "brace": {
       "section_loading_geometric": "Paramètres de chargement et géométriques",
@@ -386,7 +387,8 @@
       "no_gusset_plates": "La configuration ne comprend pas de gousset",
       "chart_force_displacement": "Force-déplacement",
       "axis_displacement": "Déplacement [mm]",
-      "axis_force": "Force [kN]"
+      "axis_force": "Force [kN]",
+      "figure_alt": "Condition d'appui du contreventement"
     },
     "hss": {
       "moment_rotation_title": "Moment-rotation",
@@ -402,7 +404,8 @@
       "steel_type": "Type d'acier",
       "nominal_yield_stress": "Limite d'élasticité nominale",
       "measured_yield_stress": "Limite d'élasticité mesurée",
-      "measured_ultimate_stress": "Contrainte ultime mesurée"
+      "measured_ultimate_stress": "Contrainte ultime mesurée",
+      "figure_alt": "Configuration d'essai"
     },
     "ebf": {
       "link_rotation_axis": "Rotation du tronçon [rad]",
@@ -422,7 +425,8 @@
       "steel_type": "Type d'acier",
       "nominal_yield_stress": "Limite d'élasticité nominale",
       "measured_yield_stress": "Limite d'élasticité mesurée",
-      "measured_ultimate_stress": "Contrainte ultime mesurée"
+      "measured_ultimate_stress": "Contrainte ultime mesurée",
+      "figure_alt": "Configuration du lien"
     },
     "material": {
       "error_message": "Le graphique ne peut pas être affiché car les paramètres du modèle de matériau ne sont pas disponibles.",
@@ -450,7 +454,8 @@
       "backstress_magnitude_2": "Amplitude de la contrainte de rappel 2, C2",
       "backstress_rate_1": "Vitesse de la contrainte de rappel 1, γ1",
       "backstress_rate_2": "Vitesse de la contrainte de rappel 2, γ2",
-      "model_footnote": "* Le modèle de matériau est basé sur"
+      "model_footnote": "* Le modèle de matériau est basé sur",
+      "figure_alt": "Géométrie de l'éprouvette"
     },
     "residual": {
       "error_message": "Le graphique ne peut pas être affiché car les paramètres du modèle de matériau ne sont pas disponibles.",
@@ -471,7 +476,8 @@
       "web_thickness_of_the_cross_section": "Épaisseur de l'âme de la section transversale",
       "flange_thickness_of_the_cross_section": "Épaisseur de la semelle de la section transversale",
       "fillet_radii_of_the_cross_section": "Rayons de congé de la section transversale",
-      "area_of_the_cross_section": "Aire de la section transversale"
+      "area_of_the_cross_section": "Aire de la section transversale",
+      "figure_alt": "Distribution des contraintes résiduelles"
     },
     "tensile_coupon": {
       "engineering_stress_strain": "Contrainte-déformation conventionnelle",
@@ -487,7 +493,8 @@
       "measured_yield_stress": "Limite d'élasticité mesurée",
       "nominal_ultimate_stress": "Contrainte ultime nominale",
       "measured_ultimate_stress": "Contrainte ultime mesurée",
-      "youngs_modulus_e": "Module de Young, E"
+      "youngs_modulus_e": "Module de Young, E",
+      "figure_alt": "Géométrie de l'éprouvette"
     },
     "ductile_fracture": {
       "structural_steel_element": "Élément en acier de construction",
@@ -503,7 +510,8 @@
       "measured_ultimate_stress": "Contrainte ultime mesurée",
       "fracture_model_parameters": "Paramètres du modèle de rupture",
       "characteristic_length": "Longueur caractéristique",
-      "sem_button": "Microscopie électronique à balayage (MEB)"
+      "sem_button": "Microscopie électronique à balayage (MEB)",
+      "figure_alt": "Géométrie de l'éprouvette"
     }
   },
   "shell": {
@@ -640,7 +648,8 @@
       "verified_only": "Vérifiées seulement",
       "verified_only_hint": "Masquer les expériences que notre équipe n'a pas encore relues",
       "status_label": "Statut de relecture"
-    }
+    },
+    "zoom_image": "Ouvrir {name} en grand"
   },
   "table": {
     "hss": {

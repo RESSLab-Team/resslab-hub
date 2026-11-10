@@ -2,6 +2,7 @@
 import type { DuctileFractureModel } from '@/backend'
 import CommonDetail from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
+import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import DuctileFracturePlotSlot from '@/components/ductile-fracture/charts/DuctileFracturePlotSlot.vue'
 import SemDialog from '@/components/ductile-fracture/sem/SemDialog.vue'
 import {
@@ -193,7 +194,11 @@ const figureSrc = computed(() =>
           </div>
         </v-col>
         <v-col cols="12" sm="6">
-          <v-img :src="figureSrc" @error="figureFailed = true" />
+          <zoomable-image
+            :src="figureSrc"
+            :alt="$t('detail.ductile_fracture.figure_alt')"
+            @error="figureFailed = true"
+          />
         </v-col>
       </v-row>
       <v-row v-if="ductileFracture.has_sem">

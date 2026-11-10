@@ -6,6 +6,7 @@ import SectionSelector from '@/components/commons/SectionSelector.vue'
 import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
 import type { Variable } from '@/utils/model'
 import ToolShell from '@/components/commons/ToolShell.vue'
+import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import UnitTableRow, { type UnitTableRowData } from '@/components/commons/UnitTableRow.vue'
 import UnitToggle from '@/components/commons/UnitToggle.vue'
 import { publicPath, type Section } from '@/utils/common'
@@ -735,13 +736,15 @@ defineExpose({
 
       <div class="st-block st-schem">
         <figure class="tool-schematic">
-          <img
+          <zoomable-image
             :alt="$t('tools.connection_model.schematic_alt')"
             :src="publicPath + 'img/connection/component-1.png'"
+            :caption="$t('tools.connection_model.figcaption')"
           />
-          <img
+          <zoomable-image
             :alt="$t('tools.connection_model.schematic_alt')"
             :src="publicPath + 'img/connection/component-2.png'"
+            :caption="$t('tools.connection_model.figcaption')"
           />
           <figcaption>{{ $t('tools.connection_model.figcaption') }}</figcaption>
         </figure>
