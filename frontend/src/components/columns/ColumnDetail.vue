@@ -2,6 +2,7 @@
 import type { ColumnModel } from '@/backend'
 import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
+import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { columnsApi } from '@/plugins/axios'
 import { getColumnImage } from '@/utils/component'
 import { computed, ref, watch } from 'vue'
@@ -105,7 +106,12 @@ watch(
           </property-item>
         </v-col>
         <v-col cols="12" sm="6">
-          <v-img max-height="256" :src="imageSrc" />
+          <zoomable-image
+            v-if="imageSrc"
+            :src="imageSrc"
+            :alt="$t('detail.column.figure_alt')"
+            :max-height="256"
+          />
         </v-col>
       </v-row>
     </template>

@@ -2,6 +2,7 @@
 import type { ResidualStressModel } from '@/backend'
 import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
+import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { residualsApi } from '@/plugins/axios'
 import { publicPath } from '@/utils/common'
 import { formatNumber } from '@/utils/formatter'
@@ -218,7 +219,10 @@ watch(
           </p>
         </v-col>
         <v-col cols="12" sm="6">
-          <v-img :src="publicPath + 'img/residuals/detail.png'" />
+          <zoomable-image
+            :src="publicPath + 'img/residuals/detail.png'"
+            :alt="$t('detail.residual.figure_alt')"
+          />
         </v-col>
       </v-row>
     </template>

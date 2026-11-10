@@ -543,7 +543,8 @@
       "verified_only": "Verified only",
       "verified_only_hint": "Hide the experiments our team has not reviewed yet",
       "status_label": "Review status"
-    }
+    },
+    "zoom_image": "Open {name} full size"
   },
   "field_group": {
     "experimental_program_details": "Experimental program details",
@@ -650,7 +651,8 @@
       "chart_moment_weak": "Moment Weak",
       "axis_chord_rotation": "Chord Rotation [rads]",
       "axis_axial_shortening": "Axial Shortening [mm]",
-      "axis_moment": "Moment [kN-mm]"
+      "axis_moment": "Moment [kN-mm]",
+      "figure_alt": "Column test setup"
     },
     "brace": {
       "section_loading_geometric": "Loading and Geometric Parameters",
@@ -671,7 +673,8 @@
       "no_gusset_plates": "The configuration does not include gusset plates",
       "chart_force_displacement": "Force Displacement",
       "axis_displacement": "Displacement [mm]",
-      "axis_force": "Force [kN]"
+      "axis_force": "Force [kN]",
+      "figure_alt": "Brace end condition"
     },
     "hss": {
       "moment_rotation_title": "Moment Rotation",
@@ -687,7 +690,8 @@
       "steel_type": "Steel type",
       "nominal_yield_stress": "Nominal yield stress",
       "measured_yield_stress": "Measured yield stress",
-      "measured_ultimate_stress": "Measured ultimate stress"
+      "measured_ultimate_stress": "Measured ultimate stress",
+      "figure_alt": "Test configuration"
     },
     "ebf": {
       "link_rotation_axis": "Link Rotation [rad]",
@@ -707,7 +711,8 @@
       "steel_type": "Steel Type",
       "nominal_yield_stress": "Nominal Yield Stress",
       "measured_yield_stress": "Measured Yield Stress",
-      "measured_ultimate_stress": "Measured Ultimate Stress"
+      "measured_ultimate_stress": "Measured Ultimate Stress",
+      "figure_alt": "Link configuration"
     },
     "material": {
       "error_message": "The graph cannot be displayed because the input material model parameters are not available.",
@@ -735,7 +740,8 @@
       "backstress_magnitude_2": "Magnitude of backstress 2, C2",
       "backstress_rate_1": "Rate of backstress 1, γ1",
       "backstress_rate_2": "Rate of backstress 2, γ2",
-      "model_footnote": "* The material model is based on"
+      "model_footnote": "* The material model is based on",
+      "figure_alt": "Coupon geometry"
     },
     "residual": {
       "error_message": "The graph cannot be displayed because the input material model parameters are not available.",
@@ -756,7 +762,8 @@
       "web_thickness_of_the_cross_section": "Web thickness of the cross section",
       "flange_thickness_of_the_cross_section": "Flange thickness of the cross section",
       "fillet_radii_of_the_cross_section": "Fillet radii of the cross section",
-      "area_of_the_cross_section": "Area of the cross section"
+      "area_of_the_cross_section": "Area of the cross section",
+      "figure_alt": "Residual stress pattern"
     },
     "tensile_coupon": {
       "engineering_stress_strain": "Engineering stress-strain",
@@ -772,7 +779,8 @@
       "measured_yield_stress": "Measured yield stress",
       "nominal_ultimate_stress": "Nominal ultimate stress",
       "measured_ultimate_stress": "Measured ultimate stress",
-      "youngs_modulus_e": "Young's modulus, E"
+      "youngs_modulus_e": "Young's modulus, E",
+      "figure_alt": "Coupon geometry"
     },
     "ductile_fracture": {
       "structural_steel_element": "Structural Steel Element",
@@ -788,7 +796,8 @@
       "measured_ultimate_stress": "Measured ultimate stress",
       "fracture_model_parameters": "Fracture Model Parameters",
       "characteristic_length": "Characteristic length",
-      "sem_button": "Scanning Electron Microscopy (SEM)"
+      "sem_button": "Scanning Electron Microscopy (SEM)",
+      "figure_alt": "Specimen geometry"
     }
   },
   "enum": {

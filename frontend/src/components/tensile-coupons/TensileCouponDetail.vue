@@ -2,6 +2,7 @@
 import type { TensileCouponModel } from '@/backend'
 import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
+import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { tensileCouponApi } from '@/plugins/axios'
 import { isHttpUrl } from '@/utils/common'
 import { getTensileCouponImage } from '@/utils/component'
@@ -160,7 +161,10 @@ const publicationLink = computed(() => {
           </div>
         </v-col>
         <v-col cols="12" sm="6">
-          <v-img :src="getTensileCouponImage()" />
+          <zoomable-image
+            :src="getTensileCouponImage()"
+            :alt="$t('detail.tensile_coupon.figure_alt')"
+          />
         </v-col>
       </v-row>
     </template>

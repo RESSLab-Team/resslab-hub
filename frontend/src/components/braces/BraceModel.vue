@@ -2,6 +2,7 @@
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import ToolShell from '@/components/commons/ToolShell.vue'
+import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import SectionSelector from '@/components/commons/SectionSelector.vue'
 import ToolSelect from '@/components/commons/tools/ToolSelect.vue'
 import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
@@ -428,9 +429,10 @@ const paramCount = computed(
 
       <div class="st-block st-schem">
         <figure class="tool-schematic">
-          <img
+          <zoomable-image
             :alt="$t('tools.brace_model.schematic_alt')"
             :src="publicPath + 'img/brace/I_shaped_Bracing.png'"
+            :caption="$t('tools.brace_model.figcaption')"
           />
           <figcaption>{{ $t('tools.brace_model.figcaption') }}</figcaption>
         </figure>
