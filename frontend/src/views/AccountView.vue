@@ -6,8 +6,13 @@
  * An account can hold several email addresses (#402). A new one is added by a
  * code mailed to it and typed here, in the session that asked: never by a
  * link, so nobody can attach their address to someone else's account.
+ *
+ * A first ORCID sign-in lands here with `?add_email=1&next=...` (#250): ORCID
+ * gives no address, so the add form opens with a line that says why, and the
+ * page goes on to `next` once the address is added or skipped.
  */
 import AccessRequestForm from '@/components/auth/AccessRequestForm.vue'
+import OrcidIcon from '@/components/auth/OrcidIcon.vue'
 import { useAuthStore } from '@/stores/auth'
 import { mdiCheckCircleOutline, mdiEmailOutline, mdiGithub, mdiLogout, mdiPlus } from '@mdi/js'
 import { computed, onMounted, ref } from 'vue'
@@ -22,11 +27,33 @@ const router = useRouter()
 const error = ref('')
 const busy = ref(false)
 
+/** Sent here by a first ORCID sign-in, to add the address ORCID did not give. */
+const askedForEmail = ref(false)
+
+/** Where the sign-in was going before this detour; same check as LoginView. */
+const next = computed(() => {
+  const value = route.query.next
+  const target = Array.isArray(value) ? value[0] : value
+  return target && target.startsWith('/') && !target.startsWith('//') ? target : null
+})
+
 onMounted(async () => {
   await auth.ensureLoaded()
   const reason = route.query.error
   if (reason) error.value = t(`auth.errors.${reason}`, t('auth.errors.generic'))
+  if (route.query.add_email === '1' && auth.user && !auth.mainEmail) {
+    askedForEmail.value = true
+    openAdd()
+  }
 })
+
+/** Leave the detour: on to where the sign-in was going, if anywhere. */
+function goOn(): void {
+  if (!askedForEmail.value) return
+  askedForEmail.value = false
+  if (next.value && next.value !== '/account') router.replace(next.value)
+  else router.replace('/account')
+}
 
 // Why the role is what it is. The backend sends role_source for exactly
 // this; an unknown source shows nothing rather than a raw slug.
@@ -104,6 +131,7 @@ function openAdd(): void {
 function closeAdd(): void {
   addStep.value = 'closed'
   addError.value = ''
+  goOn()
 }
 
 async function sendAddCode(): Promise<void> {
@@ -126,9 +154,15 @@ async function confirmAddCode(): Promise<void> {
   addBusy.value = true
   addError.value = ''
   try {
-    await auth.verifyAddEmail(addCode.value.trim())
-    notice.value = t('auth.account.email_added', { email: newEmail.value.trim().toLowerCase() })
+    const joined = await auth.verifyAddEmail(addCode.value.trim())
+    const email = newEmail.value.trim().toLowerCase()
+    notice.value = t(joined ? 'auth.account.orcid_joined' : 'auth.account.email_added', { email })
     addStep.value = 'closed'
+    // After a join the page shows another account: stay, so the notice is read.
+    if (joined && askedForEmail.value) {
+      askedForEmail.value = false
+      router.replace('/account')
+    } else goOn()
   } catch (caught: unknown) {
     addError.value = messageFor(detailOf(caught), 'auth.account.add_errors')
   } finally {
@@ -215,6 +249,7 @@ async function signOut(): Promise<void> {
         <p v-if="addError" class="account-error">{{ addError }}</p>
 
         <form v-if="addStep === 'email'" @submit.prevent="sendAddCode">
+          <p v-if="askedForEmail" class="block-lede">{{ $t('auth.account.add_email_orcid') }}</p>
           <p class="block-lede">{{ $t('auth.account.add_email_lede') }}</p>
           <label class="field">
             <span>{{ $t('auth.account.email_label') }}</span>
@@ -235,7 +270,7 @@ async function signOut(): Promise<void> {
               {{ $t('auth.account.send_code') }}
             </button>
             <button class="btn btn-ghost btn-sm" type="button" @click="closeAdd">
-              {{ $t('auth.account.cancel') }}
+              {{ askedForEmail ? $t('auth.account.skip') : $t('auth.account.cancel') }}
             </button>
           </div>
         </form>
@@ -278,7 +313,8 @@ async function signOut(): Promise<void> {
       <p class="block-lede">{{ $t('auth.account.identities_lede') }}</p>
       <ul v-if="otherIdentities.length" class="identity-list">
         <li v-for="identity in otherIdentities" :key="identity.id">
-          <v-icon :icon="providerIcon(identity.provider)" size="18" />
+          <OrcidIcon v-if="identity.provider === 'orcid'" :size="18" />
+          <v-icon v-else :icon="providerIcon(identity.provider)" size="18" />
           <span class="identity-provider">{{ $t(`auth.providers.${identity.provider}`) }}</span>
           <span class="identity-handle">{{ identity.handle }}</span>
           <button
@@ -303,6 +339,16 @@ async function signOut(): Promise<void> {
       </button>
       <p v-if="!auth.hasGitHub" class="block-lede">{{ $t('auth.account.link_github_why') }}</p>
       <p v-if="!auth.hasGitHub" class="block-lede">{{ $t('auth.account.github_role_hint') }}</p>
+      <button
+        v-if="!auth.hasOrcid"
+        class="btn btn-secondary btn-sm link-orcid"
+        type="button"
+        @click="auth.goToOrcid({ redirectTo: '/account', link: true })"
+      >
+        <OrcidIcon :size="16" />
+        {{ $t('auth.account.link_orcid') }}
+      </button>
+      <p v-if="!auth.hasOrcid" class="block-lede">{{ $t('auth.account.link_orcid_why') }}</p>
     </section>
 
     <section class="account-block">
@@ -315,6 +361,9 @@ async function signOut(): Promise<void> {
 </template>
 
 <style scoped>
+.link-orcid {
+  margin-top: 16px;
+}
 .account {
   max-width: 680px;
   padding: clamp(24px, 5vw, 48px) clamp(16px, 4vw, 32px) 96px;
