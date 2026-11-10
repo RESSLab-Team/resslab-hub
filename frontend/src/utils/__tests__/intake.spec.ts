@@ -135,6 +135,37 @@ describe('intake: classifying a drop', () => {
     ])
   })
 
+  // #437: the same drop with both moment files per specimen. Strong and weak
+  // share the name and the headers, so nothing tells them apart: no guess,
+  // and every one is flagged for the "extract the zip first" message.
+  it('does not guess a flat drop of the columns sample, and flags the lost folders', async () => {
+    const primary = 'id,investigator,area,grade\nC1,X,10,S355\nC2,Y,12,S355\n'
+    const plan = await classifyIntake(
+      [
+        file('steel_columns.csv', primary),
+        file('steel_columns.invalid.csv', primary),
+        file('C1.csv', AXIAL),
+        file('C2.csv', AXIAL),
+        file('C1.csv', MOMENT),
+        file('C2.csv', MOMENT),
+        file('C1.csv', MOMENT),
+        file('C2.csv', MOMENT)
+      ],
+      { ...options('columns'), primaryName: 'steel_columns.csv' }
+    )
+    expect(plan.primary?.file.name).toBe('steel_columns.csv')
+    expect(plan.matched.map((match) => [match.id, match.kind.key])).toEqual([
+      ['C1', 'axial_shortening'],
+      ['C2', 'axial_shortening']
+    ])
+    expect(plan.pending.map((entry) => [entry.file.name, entry.reason, entry.lostFolder])).toEqual([
+      ['C1.csv', 'ambiguous', true],
+      ['C2.csv', 'ambiguous', true],
+      ['C1.csv', 'ambiguous', true],
+      ['C2.csv', 'ambiguous', true]
+    ])
+  })
+
   it('does not guess when two files compete for the same experiment', async () => {
     const plan = await classifyIntake([file('a/C1.csv', MOMENT), file('b/c1.csv', MOMENT)], {
       ...options('columns'),
@@ -152,6 +183,7 @@ describe('intake: classifying a drop', () => {
     expect(
       plan.pending.map((entry) => [entry.reason, entry.kinds.map((kind) => kind.key)])
     ).toEqual([['ambiguous', ['beam', 'beam_west']]])
+    expect(plan.pending[0].lostFolder).toBeUndefined()
   })
 
   it('keeps every candidate type on a guessed file that matches no experiment', async () => {

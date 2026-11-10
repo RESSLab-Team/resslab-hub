@@ -585,6 +585,46 @@ describe('contribution store — bulk intake', () => {
     expect(store.pendingFiles).toEqual([])
     expect(store.lastIntake).toBeNull()
   })
+
+  // #437: a flat drop leaves both moment files of a specimen pending; dropping
+  // the extracted folder next must clear them, or the warning stays forever.
+  it('keeps both rivals of a flat drop, and drops them once the folder drop places them', () => {
+    const store = seededStore()
+    store.importRows([{ id: 'C1' }])
+    const [, strong, weak] = timeSeriesKindsFor('columns')
+    const rival = (id: number) => ({
+      id,
+      file: intakeFile('C1.csv'),
+      text: CURVE,
+      reason: 'ambiguous' as const,
+      kinds: [strong, weak],
+      lostFolder: true
+    })
+    store.applyIntake(plan({ pending: [rival(1), rival(2)] }))
+    expect(store.pendingFiles.map((entry) => entry.id)).toEqual([1, 2])
+    const uid = store.rows[0].uid
+    store.applyIntake(
+      plan({
+        matched: [
+          {
+            file: intakeFile('columns/moment_rotation_strong/C1.csv'),
+            kind: strong,
+            id: 'C1',
+            text: CURVE
+          },
+          {
+            file: intakeFile('columns/moment_rotation_weak/C1.csv'),
+            kind: weak,
+            id: 'C1',
+            text: CURVE
+          }
+        ]
+      })
+    )
+    expect(store.timeSeries[`${uid}:moment_strong`]).toBeDefined()
+    expect(store.timeSeries[`${uid}:moment_weak`]).toBeDefined()
+    expect(store.pendingFiles).toEqual([])
+  })
 })
 
 describe('contribution store — drafts', () => {

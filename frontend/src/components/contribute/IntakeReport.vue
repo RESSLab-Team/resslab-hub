@@ -56,6 +56,9 @@ const assumed = computed(() =>
   })
 )
 
+/** Files only a folder name could place, and the drop lost it (#437). */
+const lostFolders = computed(() => store.pendingFiles.filter((entry) => entry.lostFolder).length)
+
 const REASONS = ['orphan', 'ambiguous', 'unknown', 'foreign'] as const
 
 const groups = computed(() =>
@@ -159,6 +162,9 @@ function sharedKinds(items: IntakePending[]): TimeSeriesKind[] {
     </div>
 
     <ul v-if="summary" class="lines">
+      <li v-if="lostFolders" class="warn">
+        {{ $t('contribute.intake.line_lost_folders', { count: lostFolders }) }}
+      </li>
       <li v-if="summary.primaryName" class="ok">
         {{
           $t('contribute.intake.line_primary', {

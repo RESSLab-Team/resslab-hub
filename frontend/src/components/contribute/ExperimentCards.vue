@@ -329,6 +329,8 @@ function intakeLine(summary: IntakeSummary, plan: IntakePlan): string {
   if (attached) parts.push(t('contribute.intake.attached', { count: attached }))
   const assumed = Object.values(summary.assumed).reduce((total, count) => total + count, 0)
   if (assumed) parts.push(t('contribute.intake.assumed', { count: assumed }))
+  if (plan.pending.some((entry) => entry.lostFolder))
+    parts.push(t('contribute.intake.lost_folders'))
   if (plan.pending.length)
     parts.push(t('contribute.intake.to_resolve', { count: plan.pending.length }))
   if (parts.length === 0) parts.push(t('contribute.intake.nothing'))
