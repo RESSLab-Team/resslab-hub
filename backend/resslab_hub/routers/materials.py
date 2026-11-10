@@ -36,6 +36,7 @@ component = Component(
     model_type=MaterialModel,
     id_column=Material.id,
     ignored_columns={
+        Material.not_reported,
         Material.stress_strain_count,
     },
 )

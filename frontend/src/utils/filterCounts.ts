@@ -10,8 +10,8 @@
  * list does not jump under the pointer and a value can be picked before the
  * filter that hides it is loosened.
  */
-import { MISSING, MISSING_OPTION, type FilterDescriptor, type FilterOption } from './filterProfile'
-import { formatValue, type Row } from './queryEngine'
+import { type FilterDescriptor, type FilterOption } from './filterProfile'
+import { cellKey, type Row } from './queryEngine'
 import type { BinData } from './statistics'
 
 export interface LiveOption extends FilterOption {
@@ -53,8 +53,8 @@ export function liveCounts(rows: Row[], filter: FilterDescriptor): LiveCounts {
 export function liveOptions(rows: Row[], filter: FilterDescriptor): LiveOption[] {
   const tally = new Map<string, number>()
   for (const row of rows) {
-    const formatted = formatValue(row[filter.key])
-    const value = MISSING.has(formatted) ? MISSING_OPTION : formatted
+    // NaN and null both read `NR`/`NA`, the same keys as the static options.
+    const value = cellKey(row, filter.key)
     tally.set(value, (tally.get(value) ?? 0) + 1)
   }
   return (filter.options ?? []).map((option) => ({

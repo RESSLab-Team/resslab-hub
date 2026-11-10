@@ -3,6 +3,7 @@ Material Database Models
 """
 
 from sqlalchemy import (
+    ARRAY,
     BigInteger,
     Column,
     Date,
@@ -114,6 +115,11 @@ class Material(Base):  # type: ignore
     uvc_rho_d = Column(DecimalFloat, nullable=True)
     data_curation_status = Column(String, nullable=False)
     # END_OF_GENERATED_CODE
+
+    # Names of the non-text columns whose cell was `nr` (not reported), so a
+    # NULL there is not mistaken for `na`. Filled by the uploader, see
+    # resslab_hub/data/not_reported.py (#427).
+    not_reported = Column(ARRAY(String), nullable=False, server_default=text("'{}'"))
     type = column_property(grade + text("'-'") + spec)
 
     year = column_property(func.extract("year", date))

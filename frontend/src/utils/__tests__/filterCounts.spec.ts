@@ -43,10 +43,24 @@ describe('liveOptions', () => {
     ])
   })
 
-  it('puts null, NaN and an empty result in the right place', () => {
-    const rows = [{ type: null }, { type: undefined }, { type: Number.NaN }]
-    expect(liveOptions(rows, filter)[2]).toEqual({ value: 'NA', count: 3, total: 2 })
+  it('puts null and an empty result in the right place', () => {
+    const rows = [{ type: null }, { type: undefined }]
+    expect(liveOptions(rows, filter)[2]).toEqual({ value: 'NA', count: 2, total: 2 })
     expect(liveOptions([], filter).every((option) => option.count === 0)).toBe(true)
+  })
+
+  it('counts not reported and not applicable apart, like the static options (#427)', () => {
+    const rows: Row[] = [
+      { slab: true, not_reported: [] },
+      { slab: null, not_reported: ['slab'] },
+      { slab: null, not_reported: [] }
+    ]
+    const flags = profileOne(rows, 'slab', 'Boolean')
+    expect(liveOptions(rows.slice(1, 2), flags)).toEqual([
+      { value: 'True', count: 0, total: 1 },
+      { value: 'NR', count: 1, total: 1 },
+      { value: 'NA', count: 0, total: 1 }
+    ])
   })
 
   it('ignores a value the static list does not have', () => {

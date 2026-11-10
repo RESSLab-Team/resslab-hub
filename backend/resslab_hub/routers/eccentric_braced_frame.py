@@ -37,6 +37,7 @@ component = Component(
     model_type=EccentricBracedFrameModel,
     id_column=EccentricBracedFrame.id,
     ignored_columns={
+        EccentricBracedFrame.not_reported,
         EccentricBracedFrame.shear_link_angle_count,
     },  # type: ignore
 )

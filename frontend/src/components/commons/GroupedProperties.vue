@@ -19,6 +19,7 @@ import {
 import { fieldDisplay } from '@/utils/contribution'
 import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
 import type { DatabaseId } from '@/utils/navigation'
+import { missingLabel } from '@/utils/formatter'
 import { formatValue } from '@/utils/queryEngine'
 import { mdiChevronRight } from '@mdi/js'
 import { computed, ref } from 'vue'
@@ -41,6 +42,13 @@ interface PropertyRow {
   value: string
 }
 
+// An empty cell says why it is empty: not reported or not applicable (#427).
+function valueText(field: string): string {
+  const value = cells.value[field]
+  if (value === null || value === undefined) return missingLabel(props.record, field)
+  return formatValue(value)
+}
+
 const groups = computed(() => {
   const rows: PropertyRow[] = dictionary
     .columnsFor(props.database)
@@ -49,7 +57,7 @@ const groups = computed(() => {
       column,
       label: fieldDisplay(props.database, column.name, displaySymbol(column)),
       unit: displayUnit(column),
-      value: formatValue(cells.value[column.name])
+      value: valueText(column.name)
     }))
   return groupBy(props.database, rows, (row) => row.column).map((group) => ({
     id: group.id,

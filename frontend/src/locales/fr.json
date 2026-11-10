@@ -634,7 +634,8 @@
     "no_variables_found": "Aucune variable ne correspond à cette recherche.",
     "loading_filters": "Chargement des filtres…",
     "distinct_values": "valeurs distinctes",
-    "missing_values": "non renseignées",
+    "not_reported_values": "non renseignées",
+    "not_applicable_values": "non applicables",
     "all_recorded_properties": "Toutes les propriétés enregistrées",
     "unverified": {
       "tag": "Non vérifiée",

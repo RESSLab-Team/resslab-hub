@@ -345,8 +345,12 @@ function endDateDrag(): void {
 
     <p v-if="meta" class="afr-meta">
       {{ filter.distinct.toLocaleString('en-CH') }} {{ $t('commons.distinct_values') }}
-      <template v-if="filter.missing > 0">
-        · {{ filter.missing.toLocaleString('en-CH') }} {{ $t('commons.missing_values') }}
+      <template v-if="filter.notReported > 0">
+        · {{ filter.notReported.toLocaleString('en-CH') }} {{ $t('commons.not_reported_values') }}
+      </template>
+      <template v-if="filter.notApplicable > 0">
+        · {{ filter.notApplicable.toLocaleString('en-CH') }}
+        {{ $t('commons.not_applicable_values') }}
       </template>
     </p>
   </div>

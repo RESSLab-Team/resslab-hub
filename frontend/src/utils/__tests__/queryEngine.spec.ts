@@ -205,6 +205,24 @@ describe('queryEngine exact match (`=`)', () => {
     expect(ids('section_b:=NA')).toEqual(['3'])
   })
 
+  it('tells a not reported null (NR) from a not applicable one (NA), #427', () => {
+    const listed: Row[] = [
+      { id: '1', f_um: 400, not_reported: [] },
+      { id: '2', f_um: null, not_reported: ['f_um'] },
+      { id: '3', f_um: null, not_reported: [] }
+    ]
+    const listedTypes = inferFieldTypes(listed)
+    const pick = (query: string) =>
+      filterRows(listed, query, listedTypes).map((row) => row.id as string)
+    expect(pick('f_um:=NR')).toEqual(['2'])
+    expect(pick('f_um:=NA')).toEqual(['3'])
+    expect(pick('f_um:NR,NA')).toEqual(['2', '3'])
+    expect(pick('f_um:!=NR')).toEqual(['1', '3'])
+    // The list itself is not a field: the global search never matches its names.
+    expect(listedTypes.not_reported).toBeUndefined()
+    expect(pick('%f_um%')).toEqual([])
+  })
+
   it('matches numbers and booleans by their formatted value', () => {
     expect(ids('date:=2005')).toEqual(['1'])
     expect(ids('slab:=True')).toEqual(['1', '3'])

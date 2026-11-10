@@ -91,21 +91,21 @@ const testConfigurationImageSrc = computed<string>(() =>
               :name="$t('detail.hss.nominal_yield_stress')"
               unit="MPa"
             >
-              {{ formatNumber(hssColumn.fy_nominal__n_mm2) }}
+              {{ formatNumber(hssColumn, 'fy_nominal__n_mm2') }}
             </property-item>
             <property-item
               column="fy_measured__n_mm2"
               :name="$t('detail.hss.measured_yield_stress')"
               unit="MPa"
             >
-              {{ formatNumber(hssColumn.fy_measured__n_mm2) }}
+              {{ formatNumber(hssColumn, 'fy_measured__n_mm2') }}
             </property-item>
             <property-item
               column="f_ultimate__n_mm2"
               :name="$t('detail.hss.measured_ultimate_stress')"
               unit="MPa"
             >
-              {{ formatNumber(hssColumn.f_ultimate__n_mm2) }}
+              {{ formatNumber(hssColumn, 'f_ultimate__n_mm2') }}
             </property-item>
           </p>
         </v-col>

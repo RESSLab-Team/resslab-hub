@@ -18,6 +18,8 @@ import type { ColorScale } from '@/utils/categoryColors'
 import { isStructuredFilterValue, type Searches, type Value } from '@/utils/common'
 import { isUnverified } from '@/utils/curationStatus'
 import type { FilterDescriptor } from '@/utils/filterProfile'
+import { missingLabel } from '@/utils/formatter'
+import { missingKey } from '@/utils/missing'
 import { formatValue } from '@/utils/queryEngine'
 import type { DatabaseId } from '@/utils/navigation'
 import type { DataOptions } from '@/utils/vuetify'
@@ -589,6 +591,16 @@ function toggleSelectAll(): void {
   selectedItemsIds.value = [...set]
 }
 
+function isEmptyCell(header: TableHeader, item: M): boolean {
+  const value = (item as Record<string, unknown>)[header.key]
+  return value === null || value === undefined
+}
+
+// An empty cell shows a quiet `NR` or `NA`, with the full words on hover (#427).
+function cellTitle(header: TableHeader, item: M): string {
+  return isEmptyCell(header, item) ? missingLabel(item, header.key) : cellText(header, item)
+}
+
 function cellText(header: TableHeader, item: M): string {
   const value = (item as Record<string, unknown>)[header.key]
   if (value === null || value === undefined) return ''
@@ -998,11 +1010,14 @@ function downloadZip(): void {
                 <td
                   v-for="header in tableHeaders"
                   :key="header.key"
-                  :title="cellText(header, item)"
+                  :title="cellTitle(header, item)"
                   :class="{ 'text-end': header.align === 'end' }"
                 >
+                  <span v-if="isEmptyCell(header, item)" class="cell-missing">{{
+                    missingKey(item, header.key)
+                  }}</span>
                   <span
-                    v-if="header.categoryColor && cellText(header, item)"
+                    v-else-if="header.categoryColor && cellText(header, item)"
                     class="tag cell-category"
                     :style="{ '--category-color': categoryColor(header, item) }"
                     >{{ cellText(header, item) }}</span
@@ -1609,6 +1624,11 @@ function downloadZip(): void {
 }
 .cell-strong {
   font-weight: 600;
+}
+/* An empty value: `NR` or `NA`, quiet so real values stand out (#427). */
+.cell-missing {
+  color: var(--fg-subtle);
+  font-size: 12px;
 }
 .tag {
   /* global .tag pill, minus its border — a ruled pill per row reads too heavy in a table */

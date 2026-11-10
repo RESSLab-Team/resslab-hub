@@ -132,21 +132,21 @@ watch(
                 :name="$t('detail.material.nominal_yield_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(material.fy_n__mpa_) }}
+                {{ formatNumber(material, 'fy_n__mpa_') }}
               </property-item>
               <property-item
                 column="yield_stress__mpa_"
                 :name="$t('detail.material.measured_yield_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(material.yield_stress__mpa_, 1) }}
+                {{ formatNumber(material, 'yield_stress__mpa_', 1) }}
               </property-item>
               <property-item
                 column="fu_n__mpa_"
                 :name="$t('detail.material.nominal_ultimate_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(material.fu_n__mpa_) }}
+                {{ formatNumber(material, 'fu_n__mpa_') }}
               </property-item>
             </p>
           </div>
@@ -158,54 +158,54 @@ watch(
                 :name="$t('detail.material.youngs_modulus')"
                 unit="GPa"
               >
-                {{ formatNumber(material.uvc_e__gpa_, 1) }}
+                {{ formatNumber(material, 'uvc_e__gpa_', 1) }}
               </property-item>
               <property-item
                 column="uvc_sigma__mpa_"
                 :name="$t('detail.material.initial_yield_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(material.uvc_sigma__mpa_, 1) }}
+                {{ formatNumber(material, 'uvc_sigma__mpa_', 1) }}
               </property-item>
               <property-item
                 column="uvc_q__mpa_"
                 :name="$t('detail.material.isotropic_hardening_magnitude')"
                 unit="MPa"
               >
-                {{ formatNumber(material.uvc_q__mpa_, 1) }}
+                {{ formatNumber(material, 'uvc_q__mpa_', 1) }}
               </property-item>
               <property-item column="uvc_b" :name="$t('detail.material.isotropic_hardening_rate')">
-                {{ formatNumber(material.uvc_b, 1) }}
+                {{ formatNumber(material, 'uvc_b', 1) }}
               </property-item>
               <property-item
                 column="uvc_d__mpa_"
                 :name="$t('detail.material.discount_yielding_parameter')"
                 unit="MPa"
               >
-                {{ formatNumber(material.uvc_d__mpa_, 1) }}
+                {{ formatNumber(material, 'uvc_d__mpa_', 1) }}
               </property-item>
               <property-item column="uvc_a" :name="$t('detail.material.discount_yielding_rate')">
-                {{ formatNumber(material.uvc_a, 1) }}
+                {{ formatNumber(material, 'uvc_a', 1) }}
               </property-item>
               <property-item
                 column="uvc_c1__mpa_"
                 :name="$t('detail.material.backstress_magnitude_1')"
                 unit="MPa"
               >
-                {{ formatNumber(material.uvc_c1__mpa_, 1) }}
+                {{ formatNumber(material, 'uvc_c1__mpa_', 1) }}
               </property-item>
               <property-item
                 column="uvc_c2__mpa_"
                 :name="$t('detail.material.backstress_magnitude_2')"
                 unit="MPa"
               >
-                {{ formatNumber(material.uvc_c2__mpa_, 1) }}
+                {{ formatNumber(material, 'uvc_c2__mpa_', 1) }}
               </property-item>
               <property-item column="uvc_g1" :name="$t('detail.material.backstress_rate_1')">
-                {{ formatNumber(material.uvc_g1, 1) }}
+                {{ formatNumber(material, 'uvc_g1', 1) }}
               </property-item>
               <property-item column="uvc_g2" :name="$t('detail.material.backstress_rate_2')">
-                {{ formatNumber(material.uvc_g2, 1) }}
+                {{ formatNumber(material, 'uvc_g2', 1) }}
               </property-item>
             </p>
           </div>

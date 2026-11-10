@@ -43,6 +43,7 @@ component = Component(
     model_type=DuctileFractureModel,
     id_column=DuctileFracture.id,
     ignored_columns={
+        DuctileFracture.not_reported,
         DuctileFracture.force_elongation_count,
         DuctileFracture.force_elongation_simulation_count,
         DuctileFracture.force_radial_count,

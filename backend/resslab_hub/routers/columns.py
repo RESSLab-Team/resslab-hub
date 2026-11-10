@@ -39,6 +39,7 @@ component = Component(
     model_type=ColumnModel,
     id_column=ColumnEntity.id,
     ignored_columns={
+        ColumnEntity.not_reported,
         ColumnEntity.axial_shortening_count,
         ColumnEntity.moment_strong_count,
         ColumnEntity.moment_weak_count,

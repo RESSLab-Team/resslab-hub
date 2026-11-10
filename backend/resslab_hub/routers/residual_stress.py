@@ -40,6 +40,7 @@ component = Component(
     model_type=ResidualStressModel,
     id_column=ResidualStress.id,
     ignored_columns={
+        ResidualStress.not_reported,
         ResidualStress.qp_coefficient_count,
         ResidualStress.distribution_F1_count,
         ResidualStress.distribution_F2_count,
