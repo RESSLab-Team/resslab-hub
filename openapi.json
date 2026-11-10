@@ -16694,7 +16694,6 @@
       "MaterialField": {
         "type": "string",
         "enum": [
-          "hidden_index",
           "experimental_program",
           "id",
           "profile_type",
@@ -16764,7 +16763,6 @@
           "uvc_g1",
           "uvc_c2__mpa_",
           "uvc_g2",
-          "hidden_dataset_index",
           "uvc_sigma_sat__mpa_",
           "uvc_sigma_hard__mpa_",
           "uvc_rho_yield",
@@ -16780,10 +16778,6 @@
       },
       "MaterialModel": {
         "properties": {
-          "hidden_index": {
-            "type": "integer",
-            "title": "Hidden Index"
-          },
           "experimental_program": {
             "type": "string",
             "title": "Experimental Program"
@@ -17453,10 +17447,6 @@
             ],
             "title": "Uvc G2"
           },
-          "hidden_dataset_index": {
-            "type": "integer",
-            "title": "Hidden Dataset Index"
-          },
           "uvc_sigma_sat__mpa_": {
             "anyOf": [
               {
@@ -17542,7 +17532,6 @@
         },
         "type": "object",
         "required": [
-          "hidden_index",
           "experimental_program",
           "id",
           "profile_type",
@@ -17612,7 +17601,6 @@
           "uvc_g1",
           "uvc_c2__mpa_",
           "uvc_g2",
-          "hidden_dataset_index",
           "uvc_sigma_sat__mpa_",
           "uvc_sigma_hard__mpa_",
           "uvc_rho_yield",
@@ -17629,7 +17617,6 @@
       "MaterialNumberField": {
         "type": "string",
         "enum": [
-          "hidden_index",
           "thickness",
           "gage_length__mm_",
           "avg_reduced_dia__mm_",
@@ -17683,7 +17670,6 @@
           "uvc_g1",
           "uvc_c2__mpa_",
           "uvc_g2",
-          "hidden_dataset_index",
           "uvc_sigma_sat__mpa_",
           "uvc_sigma_hard__mpa_",
           "uvc_rho_yield",

@@ -2207,7 +2207,6 @@ export type MaterialDateField = typeof MaterialDateField[keyof typeof MaterialDa
 
 
 export const MaterialField = {
-    HiddenIndex: 'hidden_index',
     ExperimentalProgram: 'experimental_program',
     Id: 'id',
     ProfileType: 'profile_type',
@@ -2277,7 +2276,6 @@ export const MaterialField = {
     UvcG1: 'uvc_g1',
     UvcC2Mpa: 'uvc_c2__mpa_',
     UvcG2: 'uvc_g2',
-    HiddenDatasetIndex: 'hidden_dataset_index',
     UvcSigmaSatMpa: 'uvc_sigma_sat__mpa_',
     UvcSigmaHardMpa: 'uvc_sigma_hard__mpa_',
     UvcRhoYield: 'uvc_rho_yield',
@@ -2294,7 +2292,6 @@ export type MaterialField = typeof MaterialField[keyof typeof MaterialField];
 
 
 export interface MaterialModel {
-    'hidden_index': number;
     'experimental_program': string;
     'id': string;
     'profile_type': string;
@@ -2364,7 +2361,6 @@ export interface MaterialModel {
     'uvc_g1': number | null;
     'uvc_c2__mpa_': number | null;
     'uvc_g2': number | null;
-    'hidden_dataset_index': number;
     'uvc_sigma_sat__mpa_': number | null;
     'uvc_sigma_hard__mpa_': number | null;
     'uvc_rho_yield': number | null;
@@ -2378,7 +2374,6 @@ export interface MaterialModel {
 }
 
 export const MaterialNumberField = {
-    HiddenIndex: 'hidden_index',
     Thickness: 'thickness',
     GageLengthMm: 'gage_length__mm_',
     AvgReducedDiaMm: 'avg_reduced_dia__mm_',
@@ -2432,7 +2427,6 @@ export const MaterialNumberField = {
     UvcG1: 'uvc_g1',
     UvcC2Mpa: 'uvc_c2__mpa_',
     UvcG2: 'uvc_g2',
-    HiddenDatasetIndex: 'hidden_dataset_index',
     UvcSigmaSatMpa: 'uvc_sigma_sat__mpa_',
     UvcSigmaHardMpa: 'uvc_sigma_hard__mpa_',
     UvcRhoYield: 'uvc_rho_yield',

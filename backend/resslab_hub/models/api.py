@@ -540,7 +540,6 @@ BraceNumberField = Enum(
 
 class MaterialModel(ApiModel):
     # START_OF_GENERATED_CODE_material
-    hidden_index: int
     experimental_program: str
     id: str
     profile_type: str
@@ -610,7 +609,6 @@ class MaterialModel(ApiModel):
     uvc_g1: Optional[float]
     uvc_c2__mpa_: Optional[float]
     uvc_g2: Optional[float]
-    hidden_dataset_index: int
     uvc_sigma_sat__mpa_: Optional[float]
     uvc_sigma_hard__mpa_: Optional[float]
     uvc_rho_yield: Optional[float]
