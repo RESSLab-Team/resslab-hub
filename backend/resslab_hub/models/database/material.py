@@ -37,7 +37,6 @@ class Material(Base):  # type: ignore
     __tablename__ = "material"
 
     # START_OF_GENERATED_CODE
-    hidden_index = Column(SmallInteger, nullable=False)
     experimental_program = Column(String, nullable=False)
     id = Column(String, primary_key=True)
     profile_type = Column(String, nullable=False)
@@ -107,7 +106,6 @@ class Material(Base):  # type: ignore
     uvc_g1 = Column(DecimalFloat, nullable=True)
     uvc_c2__mpa_ = Column(DecimalFloat, nullable=True)
     uvc_g2 = Column(DecimalFloat, nullable=True)
-    hidden_dataset_index = Column(SmallInteger, nullable=False)
     uvc_sigma_sat__mpa_ = Column(DecimalFloat, nullable=True)
     uvc_sigma_hard__mpa_ = Column(DecimalFloat, nullable=True)
     uvc_rho_yield = Column(DecimalFloat, nullable=True)

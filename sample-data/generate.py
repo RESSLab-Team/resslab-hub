@@ -215,11 +215,6 @@ def yearish(key: str) -> bool:
     return key == "date" or "year" in key.lower()
 
 
-def bookkeeping(key: str) -> bool:
-    """An internal index (cyclic coupons): no contributor reads it as a measure."""
-    return key.startswith("hidden_")
-
-
 def is_list_column(key: str) -> bool:
     return key in DF_LIST_COLUMNS or key.startswith("meas_")
 
@@ -509,8 +504,8 @@ def seed_outliers(
     The value looks like a real mistake: the template's value times 1000 (a
     unit slip) when that is far enough, else three spans above the maximum.
     Each outlier row takes other columns, so the batch shows the warning on
-    several fields. Years, coordinates, internal indexes and columns with
-    their own rule are left alone: a date in the far future reads as a broken
+    several fields. Years, coordinates and columns with their own rule are
+    left alone: a date in the far future reads as a broken
     record, not as a value to check.
     """
     targets = [
@@ -520,7 +515,6 @@ def seed_outliers(
         and kind(c) in ("int", "number")
         and c.key != "id"
         and not yearish(c.key)
-        and not bookkeeping(c.key)
         and c.key not in NO_JITTER
         and c.key not in RULE_COLUMNS
     ]
@@ -591,13 +585,8 @@ class Invalid:
         self.used[r - 1].add(key)
 
     def free(self, r: int, *tests: Callable) -> Optional[object]:
-        """The first column that passes the first test that finds one.
-
-        The internal indexes come last: a seed there teaches nothing.
-        """
-        columns = sorted(
-            contributed_columns(self.model), key=lambda c: bookkeeping(c.key)
-        )
+        """The first column that passes the first test that finds one."""
+        columns = contributed_columns(self.model)
         for test in tests:
             for column in columns:
                 if column.key == "id" or column.key in self.used[r - 1]:
@@ -648,7 +637,6 @@ def int_column(b: Invalid, r: int):
         lambda c: (
             plain_int(c)
             and not yearish(c.key)
-            and not bookkeeping(c.key)
             and whole(b.cell(r, c.key)) is not None
         ),
         lambda c: plain_int(c) and whole(b.cell(r, c.key)) is not None,

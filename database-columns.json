@@ -489,7 +489,6 @@
     "longitude"
   ],
   "cyclic": [
-    "hidden_index",
     "experimental_program",
     "id",
     "profile_type",
@@ -559,7 +558,6 @@
     "uvc_g1",
     "uvc_c2__mpa_",
     "uvc_g2",
-    "hidden_dataset_index",
     "uvc_sigma_sat__mpa_",
     "uvc_sigma_hard__mpa_",
     "uvc_rho_yield",
