@@ -40,6 +40,14 @@ class CannotUnlink(Exception):
     """Removing that identity would lock the account, or drop its main address."""
 
 
+class CannotAbsorb(Exception):
+    """A bare account that cannot join this one. ``reason`` says why."""
+
+    def __init__(self, reason: str):
+        super().__init__(reason)
+        self.reason = reason
+
+
 class CannotMerge(Exception):
     """Two accounts that an admin cannot join. ``reason`` is the API slug."""
 
@@ -340,10 +348,78 @@ async def remove_identity(db: AsyncSession, user: User, identity_id: str) -> Non
         user.github_login = ""
         user.github_role = None
         user.github_role_synced_at = None
+    if target.provider == "orcid" and user.orcid == target.subject:
+        user.orcid = ""
     identities.remove(target)
     await db.flush()
     # The address that made the account a contributor may be the one gone.
     roles.apply_role(user)
+
+
+def is_bare(user: User) -> bool:
+    """No address, and one identity that is not an address.
+
+    A first ORCID (or GitHub) sign-in with no address makes such an account.
+    It cannot have a submission, an access request or an invitation: they all
+    need an address. So whoever proves its one identity owns all of it.
+    """
+    identities = user.identities or []
+    return not user.email and len(identities) == 1 and identities[0].provider != "email"
+
+
+async def absorb_bare_account(db: AsyncSession, keep: User, bare: User) -> None:
+    """Move the one identity of a bare account onto ``keep``, delete the rest.
+
+    The caller has two proofs from the same person: the identity of ``bare``
+    and an address or identity of ``keep``. That is what "sign in by mail,
+    then link ORCID" asks too, so this gives no new power. ``bare`` and its
+    sessions are gone. Not :func:`merge_users`: that is the admin tool, it
+    moves much more and joins any two accounts.
+
+    Raises :class:`CannotAbsorb` for the same account, a ``bare`` that is not
+    bare, a disabled account on either side, or a ``keep`` that already has
+    an identity of the same provider (an account has one ORCID iD).
+    """
+    if keep.id == bare.id:
+        raise CannotAbsorb("same_account")
+    keep_ids = await _identities(db, keep)
+    await _identities(db, bare)
+    if not is_bare(bare):
+        raise CannotAbsorb("not_bare")
+    if keep.disabled_at is not None or bare.disabled_at is not None:
+        raise CannotAbsorb("account_disabled")
+    identity = bare.identities[0]
+    provider, subject = identity.provider, identity.subject
+    if any(item.provider == provider for item in keep_ids):
+        raise CannotAbsorb("same_provider")
+
+    for field in ("display_name", "orcid"):
+        if not getattr(keep, field) and getattr(bare, field):
+            setattr(keep, field, getattr(bare, field))
+    if provider == "github" and not keep.github_login:
+        keep.github_login = bare.github_login
+        keep.github_role = bare.github_role
+        keep.github_role_synced_at = bare.github_role_synced_at
+
+    # Same steps as merge_users: move the row in SQL, let the loaded ``bare``
+    # leave the session, then delete it (sessions go by ON DELETE CASCADE).
+    await db.execute(
+        update(Identity)
+        .where(Identity.id == identity.id)
+        .values(user_id=keep.id)
+        .execution_options(synchronize_session=False)
+    )
+    db.expunge(bare)
+    await db.execute(
+        delete(User)
+        .where(User.id == bare.id)
+        .execution_options(synchronize_session=False)
+    )
+    await db.refresh(keep, ["identities"])
+    if provider == "orcid":
+        keep.orcid = subject
+    roles.apply_role(keep)
+    await db.flush()
 
 
 async def merge_users(db: AsyncSession, keep: User, other: User, admin: User) -> None:
