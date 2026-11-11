@@ -299,7 +299,7 @@ Needs: Browser A, signed out, mailbox `M2`.
 2. Open `<hub>/login`, go to the code step without asking a new mail (ask a code for `M2`, then type the old code from step 1).
 3. Click the link of the first mail.
 
-Expected: Step 2 shows "That code is not right..." (the new code is the one that counts). Step 3 shows "That code or link is no longer valid...". To confirm.
+Expected: Step 2 shows "That code is not right..." (the new code is the one that counts). Step 3 shows "That code or link is no longer valid...".
 
 - [ ] Pass
 - [ ] Fail, issue:
@@ -312,7 +312,7 @@ Needs: Browser A, signed out, mailbox `M2`.
 2. You get two mails. Type the code of the first mail.
 3. Type the code of the second mail.
 
-Expected: Step 2 shows "That code is not right..." Step 3 signs you in. To confirm.
+Expected: Step 2 shows "That code is not right..." Step 3 signs you in.
 
 - [ ] Pass
 - [ ] Fail, issue:
@@ -408,7 +408,7 @@ Needs: Browser A, signed in as `M2`, mailbox `M3`.
 1. Open `<hub>/login`.
 2. Sign in with `M3`.
 
-Expected: To confirm. Write what you see at step 1 (the form, or a message that you are signed in). After step 2, the left menu shows the `M3` account, and `<hub>/api/auth/me` shows `M3`.
+Expected: Step 1 shows the sign-in form, with no message that you are already signed in. After step 2, the left menu shows the `M3` account, and `<hub>/api/auth/me` shows `M3`.
 
 - [ ] Pass
 - [ ] Fail, issue:
@@ -618,7 +618,7 @@ Needs: The account of 4.2, signed in. Address `you+orcid@gmail.com`, never used 
 2. Type the address. Click "Send the code".
 3. Type the code from the mail (subject "`<code>` confirms your address on RESSLab Hub"). Click "Add the address".
 
-Expected: The mail has a code and no link. After step 3, the page says the address is now on your account. It shows in "Email addresses" as "Main", confirmed. Still the same account (same ORCID).
+Expected: The mail has a code and no link. After step 3, the page says the address is now on your account. It shows in "Email addresses" as "Main", and at the top of the page with "confirmed". Still the same account (same ORCID).
 
 - [ ] Pass
 - [ ] Fail, issue:
@@ -755,7 +755,7 @@ Needs: Browser A, signed in as `M2`. Address `you+m5@gmail.com`, never used on t
 2. Type `you+m5@gmail.com`. Click "Send the code".
 3. Type the code from the mail. Click "Add the address".
 
-Expected: The mail subject is "`<code>` confirms your address on RESSLab Hub". The mail has a code and no link. After step 3, the page says "`you+m5@gmail.com` is now on your account." The address is in "Email addresses", confirmed. `M2` stays "Main".
+Expected: The mail subject is "`<code>` confirms your address on RESSLab Hub". The mail has a code and no link. After step 3, the page says "`you+m5@gmail.com` is now on your account." The address is in "Email addresses", with "Make main" and "Remove" next to it. `M2` stays "Main".
 
 - [ ] Pass
 - [ ] Fail, issue:
@@ -767,7 +767,7 @@ Needs: Browser A, signed in as `M2`. Address `you+m6@gmail.com`.
 1. Ask for a code for `you+m6@gmail.com`. Type a wrong code. Click "Add the address".
 2. Type 4 more wrong codes. Then type the right code.
 
-Expected: Step 1 shows "That code is not right. Check the mail and try again." After the 5th wrong code, "Too many tries. Ask for a new code." The right code then shows the same message. The address is not added. To confirm.
+Expected: Step 1 shows "That code is not right. Check the mail and try again." After the 5th wrong code, "Too many tries. Ask for a new code." The right code then shows the same message. The address is not added.
 
 - [ ] Pass
 - [ ] Fail, issue:
@@ -1031,6 +1031,7 @@ The browser shows the raw answer of the server. Look at the start of the text. I
 - 200: you see data.
 - 401: `{"detail":"Sign in to continue"}`.
 - 403: `{"detail":"This action needs the ... role."}`, or for a submission, "Only curators and the person who made this submission can see it."
+- 404 on the row `files?path=x`: `{"detail":"This file is not part of the submission."}`. It means the role was accepted.
 - 422: a parameter is missing. It means the role was accepted.
 
 | Address                                    | Nobody          | Viewer       | Contributor  | Curator        | Admin          |
@@ -1043,7 +1044,7 @@ The browser shows the raw answer of the server. Look at the start of the text. I
 | `<hub>/api/contributions/<m>`              | 401             | 403          | 403          | 200            | 200            |
 | `<hub>/api/contributions/<m>/validation`   | 401             | 403          | 403          | 200            | 200            |
 | `<hub>/api/contributions/<m>/comments`     | 401             | 403          | 403          | 200            | 200            |
-| `<hub>/api/contributions/<m>/files`        | 401             | 403          | 403          | 422            | 422            |
+| `<hub>/api/contributions/<m>/files?path=x` | 401             | 403          | 403          | 404            | 404            |
 | `<hub>/api/contributions/<m>/curves`       | 401             | 403          | 403          | 200            | 200            |
 | `<hub>/api/verification`                   | 401             | 403          | 403          | 200            | 200            |
 | `<hub>/api/verification/<type>/batch`      | 401             | 403          | 403          | not 401 or 403 | not 401 or 403 |
@@ -1059,7 +1060,7 @@ The browser shows the raw answer of the server. Look at the start of the text. I
 
 For `<type>`, open the "To verify" tab as the curator, open one line, and copy the word after `/curation/verify/` in the address.
 
-Expected: Every cell matches. No browser shows a password pop-up, also not for `/api/user`. The answer of `/api/auth/me` shows only your own account.
+Expected: Every cell matches. No browser shows a password pop-up, also not for `/api/user`. If a pop-up opens, click "Cancel" and write the address in the note. The answer of `/api/auth/me` shows only your own account.
 
 The routes that change something (sign in, submit, set a role) are not in this table: the address bar can only read. Part 7.5 tests them through the pages, and package 03 of the review tests each one with each role.
 
