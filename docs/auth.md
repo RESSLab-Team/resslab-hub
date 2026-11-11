@@ -189,7 +189,9 @@ For production, create it from a lab record, not a personal one.
 2. Add the redirect URI: `<PUBLIC_BASE_URL>/api/auth/orcid/callback`, one entry
    per environment. Locally, that is the Vite port, for example
    `http://127.0.0.1:5173/api/auth/orcid/callback`, or the worktree's
-   `FRONTEND_PORT`. Register the exact URL.
+   `FRONTEND_PORT`. Register the exact URL. The form refuses `localhost`
+   (for the redirect URI and for the application URL), so use `127.0.0.1`,
+   and the GitHub repository as the application URL.
 3. Put the client id and secret in `secrets/.env`, with `ORCID_SANDBOX=true`
    for a sandbox client:
 
@@ -197,6 +199,7 @@ For production, create it from a lab record, not a personal one.
 ORCID_CLIENT_ID=APP-...
 ORCID_CLIENT_SECRET=...
 ORCID_SANDBOX=true
+PUBLIC_BASE_URL=http://127.0.0.1:5173      # or the worktree's FRONTEND_PORT
 ```
 
 Restart the backend after you edit the file. As for GitHub, open the app on
