@@ -8,12 +8,14 @@ endpoint functions.
 
 import json
 import logging
+from datetime import datetime, timezone
+from urllib.parse import parse_qs, urlsplit
 
 import aiosmtplib
 import pytest
 from sqlalchemy import select, text
 
-from resslab_hub.auth import email_login, github_oauth, mailer
+from resslab_hub.auth import email_login, github_oauth, mailer, orcid_oauth
 from resslab_hub.models.database.auth import Identity, LoginChallenge, Session, User
 from resslab_hub.utils.rate_limit import limiter
 from tests.conftest import SERVICE_AUTH
@@ -1083,3 +1085,309 @@ async def test_our_own_pages_can_post(client, sign_in):
         "/auth/logout", headers={"sec-fetch-site": "same-origin"}
     )
     assert response.status_code == 204
+
+
+# --- ORCID (#250) ---------------------------------------------------------
+
+ORCID_ID = "0000-0002-1825-0097"
+
+
+@pytest.fixture
+def orcid(monkeypatch):
+    """Enable ORCID sign-in and fake the one call that leaves the process."""
+    monkeypatch.setattr(orcid_oauth.settings, "orcid_client_id", "APP-CID")
+    monkeypatch.setattr(orcid_oauth.settings, "orcid_client_secret", "secret")
+    monkeypatch.setattr(orcid_oauth.settings, "orcid_sandbox", True)
+    profile = orcid_oauth.OrcidProfile(subject=ORCID_ID, name="Ada Lovelace")
+
+    async def _fetch(code):
+        assert code == "the-code"
+        return profile
+
+    monkeypatch.setattr(orcid_oauth, "fetch_profile", _fetch)
+    return profile
+
+
+async def _orcid_state(client, redirect_to="/contribute/new", link=False):
+    params = {"redirect_to": redirect_to}
+    if link:
+        params["link"] = True
+    response = await client.get("/auth/orcid/start", params=params)
+    assert response.status_code == 302
+    location = response.headers["location"]
+    assert location.startswith("https://sandbox.orcid.org/oauth/authorize")
+    return parse_qs(urlsplit(location).query)["state"][0]
+
+
+async def _orcid(client, **kwargs):
+    """The whole round trip; returns the callback response."""
+    state = await _orcid_state(client, **kwargs)
+    response = await client.get(
+        "/auth/orcid/callback", params={"code": "the-code", "state": state}
+    )
+    assert response.status_code == 302
+    return response
+
+
+def _orcid_owner(db_session, subject=ORCID_ID):
+    return db_session.execute(
+        select(Identity.user_id).where(
+            Identity.provider == "orcid", Identity.subject == subject
+        )
+    ).scalar_one()
+
+
+async def _me(client):
+    return (await client.get("/auth/me")).json()["user"]
+
+
+async def test_orcid_start_goes_back_to_login_when_disabled(client, monkeypatch):
+    monkeypatch.setattr(orcid_oauth.settings, "orcid_client_id", None)
+    monkeypatch.setattr(orcid_oauth.settings, "orcid_client_secret", None)
+    response = await client.get("/auth/orcid/start")
+    assert response.status_code == 302
+    assert response.headers["location"].endswith("/login?error=orcid_disabled")
+    assert "resslab_login" not in response.headers.get("set-cookie", "")
+
+
+async def test_first_orcid_sign_in_asks_for_an_address(client, orcid, db_session):
+    response = await _orcid(client)
+    assert response.headers["location"].endswith(
+        "/account?add_email=1&next=%2Fcontribute%2Fnew"
+    )
+    assert client.cookies.get("resslab_session")
+
+    user = db_session.execute(select(User)).scalar_one()
+    assert user.email is None
+    assert user.orcid == ORCID_ID
+    assert user.display_name == "Ada Lovelace"
+    assert user.role == "viewer"
+    identities = db_session.execute(select(Identity)).scalars().all()
+    assert [(item.provider, item.subject) for item in identities] == [
+        ("orcid", ORCID_ID)
+    ]
+
+
+async def test_the_second_orcid_sign_in_goes_straight_on(client, orcid, db_session):
+    await _orcid(client)
+    client.cookies.clear()
+    response = await _orcid(client)
+    # Even with no address yet: the person was asked once, and skipped.
+    assert response.headers["location"].endswith("/contribute/new")
+    assert len(db_session.execute(select(User)).scalars().all()) == 1
+
+
+async def test_a_private_orcid_name_shows_the_id(client, orcid, db_session):
+    orcid.name = ""
+    await _orcid(client)
+    assert db_session.execute(select(User)).scalar_one().display_name == ORCID_ID
+
+
+async def test_orcid_then_a_new_address(client, orcid, mailbox):
+    await _orcid(client)
+    user_id = (await _me(client))["id"]
+    response = await _add(client, mailbox, "ada@epfl.ch")
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["id"] == user_id
+    assert body["email"] == "ada@epfl.ch"
+    assert body["role"] == "contributor"
+
+
+async def test_orcid_then_the_address_of_an_account_joins_it(
+    client, orcid, sign_in, mailbox, db_session
+):
+    """The person had a mail account and clicked ORCID first: one account."""
+    existing = sign_in(email="ada@epfl.ch", role="contributor")
+    client.cookies.clear()
+    await _orcid(client)
+    bare_id = (await _me(client))["id"]
+    assert bare_id != existing.id
+
+    response = await _add(client, mailbox, "ada@epfl.ch")
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["id"] == existing.id
+    assert body["orcid"] == ORCID_ID
+    assert sorted(item["provider"] for item in body["identities"]) == [
+        "email",
+        "orcid",
+    ]
+    # This browser is signed in there now; the bare account is gone.
+    assert (await _me(client))["id"] == existing.id
+    assert [row.id for row in db_session.execute(select(User)).scalars()] == [
+        existing.id
+    ]
+    assert _orcid_owner(db_session) == existing.id
+
+    # And ORCID opens that account from now on.
+    client.cookies.clear()
+    response = await _orcid(client)
+    assert response.headers["location"].endswith("/contribute/new")
+    assert (await _me(client))["id"] == existing.id
+
+
+async def test_no_join_when_the_orcid_account_has_an_address(
+    client, orcid, sign_in, mailbox, db_session
+):
+    sign_in(email="ada@epfl.ch")
+    client.cookies.clear()
+    await _orcid(client)
+    assert (await _add(client, mailbox, "ada@gmail.com")).status_code == 200
+    response = await _add(client, mailbox, "ada@epfl.ch")
+    assert response.status_code == 409
+    assert response.json()["detail"] == "email_in_use"
+    assert len(db_session.execute(select(User)).scalars().all()) == 2
+
+
+async def test_no_join_into_an_account_with_another_orcid(
+    client, orcid, sign_in, mailbox, db_session
+):
+    existing = sign_in(email="ada@epfl.ch")
+    db_session.add(
+        Identity(
+            user_id=existing.id,
+            provider="orcid",
+            subject="0000-0001-5109-3700",
+            handle="0000-0001-5109-3700",
+        )
+    )
+    db_session.commit()
+    client.cookies.clear()
+    await _orcid(client)
+    response = await _add(client, mailbox, "ada@epfl.ch")
+    assert response.status_code == 409
+    assert response.json()["detail"] == "email_in_use"
+    assert _orcid_owner(db_session) != existing.id
+
+
+async def test_no_join_into_a_disabled_account(
+    client, orcid, sign_in, mailbox, db_session
+):
+    sign_in(email="ada@epfl.ch", disabled_at=datetime.now(timezone.utc))
+    client.cookies.clear()
+    await _orcid(client)
+    response = await _add(client, mailbox, "ada@epfl.ch")
+    assert response.status_code == 403
+    assert response.json()["detail"] == "account_disabled"
+    assert len(db_session.execute(select(User)).scalars().all()) == 2
+
+
+async def test_a_disabled_orcid_account_cannot_sign_in(client, orcid, db_session):
+    await _orcid(client)
+    db_session.execute(text("UPDATE auth_user SET disabled_at = now()"))
+    db_session.commit()
+    client.cookies.clear()
+    response = await _orcid(client)
+    assert response.headers["location"].endswith("/login?error=account_disabled")
+    assert not client.cookies.get("resslab_session")
+
+
+async def test_an_orcid_state_cannot_be_replayed(client, orcid):
+    state = await _orcid_state(client)
+    params = {"code": "the-code", "state": state}
+    await client.get("/auth/orcid/callback", params=params)
+    replay = await client.get("/auth/orcid/callback", params=params)
+    assert "error=orcid_failed" in replay.headers["location"]
+
+
+async def test_the_orcid_callback_only_works_in_the_browser_that_started_it(
+    client, orcid, db_session
+):
+    state = await _orcid_state(client)
+    client.cookies.clear()
+    response = await client.get(
+        "/auth/orcid/callback", params={"code": "the-code", "state": state}
+    )
+    assert "error=orcid_failed" in response.headers["location"]
+    assert not client.cookies.get("resslab_session")
+    assert db_session.execute(select(User)).scalars().all() == []
+
+
+async def test_a_state_only_finishes_on_its_own_provider(client, github, orcid):
+    state = await _github_state(client)
+    response = await client.get(
+        "/auth/orcid/callback", params={"code": "the-code", "state": state}
+    )
+    assert "error=orcid_failed" in response.headers["location"]
+
+    state = await _orcid_state(client)
+    response = await client.get(
+        "/auth/github/callback", params={"code": "the-code", "state": state}
+    )
+    assert "error=github_failed" in response.headers["location"]
+
+
+async def test_orcid_errors_are_mapped_not_echoed(client, orcid, monkeypatch):
+    state = await _orcid_state(client)
+    response = await client.get(
+        "/auth/orcid/callback",
+        params={"state": state, "code": "x", "error": "foo&next=/admin#x"},
+    )
+    assert response.headers["location"].endswith("/login?error=orcid_failed")
+
+    state = await _orcid_state(client)
+    response = await client.get(
+        "/auth/orcid/callback", params={"state": state, "error": "access_denied"}
+    )
+    assert response.headers["location"].endswith("/login?error=orcid_denied")
+
+    async def _broken(code):
+        raise orcid_oauth.OrcidOAuthError("invalid_grant")
+
+    monkeypatch.setattr(orcid_oauth, "fetch_profile", _broken)
+    state = await _orcid_state(client)
+    response = await client.get(
+        "/auth/orcid/callback", params={"state": state, "code": "the-code"}
+    )
+    assert response.headers["location"].endswith("/login?error=orcid_failed")
+
+
+async def test_linking_orcid_while_signed_in(client, orcid, sign_in, db_session):
+    user = sign_in(email="ada@example.edu", orcid="0000-0000-0000-0000")
+    response = await _orcid(client, redirect_to="/account", link=True)
+    assert response.headers["location"].endswith("/account")
+
+    db_session.expire_all()
+    stored = db_session.execute(select(User)).scalar_one()
+    assert stored.id == user.id
+    # A proved iD wins over a typed one.
+    assert stored.orcid == ORCID_ID
+    assert _orcid_owner(db_session) == user.id
+
+
+async def test_linking_an_orcid_of_a_bare_account_joins_it(
+    client, orcid, sign_in, db_session
+):
+    """ORCID once, skipped the address, then signed in by mail and linked."""
+    await _orcid(client)
+    client.cookies.clear()
+    user = sign_in(email="ada@epfl.ch")
+    response = await _orcid(client, redirect_to="/account", link=True)
+    assert response.headers["location"].endswith("/account")
+    assert [row.id for row in db_session.execute(select(User)).scalars()] == [user.id]
+    assert _orcid_owner(db_session) == user.id
+
+
+async def test_linking_an_orcid_someone_else_owns(client, orcid, sign_in, db_session):
+    owner = sign_in(email="owner@epfl.ch")
+    db_session.add(
+        Identity(user_id=owner.id, provider="orcid", subject=ORCID_ID, handle=ORCID_ID)
+    )
+    db_session.commit()
+    client.cookies.clear()
+    sign_in(email="ada@gmail.com")
+    response = await _orcid(client, redirect_to="/account", link=True)
+    assert response.headers["location"].endswith("/account?error=identity_taken")
+    assert _orcid_owner(db_session) == owner.id
+
+
+async def test_unlinking_orcid_clears_the_id(client, orcid, sign_in, db_session):
+    sign_in(email="ada@example.edu")
+    await _orcid(client, redirect_to="/account", link=True)
+    identity = db_session.execute(
+        select(Identity).where(Identity.provider == "orcid")
+    ).scalar_one()
+    assert (await client.delete(f"/auth/identities/{identity.id}")).status_code == 204
+    db_session.expire_all()
+    assert db_session.execute(select(User)).scalar_one().orcid == ""

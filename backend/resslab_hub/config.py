@@ -99,6 +99,13 @@ settings = Dynaconf(
         # with GitHub" is offered.
         Validator("github_oauth_client_id", default=None),
         Validator("github_oauth_client_secret", default=None),
+        # Client of the ORCID public API (Developer Tools on orcid.org, free,
+        # nothing to ask EPFL). Both present = "Sign in with ORCID" works.
+        # ORCID_SANDBOX=true talks to sandbox.orcid.org, for a laptop or dev,
+        # whose client is registered there (docs/auth.md).
+        Validator("orcid_client_id", default=None),
+        Validator("orcid_client_secret", default=None),
+        Validator("orcid_sandbox", default=False),
         # Comma-separated addresses that get the admin role at first sign-in,
         # so a fresh deployment has an administrator without a CLI.
         Validator("admin_emails", default=""),

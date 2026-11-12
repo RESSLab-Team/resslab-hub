@@ -13,6 +13,7 @@ const verifyAddEmail = vi.fn()
 const setMainEmail = vi.fn()
 
 vi.mock('@/plugins/axios', () => ({
+  baseUrl: '/api',
   authApi: {
     getMe: (...args: unknown[]) => getMe(...args),
     logout: (...args: unknown[]) => logout(...args),
@@ -96,6 +97,44 @@ describe('auth store', () => {
     await store.ensureLoaded()
     expect(store.hasGitHub).toBe(true)
     expect(store.identities).toHaveLength(2)
+  })
+
+  it('sees a linked ORCID iD', async () => {
+    getMe.mockResolvedValue({ data: { user: ADA } })
+    const store = useAuthStore()
+    await store.ensureLoaded()
+    expect(store.hasOrcid).toBe(false)
+
+    getMe.mockResolvedValue({
+      data: {
+        user: {
+          ...ADA,
+          identities: [
+            ...ADA.identities,
+            { id: 'i3', provider: 'orcid', handle: '0000-0002-1825-0097' }
+          ]
+        }
+      }
+    })
+    await store.ensureLoaded(true)
+    expect(store.hasOrcid).toBe(true)
+  })
+
+  it('leaves for ORCID with the place to come back to', async () => {
+    const assign = vi.fn()
+    vi.stubGlobal('location', { ...window.location, assign })
+    try {
+      const store = useAuthStore()
+      await store.goToOrcid({ redirectTo: '/contribute/new' })
+      expect(assign).toHaveBeenCalledWith('/api/auth/orcid/start?redirect_to=%2Fcontribute%2Fnew')
+
+      await store.goToOrcid({ redirectTo: '/account', link: true })
+      expect(assign).toHaveBeenLastCalledWith(
+        '/api/auth/orcid/start?redirect_to=%2Faccount&link=true'
+      )
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 
   it('signs in with a code and reports where to land', async () => {
@@ -198,6 +237,25 @@ describe('auth store', () => {
       expect(verifyAddEmail).toHaveBeenCalledWith({ code: '123456' })
       expect(store.emails).toHaveLength(2)
       expect(getMe).toHaveBeenCalledTimes(1)
+    })
+
+    it('says when the address joined this account to another one (#250)', async () => {
+      const bare = {
+        ...ADA,
+        id: 'bare',
+        email: null,
+        identities: [{ id: 'o1', provider: 'orcid', handle: '0000-0002-1825-0097' }]
+      }
+      getMe.mockResolvedValue({ data: { user: bare } })
+      verifyAddEmail.mockResolvedValue({ data: ADA })
+      const store = useAuthStore()
+      await store.ensureLoaded()
+
+      expect(await store.verifyAddEmail('123456')).toBe(true)
+      expect(store.user?.id).toBe('u1')
+
+      verifyAddEmail.mockResolvedValue({ data: TWO })
+      expect(await store.verifyAddEmail('654321')).toBe(false)
     })
 
     it('lets a wrong code fail, and keeps the account as it was', async () => {

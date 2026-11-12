@@ -41,12 +41,12 @@ from resslab_hub.utils.database import Base
 #: Roles, weakest first. ``resslab_hub.auth.roles`` compares by this order.
 ROLE_ORDER = ("viewer", "contributor", "curator", "admin")
 
-#: Ways an identity can be proven. ``orcid``, ``entra`` and ``switch`` are
-#: reserved for the later provider issues (#249, #250, #252).
+#: Ways an identity can be proven. ``entra`` and ``switch`` are reserved for
+#: the later provider issues (#249, #252).
 PROVIDERS = ("email", "github", "orcid", "entra", "switch")
 
 #: Kinds of sign-in in progress.
-CHALLENGE_KINDS = ("email", "oauth_github")
+CHALLENGE_KINDS = ("email", "oauth_github", "oauth_orcid")
 
 #: Where an access request is.
 REQUEST_STATUSES = ("pending", "approved", "declined")
@@ -185,7 +185,7 @@ class LoginChallenge(Base):  # type: ignore
 
     __table_args__ = (
         CheckConstraint(
-            "kind IN ('email', 'oauth_github')",
+            "kind IN ('email', 'oauth_github', 'oauth_orcid')",
             name="auth_login_challenge_kind_check",
         ),
     )

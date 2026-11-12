@@ -3759,6 +3759,51 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
+         * Come back from ORCID: sign the person in, or link the iD.  ORCID gives no address (we do not ask for it). A first sign-in makes an account with only the iD and sends the person to the account page to add an address, once. If that address belongs to an existing account, the two join there (``verify_add_email``).
+         * @summary Finish Orcid Login
+         * @param {string} [code] 
+         * @param {string} [state] 
+         * @param {string} [error] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        finishOrcidLogin: async (code?: string, state?: string, error?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/orcid/callback`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (code !== undefined) {
+                localVarQueryParameter['code'] = code;
+            }
+
+            if (state !== undefined) {
+                localVarQueryParameter['state'] = state;
+            }
+
+            if (error !== undefined) {
+                localVarQueryParameter['error'] = error;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
          * @summary Get Me
          * @param {*} [options] Override http request option.
@@ -4027,7 +4072,47 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, the two accounts are never joined.
+         * Send the browser to ORCID, to sign in or to link an iD.
+         * @summary Start Orcid Login
+         * @param {string} [redirectTo] 
+         * @param {boolean} [link] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startOrcidLogin: async (redirectTo?: string, link?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/orcid/start`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (redirectTo !== undefined) {
+                localVarQueryParameter['redirect_to'] = redirectTo;
+            }
+
+            if (link !== undefined) {
+                localVarQueryParameter['link'] = link;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, with one exception. When this account is bare (only an ORCID iD or a GitHub login, no address, see ``users.is_bare``), the person just proved both the identity and the mailbox. Its identity then moves to the account holding the address, and this browser is signed in there instead (#250).
          * @summary Verify Add Email
          * @param {AddEmailVerifyRequest} addEmailVerifyRequest 
          * @param {*} [options] Override http request option.
@@ -4134,6 +4219,21 @@ export const AuthApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Come back from ORCID: sign the person in, or link the iD.  ORCID gives no address (we do not ask for it). A first sign-in makes an account with only the iD and sends the person to the account page to add an address, once. If that address belongs to an existing account, the two join there (``verify_add_email``).
+         * @summary Finish Orcid Login
+         * @param {string} [code] 
+         * @param {string} [state] 
+         * @param {string} [error] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async finishOrcidLogin(code?: string, state?: string, error?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.finishOrcidLogin(code, state, error, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.finishOrcidLogin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
          * @summary Get Me
          * @param {*} [options] Override http request option.
@@ -4236,7 +4336,21 @@ export const AuthApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, the two accounts are never joined.
+         * Send the browser to ORCID, to sign in or to link an iD.
+         * @summary Start Orcid Login
+         * @param {string} [redirectTo] 
+         * @param {boolean} [link] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async startOrcidLogin(redirectTo?: string, link?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.startOrcidLogin(redirectTo, link, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.startOrcidLogin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, with one exception. When this account is bare (only an ORCID iD or a GitHub login, no address, see ``users.is_bare``), the person just proved both the identity and the mailbox. Its identity then moves to the account holding the address, and this browser is signed in there instead (#250).
          * @summary Verify Add Email
          * @param {AddEmailVerifyRequest} addEmailVerifyRequest 
          * @param {*} [options] Override http request option.
@@ -4291,6 +4405,18 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          */
         finishGithubLogin(code?: string, state?: string, error?: string, options?: RawAxiosRequestConfig): AxiosPromise<any> {
             return localVarFp.finishGithubLogin(code, state, error, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Come back from ORCID: sign the person in, or link the iD.  ORCID gives no address (we do not ask for it). A first sign-in makes an account with only the iD and sends the person to the account page to add an address, once. If that address belongs to an existing account, the two join there (``verify_add_email``).
+         * @summary Finish Orcid Login
+         * @param {string} [code] 
+         * @param {string} [state] 
+         * @param {string} [error] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        finishOrcidLogin(code?: string, state?: string, error?: string, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.finishOrcidLogin(code, state, error, options).then((request) => request(axios, basePath));
         },
         /**
          * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
@@ -4371,7 +4497,18 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.startGithubLogin(redirectTo, link, options).then((request) => request(axios, basePath));
         },
         /**
-         * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, the two accounts are never joined.
+         * Send the browser to ORCID, to sign in or to link an iD.
+         * @summary Start Orcid Login
+         * @param {string} [redirectTo] 
+         * @param {boolean} [link] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startOrcidLogin(redirectTo?: string, link?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.startOrcidLogin(redirectTo, link, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, with one exception. When this account is bare (only an ORCID iD or a GitHub login, no address, see ``users.is_bare``), the person just proved both the identity and the mailbox. Its identity then moves to the account holding the address, and this browser is signed in there instead (#250).
          * @summary Verify Add Email
          * @param {AddEmailVerifyRequest} addEmailVerifyRequest 
          * @param {*} [options] Override http request option.
@@ -4419,6 +4556,19 @@ export class AuthApi extends BaseAPI {
      */
     public finishGithubLogin(code?: string, state?: string, error?: string, options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).finishGithubLogin(code, state, error, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Come back from ORCID: sign the person in, or link the iD.  ORCID gives no address (we do not ask for it). A first sign-in makes an account with only the iD and sends the person to the account page to add an address, once. If that address belongs to an existing account, the two join there (``verify_add_email``).
+     * @summary Finish Orcid Login
+     * @param {string} [code] 
+     * @param {string} [state] 
+     * @param {string} [error] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public finishOrcidLogin(code?: string, state?: string, error?: string, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).finishOrcidLogin(code, state, error, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4508,7 +4658,19 @@ export class AuthApi extends BaseAPI {
     }
 
     /**
-     * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, the two accounts are never joined.
+     * Send the browser to ORCID, to sign in or to link an iD.
+     * @summary Start Orcid Login
+     * @param {string} [redirectTo] 
+     * @param {boolean} [link] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public startOrcidLogin(redirectTo?: string, link?: boolean, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).startOrcidLogin(redirectTo, link, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, with one exception. When this account is bare (only an ORCID iD or a GitHub login, no address, see ``users.is_bare``), the person just proved both the identity and the mailbox. Its identity then moves to the account holding the address, and this browser is signed in there instead (#250).
      * @summary Verify Add Email
      * @param {AddEmailVerifyRequest} addEmailVerifyRequest 
      * @param {*} [options] Override http request option.

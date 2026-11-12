@@ -41,6 +41,9 @@ export const useAuthStore = defineStore('auth', () => {
   const hasGitHub = computed(() =>
     identities.value.some((identity) => identity.provider === 'github')
   )
+  const hasOrcid = computed(() =>
+    identities.value.some((identity) => identity.provider === 'orcid')
+  )
   /** Every verified address of the account (#402). The main one is `user.email`. */
   const emails = computed<IdentityOut[]>(() =>
     identities.value.filter((identity) => identity.provider === 'email')
@@ -96,15 +99,24 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * Leave the app for GitHub. A full navigation, not a fetch: the OAuth round
-   * trip has to happen in the address bar for the cookies to travel with it.
+   * Leave the app for an OAuth provider. A full navigation, not a fetch: the
+   * round trip has to happen in the address bar for the cookies to travel
+   * with it.
    */
-  async function goToGitHub(options: { redirectTo?: string; link?: boolean } = {}): Promise<void> {
+  async function goToProvider(
+    provider: 'github' | 'orcid',
+    options: { redirectTo?: string; link?: boolean }
+  ): Promise<void> {
     const { baseUrl } = await api()
     const query = new URLSearchParams({ redirect_to: options.redirectTo ?? '/' })
     if (options.link) query.set('link', 'true')
-    window.location.assign(`${baseUrl}/auth/github/start?${query.toString()}`)
+    window.location.assign(`${baseUrl}/auth/${provider}/start?${query.toString()}`)
   }
+
+  const goToGitHub = (options: { redirectTo?: string; link?: boolean } = {}) =>
+    goToProvider('github', options)
+  const goToOrcid = (options: { redirectTo?: string; link?: boolean } = {}) =>
+    goToProvider('orcid', options)
 
   async function logout(): Promise<void> {
     const { authApi } = await api()
@@ -130,12 +142,20 @@ export const useAuthStore = defineStore('auth', () => {
     await authApi.startAddEmail({ email })
   }
 
-  /** Add the address with the typed code. The answer is the updated account. */
-  async function verifyAddEmail(code: string): Promise<void> {
+  /**
+   * Add the address with the typed code. The answer is the updated account.
+   *
+   * True when it is another account: this one had only an ORCID iD or a
+   * GitHub login, the address belongs to an existing account, and the two
+   * joined there (#250). The browser is signed in to that account now.
+   */
+  async function verifyAddEmail(code: string): Promise<boolean> {
     const { authApi } = await api()
+    const before = user.value?.id
     const { data } = await authApi.verifyAddEmail({ code })
     user.value = data
     status.value = 'authenticated'
+    return !!before && before !== data.id
   }
 
   /** Make one of the account's addresses the main one. */
@@ -161,6 +181,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     identities,
     hasGitHub,
+    hasOrcid,
     emails,
     mainEmail,
     hasRole,
@@ -169,6 +190,7 @@ export const useAuthStore = defineStore('auth', () => {
     startEmailLogin,
     verifyEmailLogin,
     goToGitHub,
+    goToOrcid,
     logout,
     unlinkIdentity,
     startAddEmail,
