@@ -7,8 +7,8 @@ the requests all read the row before any of them writes, so the order is
 fixed and the tests cannot flake.
 
 - 01-2: one code gives a session to each parallel request.
-- 01-N1 (not proven in the browser): parallel wrong codes are all compared,
-  so more than five codes are tried on one challenge.
+- 01-5: parallel wrong codes are all compared, so more than five codes are
+  tried on one challenge.
 
 See docs/review/findings/01-sign-in.md.
 """
@@ -77,7 +77,7 @@ async def test_one_code_gives_one_session(client, mailbox, monkeypatch, db_sessi
     assert len(sessions) == 1
 
 
-@pytest.mark.xfail(strict=True, reason="review 01: 01-N1, not proven")
+@pytest.mark.xfail(strict=True, reason="review 01: 01-5")
 async def test_parallel_wrong_codes_stop_at_five(
     client, mailbox, monkeypatch, db_session
 ):

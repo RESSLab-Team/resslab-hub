@@ -3,27 +3,27 @@
 - Branch: `review/01-sign-in`
 - Commit reviewed: `0e15c031` (from `dev`, with ORCID)
 - Date: 2026-11-12
-- Tests run: no. The sandbox hides `secrets/.env` and refuses the database port, so every DB test stops on the connection. The 13 tests in `backend/tests/test_review_01_*.py` are collected and pass `ruff`, but they were never run against a database. The browser proofs below were run with Claude in Chrome on `http://127.0.0.1:19464` (this worktree).
+- Tests run: yes, by Pierre outside the sandbox (the sandbox hides `secrets/.env`). `uv run pytest tests/test_review_01_*.py -q` gives `13 xfailed`. With `--runxfail --tb=line`, each of the 13 fails on its own assert, not on a setup error. The browser proofs below were run with Claude in Chrome on `http://127.0.0.1:19464` (this worktree).
 
 ## Summary
 
-| Id   | Severity | Title                                                       | Suspicion | Proof                  |
-| ---- | -------- | ----------------------------------------------------------- | --------- | ---------------------- |
-| 01-1 | medium   | Bad input on the sign-in routes gives a 500                 | S6        | Chrome, test (not run) |
-| 01-2 | low      | One code gives a session to each parallel request           | S5        | Chrome, test (not run) |
-| 01-3 | medium   | The mail cap is silent for the user, visible for a stranger | B1        | Chrome, test (not run) |
-| 01-4 | medium   | A 429 on sign-in shows "Something went wrong"               | B1        | Chrome                 |
-
-Not proven: 01-N1 (attempt cap passed in parallel), 01-N2 (link finished after sign-out), 01-N3 (long GitHub or ORCID name). See "Not proven".
+| Id   | Severity | Title                                                       | Suspicion | Proof        |
+| ---- | -------- | ----------------------------------------------------------- | --------- | ------------ |
+| 01-1 | medium   | Bad input on the sign-in routes gives a 500                 | S6        | Chrome, test |
+| 01-2 | low      | One code gives a session to each parallel request           | S5        | Chrome, test |
+| 01-3 | medium   | The mail cap is silent for the user, visible for a stranger | B1        | Chrome, test |
+| 01-4 | medium   | A 429 on sign-in shows "Something went wrong"               | B1        | Chrome       |
+| 01-5 | medium   | Parallel wrong codes pass the five-attempt cap              | S5        | test         |
+| 01-6 | low      | A link finished after sign-out still attaches the identity  | S3        | test         |
 
 ## Question 1. Email code: double use and attempt counter
 
-Problem. `verify_code` reads the challenge with a plain SELECT (`backend/resslab_hub/auth/email_login.py:123-144`), checks `attempts` and `consumed_at` in Python (`:171`), and sets `consumed_at` at `:179` with no lock. So two requests with the right code at the same time both pass. The attempt counter itself is safe: `_count_failure` (`:147-157`) does an atomic `UPDATE ... attempts + 1 RETURNING`, and the answer depends on the value it returns. Only the gate at `:171` reads an old value. I could not get more than 4 `invalid_code` in the browser (see 01-N1).
+Problem. `verify_code` reads the challenge with a plain SELECT (`backend/resslab_hub/auth/email_login.py:123-144`), checks `attempts` and `consumed_at` in Python (`:171`), and sets `consumed_at` at `:179` with no lock. So two requests with the right code at the same time both pass (01-2). The counter update itself is atomic: `_count_failure` (`:147-157`) does `UPDATE ... attempts + 1 RETURNING`. But the gate at `:171` reads an old value, so every request that read the row before the updates still compares its code (01-5).
 
 ### 01-2 One code gives a session to each parallel request
 
 - Severity: low
-- Suspicion: S5 (confirmed for the code, not for the counter)
+- Suspicion: S5 (confirmed)
 - Where: `backend/resslab_hub/auth/email_login.py:170-180`
 - Status: new
 
@@ -42,9 +42,22 @@ New address review01-d@<redacted>
 200, 200, 200 (same new user id), 400 {"detail":"invalid_or_expired"} x 2
 ```
 
-Test: `backend/tests/test_review_01_races.py::test_one_code_gives_one_session` (not run). A barrier after the read makes both requests hold the row before any writes, so the test cannot flake.
+Test: `backend/tests/test_review_01_races.py::test_one_code_gives_one_session` fails with `assert [200, 200] == [200, 400]`. A barrier after the read makes both requests hold the row before any writes, so the test cannot flake.
 
 Fix: consume the challenge in one step, for example an `UPDATE ... SET consumed_at = now() WHERE id = ... AND consumed_at IS NULL RETURNING`, and refuse when no row comes back. Or read the row with `SELECT ... FOR UPDATE`.
+
+### 01-5 Parallel wrong codes pass the five-attempt cap
+
+- Severity: medium
+- Suspicion: S5 (confirmed)
+- Where: `backend/resslab_hub/auth/email_login.py:171`
+- Status: new
+
+The cap of 5 tries is the only guard of a 6 digit code. Wrong codes sent at the same time all pass the gate at `:171`, because each one read `attempts` before the others counted. So more than 5 codes are compared on one challenge. To use it, an attacker starts a sign-in for the victim's address (they get the login cookie, the victim gets the mail) and sends a burst of guesses. In practice the window is a few ms, and `/auth/email/verify` allows 20 per minute per IP, so the gain is small: in the browser, 18 parallel wrong codes gave only 4 `invalid_code`. But the cap does not hold what it promises, and an attacker with many IPs gets more guesses.
+
+Proof: `backend/tests/test_review_01_races.py::test_parallel_wrong_codes_stop_at_five` fails with `assert 8 <= 5`. 8 wrong codes held after the read, all 8 compared.
+
+Fix: the same one-step update as 01-2, with the check inside it: `UPDATE ... SET attempts = attempts + 1 WHERE id = ... AND attempts < 5 RETURNING`, and compare the code only when a row comes back.
 
 ## Question 2. Email link
 
@@ -88,7 +101,7 @@ After a real start for another address, the same wrong code gives:
 400 {"detail":"invalid_code"}
 ```
 
-Test: `backend/tests/test_review_01_caps.py::test_a_capped_start_looks_like_a_real_one` (not run).
+Test: `backend/tests/test_review_01_caps.py::test_a_capped_start_looks_like_a_real_one` fails with `assert 'resslab_login' in <Cookies[]>`.
 
 Fix: tell the user when the cap is reached (a slug like `too_many_mails` that the page can explain), since the address is typed by the person anyway. If the cap must stay hidden, set a login cookie for a dummy challenge so both answers look the same.
 
@@ -100,9 +113,22 @@ No problem worth a finding. The state is bound to the browser: the callback refu
 
 ## Question 6. Link flow
 
-Partly a problem, not proven. The callbacks attach the identity to `challenge.link_user_id` and never read the session of the browser (`backend/resslab_hub/routers/auth.py:534-549` for GitHub, `:647-652` for ORCID). So if user A starts "Link GitHub", signs out, and the callback arrives, the identity still goes to A (01-N2).
+Partly a problem. The callbacks attach the identity to `challenge.link_user_id` and never read the session of the browser (`backend/resslab_hub/routers/auth.py:534-549` for GitHub, `:647-652` for ORCID). So if user A starts "Link GitHub", signs out, and the callback arrives, the identity still goes to A (01-6).
 
 The case of the brief (B signs in on the same browser before the callback) is not reachable from the UI. Every sign-in sets or clears `resslab_login`: an email start writes B's challenge id in it, and the verify clears it. The callback then finds a state that does not match the cookie and refuses it. So the identity cannot go to B, and cannot go to A while B is signed in.
+
+### 01-6 A link finished after sign-out still attaches the identity
+
+- Severity: low
+- Suspicion: S3 (confirmed in part)
+- Where: `backend/resslab_hub/routers/auth.py:534-549`, `:647-652`
+- Status: new
+
+A starts "Link GitHub" (or ORCID), signs out in another tab, then finishes on GitHub. The identity is attached to A anyway, and A can later sign in with it. The harm is small: it is A's own flow, on A's own browser, and the case of the brief (B signed in) cannot happen. But "signed out" should mean the browser can no longer change the account. One unlikely case: on a shared computer, A leaves the GitHub page of the link open and signs out. Within 10 minutes (the life of the login cookie, which logout keeps), the next person signs in to GitHub with their own account on that page. Their GitHub account is then attached to A's Hub account, and can sign in to it.
+
+Proof: `backend/tests/test_review_01_link_session.py::test_a_link_finished_after_sign_out_attaches_nothing` fails with `assert ['email', 'github'] == ['email']`, and the same with `orcid`. GitHub and ORCID are faked with the monkeypatch of `test_auth_flow.py`, nothing was sent to them.
+
+Fix: in the link branch of both callbacks, read the session and refuse when its user is not `link_user_id`. Logout could also clear `resslab_login`, which kills the open state.
 
 ## Question 7. `next` and `redirect_to`
 
@@ -168,7 +194,8 @@ Any of these gives a 500 instead of a 400:
 
 - a `challenge` that is not a UUID, or that has a NUL, on `/auth/email/verify`;
 - a `resslab_login` cookie that is not a UUID, on `/auth/email/verify` (code) and on the GitHub and ORCID callbacks;
-- a `redirect_to` longer than 500 characters, or with a NUL, on `/auth/email/start`.
+- a `redirect_to` longer than 500 characters, or with a NUL, on `/auth/email/start`;
+- a GitHub name over 200 characters at the first sign-in: `display_name` is `String(200)` (`backend/resslab_hub/models/database/auth.py:73`) and the callbacks copy the name without cutting it (`routers/auth.py:559`, and `:678` for ORCID). GitHub allows names up to 255.
 
 It hurts nobody directly, and no mail goes out. But each one is an error in Sentry and a noisy log, and a broken link (a cut challenge id in a mail client) shows the person a server error instead of "this link is no longer valid".
 
@@ -186,9 +213,9 @@ Claude in Chrome, on http://127.0.0.1:19464/login
 > cookie resslab_login=abc, GET /api/auth/orcid/callback?state=abc&code=x    -> 500
 ```
 
-Tests: `backend/tests/test_review_01_bad_input.py`, 7 tests (not run).
+Tests: `backend/tests/test_review_01_bad_input.py`, 8 tests, each fails with `assert 500 < 500`.
 
-Fix: check the challenge id and the state as UUIDs before the query and answer `invalid_or_expired` when they are not. Put `max_length=500` on `redirect_to` and refuse a NUL, or let `safe_redirect` return `/` for them.
+Fix: check the challenge id and the state as UUIDs before the query and answer `invalid_or_expired` when they are not. Put `max_length=500` on `redirect_to` and refuse a NUL, or let `safe_redirect` return `/` for them. Cut the provider name to 200 characters.
 
 ## Question 11. Rate limits
 
@@ -242,7 +269,6 @@ No problem. The callback builds `/account?add_email=1&next=<redirect>` with a va
 
 | Suspicion | Why it is not a problem                                                                                                                    | Where                                             |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------- |
-| S5        | The attempt counter is an atomic `UPDATE ... RETURNING`. In the browser, 18 parallel wrong codes gave 4 `invalid_code`, the most allowed   | `backend/resslab_hub/auth/email_login.py:147-157` |
 | S5        | Double use for a new address does not give a 500: the extra requests get `invalid_or_expired`                                              | `backend/resslab_hub/auth/email_login.py:170-180` |
 | S3        | The case "A starts the link, B signs in, callback" cannot happen: B's sign-in replaces or clears the login cookie, so the state is refused | `backend/resslab_hub/auth/oauth_state.py:53-69`   |
 | (Q7)      | Open redirect: `safe_redirect` refuses every value of the brief, encoded values stay on our host                                           | `backend/resslab_hub/auth/urls.py:54-69`          |
@@ -250,9 +276,6 @@ No problem. The callback builds `/account?add_email=1&next=<redirect>` with a va
 
 ## Not proven
 
-- 01-N1, attempt cap passed in parallel (S5). The gate at `backend/resslab_hub/auth/email_login.py:171` reads an old `attempts`, so parallel wrong codes that all read the row before any update are all compared. In the browser the window was too small: 18 parallel wrong codes gave 4 `invalid_code`, and a burst after 4 wrong codes refused even the right code. Proof would be `backend/tests/test_review_01_races.py::test_parallel_wrong_codes_stop_at_five` (barrier after the read, not run). If it fails, it is medium: the counter is the only guard of a 6 digit code.
-- 01-N2, link finished after sign-out (S3). `backend/resslab_hub/routers/auth.py:534-549` and `:647-652` attach the identity to the user stored in the state, even when the browser signed out. GitHub and ORCID are not set up locally and must not be called, so no browser proof. Proof would be `backend/tests/test_review_01_link_session.py` (not run). Low if confirmed: the identity goes to the person who started the link.
-- 01-N3, a GitHub or ORCID name over 200 characters at the first sign-in. `display_name` is `String(200)` (`backend/resslab_hub/models/database/auth.py:73`) and the callbacks copy the name without cutting it (`routers/auth.py:559`, `:678`). GitHub allows names up to 255. Proof would be `backend/tests/test_review_01_bad_input.py::test_a_long_github_name_at_first_sign_in` (not run).
 - No `__Host-` prefix on the cookies (`backend/resslab_hub/auth/sessions.py:122`). Another site on the same parent domain could set a `resslab_login` cookie. Needs a second site on that domain to prove.
 - One odd run: after the 5 parallel verifies of 01-2, a new start for `review01-a` sent a mail, but the next 10 code verifies all gave `invalid_or_expired` in a few ms, as if the browser had no login cookie. The link of the same challenge then signed in fine. I could not explain it from the code (`sessions.py:142-149` looks right). It may be an artifact of my many parallel calls in one tab.
 
@@ -261,4 +284,3 @@ No problem. The callback builds `/account?add_email=1&next=<redirect>` with a va
 - Real round trips with GitHub and ORCID: the brief forbids calling them.
 - Anything on stage or prod: the `Secure` flag, the `Host` header behind the ingress for the `Origin` check, the timing of a capped start with a real SMTP relay.
 - The double use of an OAuth state (Q5): the provider refuses a code twice, so I did not write a test.
-- The tests themselves: they could not reach a database from the sandbox. Run `cd backend && uv run pytest tests/test_review_01_*.py -q` outside the sandbox; all 13 should be `xfailed`. A test that passes means the line is wrong.

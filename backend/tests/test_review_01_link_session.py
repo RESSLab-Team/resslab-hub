@@ -1,6 +1,5 @@
 """
-Review 01, 01-N2 (not proven in the browser): the link callbacks never read
-the session.
+Review 01, 01-6: the link callbacks never read the session.
 
 ``GET /auth/{github,orcid}/start?link=true`` stores the signed-in user in the
 state row. The callback attaches the identity to that user, even when the
@@ -16,7 +15,7 @@ from resslab_hub.auth import github_oauth, orcid_oauth
 from resslab_hub.models.database.auth import Identity
 from resslab_hub.utils.rate_limit import limiter
 
-REASON = "review 01: 01-N2, not proven"
+REASON = "review 01: 01-6"
 
 
 @pytest.fixture(autouse=True)

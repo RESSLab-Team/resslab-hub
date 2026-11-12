@@ -94,7 +94,7 @@ async def test_a_state_that_is_not_a_uuid(raw_client, provider):
     assert response.status_code < 500
 
 
-# --- 01-N3, not proven: a long profile name at the first sign-in ----------
+# --- 01-1 also: a long profile name at the first sign-in -----------------
 # ``display_name`` is String(200) and the callbacks copy the provider's name
 # into it without cutting it (routers/auth.py:559 and :678).
 
@@ -119,7 +119,7 @@ def long_github_name(monkeypatch):
     monkeypatch.setattr(github_oauth, "fetch_profile", _fetch)
 
 
-@pytest.mark.xfail(strict=True, reason="review 01: 01-N3, not proven")
+@pytest.mark.xfail(strict=True, reason=REASON)
 async def test_a_long_github_name_at_first_sign_in(raw_client, long_github_name):
     start = await raw_client.get("/auth/github/start", params={"redirect_to": "/"})
     state = start.headers["location"].split("state=")[1].split("&")[0]
