@@ -30,6 +30,7 @@ from resslab_hub.auth import (
     github_oauth,
     github_sync,
     mailer,
+    orcid_oauth,
     roles,
     users,
 )
@@ -337,8 +338,11 @@ async def verify_add_email(
     """Add the address, with the code typed in the session that asked (#402).
 
     No session is created: this browser is already signed in, as the account
-    the address goes to. An address of another account is refused, the two
-    accounts are never joined.
+    the address goes to. An address of another account is refused, with one
+    exception. When this account is bare (only an ORCID iD or a GitHub login,
+    no address, see ``users.is_bare``), the person just proved both the
+    identity and the mailbox. Its identity then moves to the account holding
+    the address, and this browser is signed in there instead (#250).
     """
     challenge_id = request.cookies.get(LOGIN_COOKIE, "")
     try:
@@ -351,12 +355,27 @@ async def verify_add_email(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=exc.reason
         ) from exc
+    # Read before add_email: after its rollback, ``user`` is expired.
+    email, user_id, bare = challenge.email, user.id, users.is_bare(user)
     try:
-        await users.add_email(db, user, challenge.email)
+        await users.add_email(db, user, email)
     except users.EmailTaken as exc:
         # The code was right, so only the owner of the mailbox learns this.
         # Keep the challenge spent, so it cannot be tried again.
+        joined = await _join_bare_account(db, user_id, email) if bare else None
+        if isinstance(joined, User):
+            token = await create_session(db, joined, "email", request)
+            result = await _user_out(db, joined)
+            await db.commit()
+            set_session_cookie(response, token)
+            clear_login_cookie(response)
+            response.headers["Cache-Control"] = "no-store"
+            return result
         await db.commit()
+        if joined == "account_disabled":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="account_disabled"
+            ) from exc
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="email_in_use"
         ) from exc
@@ -365,6 +384,24 @@ async def verify_add_email(
     clear_login_cookie(response)
     response.headers["Cache-Control"] = "no-store"
     return result
+
+
+async def _join_bare_account(db: AsyncSession, bare_id: str, email: str):
+    """Move a bare account into the holder of ``email``.
+
+    The holder, or the reason it did not work (``account_disabled``, or
+    another refusal of ``users.absorb_bare_account``).
+    """
+    bare = await users.get_user(db, bare_id)
+    holder = await users.get_by_email(db, email)
+    if bare is None or holder is None:
+        return "email_in_use"
+    try:
+        await users.absorb_bare_account(db, holder, bare)
+    except users.CannotAbsorb as exc:
+        return exc.reason
+    await github_sync.refresh_github_role(holder)
+    return holder
 
 
 @router.post(
@@ -534,6 +571,123 @@ async def finish_github_login(
     await github_sync.refresh_github_role(user)
     token = await create_session(db, user, "github", request)
     await db.commit()
+    response = _redirect(redirect_to)
+    set_session_cookie(response, token)
+    return response
+
+
+# --- ORCID (#250) -----------------------------------------------------------
+
+
+@router.get("/orcid/start", dependencies=_ENABLED)
+async def start_orcid_login(
+    request: Request,
+    redirect_to: str = "/",
+    link: bool = False,
+    db: AsyncSession = Depends(get_session),
+    user: Optional[User] = Depends(get_current_user),
+) -> RedirectResponse:
+    """Send the browser to ORCID, to sign in or to link an iD."""
+    if not orcid_oauth.configured():
+        # Same as GitHub: the button is always there, the click comes back.
+        return RedirectResponse(
+            frontend_url("/login?error=orcid_disabled"), status_code=302
+        )
+    if link and user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Sign in to continue"
+        )
+    state = await orcid_oauth.start(
+        db,
+        redirect_to=redirect_to,
+        link_user_id=user.id if (link and user) else None,
+        ip=client_ip(request),
+    )
+    response = RedirectResponse(orcid_oauth.authorize_url(state), status_code=302)
+    set_login_cookie(response, state)
+    return response
+
+
+@router.get("/orcid/callback", dependencies=_ENABLED)
+async def finish_orcid_login(
+    request: Request,
+    code: str = "",
+    state: str = "",
+    error: str = "",
+    db: AsyncSession = Depends(get_session),
+) -> RedirectResponse:
+    """Come back from ORCID: sign the person in, or link the iD.
+
+    ORCID gives no address (we do not ask for it). A first sign-in makes an
+    account with only the iD and sends the person to the account page to add
+    an address, once. If that address belongs to an existing account, the
+    two join there (``verify_add_email``).
+    """
+    challenge = await orcid_oauth.consume_state(
+        db, state, request.cookies.get(LOGIN_COOKIE, "")
+    )
+    redirect_to = safe_redirect(challenge.redirect_to) if challenge else "/"
+    fallback = "/account" if (challenge and challenge.link_user_id) else "/login"
+
+    if challenge is None:
+        return _redirect_error(fallback, "orcid_failed")
+    if error:
+        return _redirect_error(
+            fallback, "orcid_denied" if error == "access_denied" else "orcid_failed"
+        )
+    if not code:
+        return _redirect_error(fallback, "orcid_failed")
+
+    try:
+        profile = await orcid_oauth.fetch_profile(code)
+    except orcid_oauth.OrcidOAuthError as exc:
+        logger.warning("ORCID sign-in failed: %s", exc)
+        return _redirect_error(fallback, "orcid_failed")
+
+    if challenge.link_user_id:
+        user = await users.get_user(db, challenge.link_user_id)
+        if user is None:
+            return _redirect_error("/login", "orcid_failed")
+        try:
+            await users.attach_identity(
+                db, user, "orcid", profile.subject, profile.subject
+            )
+        except users.IdentityTaken:
+            # The iD sits on another account. When that one is bare (the
+            # person signed in with ORCID once and skipped the address), it
+            # joins this one: the person proved both. Else, refused.
+            identity = await users.get_identity(db, "orcid", profile.subject)
+            holder = await users.get_user(db, identity.user_id) if identity else None
+            try:
+                if holder is None:
+                    raise users.CannotAbsorb("not_bare")
+                await users.absorb_bare_account(db, user, holder)
+            except users.CannotAbsorb:
+                return _redirect_error("/account", "identity_taken")
+        # A proved iD wins over a typed one.
+        user.orcid = profile.subject
+        await db.commit()
+        return _redirect(redirect_to)
+
+    known = await users.get_identity(db, "orcid", profile.subject) is not None
+    user = await users.sign_in_with_provider(
+        db,
+        provider="orcid",
+        subject=profile.subject,
+        handle=profile.subject,
+        display_name=profile.name or profile.subject,
+    )
+    if user.disabled_at is not None:
+        await db.commit()
+        return _redirect_error("/login", "account_disabled")
+
+    user.orcid = profile.subject
+    await github_sync.refresh_github_role(user)
+    token = await create_session(db, user, "orcid", request)
+    await db.commit()
+    if not known and not user.email:
+        # First time, no address: ask for one, then go on where they were.
+        redirect_to = "/account?" + urlencode({"add_email": "1", "next": redirect_to})
     response = _redirect(redirect_to)
     set_session_cookie(response, token)
     return response

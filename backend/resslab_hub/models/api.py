@@ -219,6 +219,8 @@ class ConnectionModel(ApiModel):
     data_curation_status: str
     # END_OF_GENERATED_CODE_connection
 
+    # Non-text columns whose NULL means "not reported" (#427).
+    not_reported: List[str]
     beam_count: int
     beam_west_count: int
     global_count: int
@@ -415,6 +417,8 @@ class ColumnModel(ApiModel):
     data_curation_status: str
     # END_OF_GENERATED_CODE_column
 
+    # Non-text columns whose NULL means "not reported" (#427).
+    not_reported: List[str]
     built_up: bool
     axial_shortening_count: int
     moment_strong_count: int
@@ -516,6 +520,8 @@ class BraceModel(ApiModel):
     data_curation_status: str
     # END_OF_GENERATED_CODE_brace
 
+    # Non-text columns whose NULL means "not reported" (#427).
+    not_reported: List[str]
     displacement_count: int
 
 
@@ -540,7 +546,6 @@ BraceNumberField = Enum(
 
 class MaterialModel(ApiModel):
     # START_OF_GENERATED_CODE_material
-    hidden_index: int
     experimental_program: str
     id: str
     profile_type: str
@@ -610,7 +615,6 @@ class MaterialModel(ApiModel):
     uvc_g1: Optional[float]
     uvc_c2__mpa_: Optional[float]
     uvc_g2: Optional[float]
-    hidden_dataset_index: int
     uvc_sigma_sat__mpa_: Optional[float]
     uvc_sigma_hard__mpa_: Optional[float]
     uvc_rho_yield: Optional[float]
@@ -620,6 +624,8 @@ class MaterialModel(ApiModel):
     data_curation_status: str
     # END_OF_GENERATED_CODE_material
 
+    # Non-text columns whose NULL means "not reported" (#427).
+    not_reported: List[str]
     type: str
     year: int
 
@@ -686,6 +692,8 @@ class ResidualStressModel(ApiModel):
     data_curation_status: str
     # END_OF_GENERATED_CODE_residual_stress
 
+    # Non-text columns whose NULL means "not reported" (#427).
+    not_reported: List[str]
     qp_coefficient_count: int
 
     distribution_F1_count: int
@@ -779,6 +787,8 @@ class HSSColumnModel(ApiModel):
     data_curation_status: str
     # END_OF_GENERATED_CODE_hss_column
 
+    # Non-text columns whose NULL means "not reported" (#427).
+    not_reported: List[str]
     moment_rotation_count: int
 
 
@@ -904,6 +914,8 @@ class EccentricBracedFrameModel(ApiModel):
     data_curation_status: str
     # END_OF_GENERATED_CODE_eccentric_braced_frame
 
+    # Non-text columns whose NULL means "not reported" (#427).
+    not_reported: List[str]
     shear_link_angle_count: int
 
 
@@ -1001,6 +1013,8 @@ class TensileCouponModel(ApiModel):
     data_curation_status: str
     # END_OF_GENERATED_CODE_tensile_coupon
 
+    # Non-text columns whose NULL means "not reported" (#427).
+    not_reported: List[str]
     stress_strain_count: int
 
 
@@ -1106,6 +1120,8 @@ class DuctileFractureModel(ApiModel):
     data_curation_status: str
     # END_OF_GENERATED_CODE_ductile_fracture
 
+    # Non-text columns whose NULL means "not reported" (#427).
+    not_reported: List[str]
     force_elongation_count: int
     force_elongation_simulation_count: int
     force_radial_count: int

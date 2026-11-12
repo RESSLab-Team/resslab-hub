@@ -25,15 +25,13 @@
     />
     <!-- EPFL cookie consent, kept off the critical path: preconnect warms the
          third-party origin, the stylesheet loads without blocking render
-         (media=print until loaded), and the script is deferred. The banner only
-         renders once the deferred script runs, so nothing flashes unstyled. -->
+         (media=print until loaded, then showConsentStylesheet in
+         src/utils/cookieConsent.ts switches it to all; no inline onload, so
+         the CSP needs no hash), and the script is deferred. The banner only
+         renders once the deferred script runs, after the window load event,
+         so nothing flashes unstyled. -->
     <link rel="preconnect" href="https://www.epfl.ch" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://www.epfl.ch/css/epfl-cookie-consent.css"
-      media="print"
-      onload="this.media='all'"
-    />
+    <link rel="stylesheet" href="https://www.epfl.ch/css/epfl-cookie-consent.css" media="print" />
     <script defer src="https://www.epfl.ch/js/epfl-cookie-consent.js"></script>
   </head>
   <body>

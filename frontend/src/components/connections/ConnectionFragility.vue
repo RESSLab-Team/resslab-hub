@@ -7,6 +7,7 @@
 // / ToolSlider); the curves stay on the existing ECharts UnitChart wrapper.
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import ToolShell from '@/components/commons/ToolShell.vue'
+import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import UnitToggle from '@/components/commons/UnitToggle.vue'
 import ToolSegmented from '@/components/commons/tools/ToolSegmented.vue'
 import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
@@ -243,7 +244,7 @@ const thumbOptions = computed<Record<FocusId, EChartsOption>>(
         </div>
       </div>
       <figure class="tool-schematic">
-        <img
+        <zoomable-image
           :alt="$t('tools.connection_fragility.schematic_alt')"
           :src="publicPath + 'img/connection/connection_fragility.png'"
         />

@@ -2,6 +2,7 @@
 import type { DuctileFractureModel } from '@/backend'
 import CommonDetail from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
+import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import DuctileFracturePlotSlot from '@/components/ductile-fracture/charts/DuctileFracturePlotSlot.vue'
 import SemDialog from '@/components/ductile-fracture/sem/SemDialog.vue'
 import {
@@ -117,14 +118,14 @@ const figureSrc = computed(() =>
                 :name="$t('detail.ductile_fracture.plate_thickness')"
                 unit="mm"
               >
-                {{ formatNumber(ductileFracture.plate_thickness) }}
+                {{ formatNumber(ductileFracture, 'plate_thickness') }}
               </property-item>
               <property-item
                 column="temperature"
                 :name="$t('detail.ductile_fracture.temperature')"
                 unit="°C"
               >
-                {{ formatNumber(ductileFracture.temperature) }}
+                {{ formatNumber(ductileFracture, 'temperature') }}
               </property-item>
             </p>
           </div>
@@ -139,28 +140,28 @@ const figureSrc = computed(() =>
                 :name="$t('detail.ductile_fracture.nominal_yield_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(ductileFracture.f_yn) }}
+                {{ formatNumber(ductileFracture, 'f_yn') }}
               </property-item>
               <property-item
                 column="fy_m"
                 :name="$t('detail.ductile_fracture.measured_yield_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(ductileFracture.fy_m) }}
+                {{ formatNumber(ductileFracture, 'fy_m') }}
               </property-item>
               <property-item
                 column="f_un"
                 :name="$t('detail.ductile_fracture.nominal_ultimate_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(ductileFracture.f_un) }}
+                {{ formatNumber(ductileFracture, 'f_un') }}
               </property-item>
               <property-item
                 column="fu_m"
                 :name="$t('detail.ductile_fracture.measured_ultimate_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(ductileFracture.fu_m) }}
+                {{ formatNumber(ductileFracture, 'fu_m') }}
               </property-item>
             </p>
           </div>
@@ -168,32 +169,36 @@ const figureSrc = computed(() =>
             <h2 class="mb-2">{{ $t('detail.ductile_fracture.fracture_model_parameters') }}</h2>
             <p>
               <property-item column="swdfm_C" name="SWDFM C">
-                {{ formatNumber(ductileFracture.swdfm_C, 3) }}
+                {{ formatNumber(ductileFracture, 'swdfm_C', 3) }}
               </property-item>
               <property-item column="swdfm_kappa" name="SWDFM κ">
-                {{ formatNumber(ductileFracture.swdfm_kappa, 3) }}
+                {{ formatNumber(ductileFracture, 'swdfm_kappa', 3) }}
               </property-item>
               <property-item column="swdfm_beta" name="SWDFM β">
-                {{ formatNumber(ductileFracture.swdfm_beta, 3) }}
+                {{ formatNumber(ductileFracture, 'swdfm_beta', 3) }}
               </property-item>
               <property-item column="cvgm_etamono" name="CVGM η">
-                {{ formatNumber(ductileFracture.cvgm_etamono, 3) }}
+                {{ formatNumber(ductileFracture, 'cvgm_etamono', 3) }}
               </property-item>
               <property-item column="cvgm_lambda" name="CVGM λ">
-                {{ formatNumber(ductileFracture.cvgm_lambda, 3) }}
+                {{ formatNumber(ductileFracture, 'cvgm_lambda', 3) }}
               </property-item>
               <property-item
                 column="l_star"
                 :name="$t('detail.ductile_fracture.characteristic_length')"
                 unit="mm"
               >
-                {{ formatNumber(ductileFracture.l_star, 3) }}
+                {{ formatNumber(ductileFracture, 'l_star', 3) }}
               </property-item>
             </p>
           </div>
         </v-col>
         <v-col cols="12" sm="6">
-          <v-img :src="figureSrc" @error="figureFailed = true" />
+          <zoomable-image
+            :src="figureSrc"
+            :alt="$t('detail.ductile_fracture.figure_alt')"
+            @error="figureFailed = true"
+          />
         </v-col>
       </v-row>
       <v-row v-if="ductileFracture.has_sem">

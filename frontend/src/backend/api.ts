@@ -192,6 +192,7 @@ export const BraceField = {
     Latitude: 'latitude',
     Longitude: 'longitude',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     DisplacementCount: 'displacement_count',
 } as const;
 
@@ -270,6 +271,7 @@ export interface BraceModel {
     'latitude': number | null;
     'longitude': number | null;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'displacement_count': number;
 }
 
@@ -421,6 +423,7 @@ export const ColumnField = {
     Latitude: 'latitude',
     Longitude: 'longitude',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     BuiltUp: 'built_up',
     AxialShorteningCount: 'axial_shortening_count',
     MomentStrongCount: 'moment_strong_count',
@@ -529,6 +532,7 @@ export interface ColumnModel {
     'latitude': number;
     'longitude': number;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'built_up': boolean;
     'axial_shortening_count': number;
     'moment_strong_count': number;
@@ -776,6 +780,7 @@ export const ConnectionField = {
     Latitude: 'latitude',
     Longitude: 'longitude',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     BeamCount: 'beam_count',
     BeamWestCount: 'beam_west_count',
     GlobalCount: 'global_count',
@@ -944,6 +949,7 @@ export interface ConnectionModel {
     'latitude': number | null;
     'longitude': number;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'beam_count': number;
     'beam_west_count': number;
     'global_count': number;
@@ -1321,6 +1327,7 @@ export const DuctileFractureField = {
     Longitude: 'longitude',
     HasSem: 'has_sem',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     ForceElongationCount: 'force_elongation_count',
     ForceElongationSimulationCount: 'force_elongation_simulation_count',
     ForceRadialCount: 'force_radial_count',
@@ -1413,6 +1420,7 @@ export interface DuctileFractureModel {
     'longitude': number;
     'has_sem': boolean | null;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'force_elongation_count': number;
     'force_elongation_simulation_count': number;
     'force_radial_count': number;
@@ -1591,6 +1599,7 @@ export const EccentricBracedFrameField = {
     Latitude: 'latitude',
     Longitude: 'longitude',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     ShearLinkAngleCount: 'shear_link_angle_count',
 } as const;
 
@@ -1697,6 +1706,7 @@ export interface EccentricBracedFrameModel {
     'latitude': number;
     'longitude': number;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'shear_link_angle_count': number;
 }
 
@@ -1941,6 +1951,7 @@ export const HSSColumnField = {
     Latitude: 'latitude',
     Longitude: 'longitude',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     MomentRotationCount: 'moment_rotation_count',
 } as const;
 
@@ -2009,6 +2020,7 @@ export interface HSSColumnModel {
     'latitude': number | null;
     'longitude': number | null;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'moment_rotation_count': number;
 }
 
@@ -2207,7 +2219,6 @@ export type MaterialDateField = typeof MaterialDateField[keyof typeof MaterialDa
 
 
 export const MaterialField = {
-    HiddenIndex: 'hidden_index',
     ExperimentalProgram: 'experimental_program',
     Id: 'id',
     ProfileType: 'profile_type',
@@ -2277,7 +2288,6 @@ export const MaterialField = {
     UvcG1: 'uvc_g1',
     UvcC2Mpa: 'uvc_c2__mpa_',
     UvcG2: 'uvc_g2',
-    HiddenDatasetIndex: 'hidden_dataset_index',
     UvcSigmaSatMpa: 'uvc_sigma_sat__mpa_',
     UvcSigmaHardMpa: 'uvc_sigma_hard__mpa_',
     UvcRhoYield: 'uvc_rho_yield',
@@ -2285,6 +2295,7 @@ export const MaterialField = {
     UvcRhoKin: 'uvc_rho_kin',
     UvcRhoD: 'uvc_rho_d',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     Type: 'type',
     Year: 'year',
     StressStrainCount: 'stress_strain_count',
@@ -2294,7 +2305,6 @@ export type MaterialField = typeof MaterialField[keyof typeof MaterialField];
 
 
 export interface MaterialModel {
-    'hidden_index': number;
     'experimental_program': string;
     'id': string;
     'profile_type': string;
@@ -2364,7 +2374,6 @@ export interface MaterialModel {
     'uvc_g1': number | null;
     'uvc_c2__mpa_': number | null;
     'uvc_g2': number | null;
-    'hidden_dataset_index': number;
     'uvc_sigma_sat__mpa_': number | null;
     'uvc_sigma_hard__mpa_': number | null;
     'uvc_rho_yield': number | null;
@@ -2372,13 +2381,13 @@ export interface MaterialModel {
     'uvc_rho_kin': number | null;
     'uvc_rho_d': number | null;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'type': string;
     'year': number;
     'stress_strain_count': number;
 }
 
 export const MaterialNumberField = {
-    HiddenIndex: 'hidden_index',
     Thickness: 'thickness',
     GageLengthMm: 'gage_length__mm_',
     AvgReducedDiaMm: 'avg_reduced_dia__mm_',
@@ -2432,7 +2441,6 @@ export const MaterialNumberField = {
     UvcG1: 'uvc_g1',
     UvcC2Mpa: 'uvc_c2__mpa_',
     UvcG2: 'uvc_g2',
-    HiddenDatasetIndex: 'hidden_dataset_index',
     UvcSigmaSatMpa: 'uvc_sigma_sat__mpa_',
     UvcSigmaHardMpa: 'uvc_sigma_hard__mpa_',
     UvcRhoYield: 'uvc_rho_yield',
@@ -2491,6 +2499,7 @@ export const ResidualStressField = {
     Latitude: 'latitude',
     Longitude: 'longitude',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     QpCoefficientCount: 'qp_coefficient_count',
     DistributionF1Count: 'distribution_F1_count',
     DistributionF2Count: 'distribution_F2_count',
@@ -2528,6 +2537,7 @@ export interface ResidualStressModel {
     'latitude': number | null;
     'longitude': number | null;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'qp_coefficient_count': number;
     'distribution_F1_count': number;
     'distribution_F2_count': number;
@@ -2636,6 +2646,7 @@ export const TensileCouponField = {
     PublicationKey: 'publication_key',
     DatacolVersion: 'datacol_version',
     DataCurationStatus: 'data_curation_status',
+    NotReported: 'not_reported',
     StressStrainCount: 'stress_strain_count',
 } as const;
 
@@ -2714,6 +2725,7 @@ export interface TensileCouponModel {
     'publication_key': string | null;
     'datacol_version': number;
     'data_curation_status': string;
+    'not_reported': Array<string>;
     'stress_strain_count': number;
 }
 
@@ -3747,6 +3759,51 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
+         * Come back from ORCID: sign the person in, or link the iD.  ORCID gives no address (we do not ask for it). A first sign-in makes an account with only the iD and sends the person to the account page to add an address, once. If that address belongs to an existing account, the two join there (``verify_add_email``).
+         * @summary Finish Orcid Login
+         * @param {string} [code] 
+         * @param {string} [state] 
+         * @param {string} [error] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        finishOrcidLogin: async (code?: string, state?: string, error?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/orcid/callback`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (code !== undefined) {
+                localVarQueryParameter['code'] = code;
+            }
+
+            if (state !== undefined) {
+                localVarQueryParameter['state'] = state;
+            }
+
+            if (error !== undefined) {
+                localVarQueryParameter['error'] = error;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
          * @summary Get Me
          * @param {*} [options] Override http request option.
@@ -4015,7 +4072,47 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, the two accounts are never joined.
+         * Send the browser to ORCID, to sign in or to link an iD.
+         * @summary Start Orcid Login
+         * @param {string} [redirectTo] 
+         * @param {boolean} [link] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startOrcidLogin: async (redirectTo?: string, link?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/orcid/start`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (redirectTo !== undefined) {
+                localVarQueryParameter['redirect_to'] = redirectTo;
+            }
+
+            if (link !== undefined) {
+                localVarQueryParameter['link'] = link;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, with one exception. When this account is bare (only an ORCID iD or a GitHub login, no address, see ``users.is_bare``), the person just proved both the identity and the mailbox. Its identity then moves to the account holding the address, and this browser is signed in there instead (#250).
          * @summary Verify Add Email
          * @param {AddEmailVerifyRequest} addEmailVerifyRequest 
          * @param {*} [options] Override http request option.
@@ -4122,6 +4219,21 @@ export const AuthApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Come back from ORCID: sign the person in, or link the iD.  ORCID gives no address (we do not ask for it). A first sign-in makes an account with only the iD and sends the person to the account page to add an address, once. If that address belongs to an existing account, the two join there (``verify_add_email``).
+         * @summary Finish Orcid Login
+         * @param {string} [code] 
+         * @param {string} [state] 
+         * @param {string} [error] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async finishOrcidLogin(code?: string, state?: string, error?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.finishOrcidLogin(code, state, error, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.finishOrcidLogin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
          * @summary Get Me
          * @param {*} [options] Override http request option.
@@ -4224,7 +4336,21 @@ export const AuthApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, the two accounts are never joined.
+         * Send the browser to ORCID, to sign in or to link an iD.
+         * @summary Start Orcid Login
+         * @param {string} [redirectTo] 
+         * @param {boolean} [link] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async startOrcidLogin(redirectTo?: string, link?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.startOrcidLogin(redirectTo, link, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.startOrcidLogin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, with one exception. When this account is bare (only an ORCID iD or a GitHub login, no address, see ``users.is_bare``), the person just proved both the identity and the mailbox. Its identity then moves to the account holding the address, and this browser is signed in there instead (#250).
          * @summary Verify Add Email
          * @param {AddEmailVerifyRequest} addEmailVerifyRequest 
          * @param {*} [options] Override http request option.
@@ -4279,6 +4405,18 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          */
         finishGithubLogin(code?: string, state?: string, error?: string, options?: RawAxiosRequestConfig): AxiosPromise<any> {
             return localVarFp.finishGithubLogin(code, state, error, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Come back from ORCID: sign the person in, or link the iD.  ORCID gives no address (we do not ask for it). A first sign-in makes an account with only the iD and sends the person to the account page to add an address, once. If that address belongs to an existing account, the two join there (``verify_add_email``).
+         * @summary Finish Orcid Login
+         * @param {string} [code] 
+         * @param {string} [state] 
+         * @param {string} [error] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        finishOrcidLogin(code?: string, state?: string, error?: string, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.finishOrcidLogin(code, state, error, options).then((request) => request(axios, basePath));
         },
         /**
          * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
@@ -4359,7 +4497,18 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.startGithubLogin(redirectTo, link, options).then((request) => request(axios, basePath));
         },
         /**
-         * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, the two accounts are never joined.
+         * Send the browser to ORCID, to sign in or to link an iD.
+         * @summary Start Orcid Login
+         * @param {string} [redirectTo] 
+         * @param {boolean} [link] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startOrcidLogin(redirectTo?: string, link?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.startOrcidLogin(redirectTo, link, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, with one exception. When this account is bare (only an ORCID iD or a GitHub login, no address, see ``users.is_bare``), the person just proved both the identity and the mailbox. Its identity then moves to the account holding the address, and this browser is signed in there instead (#250).
          * @summary Verify Add Email
          * @param {AddEmailVerifyRequest} addEmailVerifyRequest 
          * @param {*} [options] Override http request option.
@@ -4407,6 +4556,19 @@ export class AuthApi extends BaseAPI {
      */
     public finishGithubLogin(code?: string, state?: string, error?: string, options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).finishGithubLogin(code, state, error, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Come back from ORCID: sign the person in, or link the iD.  ORCID gives no address (we do not ask for it). A first sign-in makes an account with only the iD and sends the person to the account page to add an address, once. If that address belongs to an existing account, the two join there (``verify_add_email``).
+     * @summary Finish Orcid Login
+     * @param {string} [code] 
+     * @param {string} [state] 
+     * @param {string} [error] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public finishOrcidLogin(code?: string, state?: string, error?: string, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).finishOrcidLogin(code, state, error, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4496,7 +4658,19 @@ export class AuthApi extends BaseAPI {
     }
 
     /**
-     * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, the two accounts are never joined.
+     * Send the browser to ORCID, to sign in or to link an iD.
+     * @summary Start Orcid Login
+     * @param {string} [redirectTo] 
+     * @param {boolean} [link] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public startOrcidLogin(redirectTo?: string, link?: boolean, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).startOrcidLogin(redirectTo, link, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, with one exception. When this account is bare (only an ORCID iD or a GitHub login, no address, see ``users.is_bare``), the person just proved both the identity and the mailbox. Its identity then moves to the account holding the address, and this browser is signed in there instead (#250).
      * @summary Verify Add Email
      * @param {AddEmailVerifyRequest} addEmailVerifyRequest 
      * @param {*} [options] Override http request option.

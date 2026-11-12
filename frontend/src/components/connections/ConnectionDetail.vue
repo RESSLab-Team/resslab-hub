@@ -2,6 +2,7 @@
 import type { ConnectionModel } from '@/backend'
 import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
+import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { connectionsApi } from '@/plugins/axios'
 import { isHttpUrl } from '@/utils/common'
 import { getConnectionSpecimenImage, getConnectionTypeImage } from '@/utils/component'
@@ -153,7 +154,12 @@ watch(
         <div class="cd-schematic">
           <template v-if="connectionTypeImageSrc">
             <div class="cd-schematic-frame">
-              <img :src="connectionTypeImageSrc" :alt="`${connection.connection_type} schematic`" />
+              <zoomable-image
+                :src="connectionTypeImageSrc"
+                :alt="`${connection.connection_type} ${$t(
+                  'detail.connection.caption_connection_schematic'
+                )}`"
+              />
             </div>
             <div class="cd-schematic-cap">
               {{ connection.connection_type }}
@@ -162,7 +168,12 @@ watch(
           </template>
           <template v-if="specimenTypeImageSrc">
             <div class="cd-schematic-frame cd-schematic-frame-sm">
-              <img :src="specimenTypeImageSrc" :alt="`${connection.specimen_type} schematic`" />
+              <zoomable-image
+                :src="specimenTypeImageSrc"
+                :alt="`${connection.specimen_type} ${$t(
+                  'detail.connection.caption_configuration'
+                )}`"
+              />
             </div>
             <div class="cd-schematic-cap">
               {{ connection.specimen_type }} {{ $t('detail.connection.caption_configuration') }}
@@ -183,17 +194,17 @@ watch(
             {{ connection.deck_ribs_orientation }}
           </property-item>
           <property-item column="h_t" :name="$t('detail.connection.thickness')" unit="mm">
-            {{ formatNumber(connection.h_t) }}
+            {{ formatNumber(connection, 'h_t') }}
           </property-item>
           <property-item column="w" :name="$t('detail.connection.width')" unit="mm">
-            {{ formatNumber(connection.w) }}
+            {{ formatNumber(connection, 'w') }}
           </property-item>
           <property-item
             column="f_cm"
             :name="$t('detail.connection.concrete_compressive_strength')"
             unit="MPa"
           >
-            {{ formatNumber(connection.f_cm, 1) }}
+            {{ formatNumber(connection, 'f_cm', 1) }}
           </property-item>
         </div>
       </template>
@@ -210,21 +221,21 @@ watch(
             :name="$t('detail.connection.nominal_yield_stress')"
             unit="MPa"
           >
-            {{ formatNumber(connection.f_yb) }}
+            {{ formatNumber(connection, 'f_yb') }}
           </property-item>
           <property-item
             column="f_ybf"
             :name="$t('detail.connection.measured_yield_stress_flange')"
             unit="MPa"
           >
-            {{ formatNumber(connection.f_ybf, 1) }}
+            {{ formatNumber(connection, 'f_ybf', 1) }}
           </property-item>
           <property-item
             column="f_ybw"
             :name="$t('detail.connection.measured_yield_stress_web')"
             unit="MPa"
           >
-            {{ formatNumber(connection.f_ybw, 1) }}
+            {{ formatNumber(connection, 'f_ybw', 1) }}
           </property-item>
         </div>
         <div class="cd-prop-block">
@@ -237,21 +248,21 @@ watch(
             :name="$t('detail.connection.nominal_yield_stress')"
             unit="MPa"
           >
-            {{ formatNumber(connection.f_yc) }}
+            {{ formatNumber(connection, 'f_yc') }}
           </property-item>
           <property-item
             column="f_ycf"
             :name="$t('detail.connection.measured_yield_stress_flange')"
             unit="MPa"
           >
-            {{ formatNumber(connection.f_ycf, 1) }}
+            {{ formatNumber(connection, 'f_ycf', 1) }}
           </property-item>
           <property-item
             column="f_ycw"
             :name="$t('detail.connection.measured_yield_stress_web')"
             unit="MPa"
           >
-            {{ formatNumber(connection.f_ycw, 1) }}
+            {{ formatNumber(connection, 'f_ycw', 1) }}
           </property-item>
         </div>
       </div>
@@ -259,21 +270,21 @@ watch(
       <h3 class="cd-section-h">{{ $t('detail.connection.section_panel_zone_strength_ratio') }}</h3>
       <div class="cd-kpi-grid">
         <div class="cd-kpi">
-          <div class="cd-kpi-num">{{ formatNumber(connection.ru_rn_el_m, 2) }}</div>
+          <div class="cd-kpi-num">{{ formatNumber(connection, 'ru_rn_el_m', 2) }}</div>
           <div class="cd-kpi-lbl">Vpz,m / Rpz,el</div>
           <div class="cd-kpi-hint">
             {{ $t('detail.connection.kpi_hint_elastic_strength_reference') }}
           </div>
         </div>
         <div class="cd-kpi">
-          <div class="cd-kpi-num">{{ formatNumber(connection.ru_rn_pl_m, 2) }}</div>
+          <div class="cd-kpi-num">{{ formatNumber(connection, 'ru_rn_pl_m', 2) }}</div>
           <div class="cd-kpi-lbl">Vpz,m / Rpz,pl</div>
           <div class="cd-kpi-hint">
             {{ $t('detail.connection.kpi_hint_plastic_strength_reference') }}
           </div>
         </div>
         <div class="cd-kpi">
-          <div class="cd-kpi-num">{{ formatNumber(connection.g_max_g_y, 2) }}</div>
+          <div class="cd-kpi-num">{{ formatNumber(connection, 'g_max_g_y', 2) }}</div>
           <div class="cd-kpi-lbl">γmax / γy</div>
           <div class="cd-kpi-hint">
             {{ $t('detail.connection.kpi_hint_panel_zone_ductility_demand') }}

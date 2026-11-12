@@ -37,6 +37,7 @@ component = Component(
     model_type=EccentricBracedFrameModel,
     id_column=EccentricBracedFrame.id,
     ignored_columns={
+        EccentricBracedFrame.not_reported,
         EccentricBracedFrame.shear_link_angle_count,
     },  # type: ignore
 )
@@ -127,7 +128,7 @@ async def get_eccentric_braced_frames_distinct(
     """
     Get distinct count
     """
-    return await component.get_distinct(session, [field.value for field in fields]) or 0
+    return await component.get_distinct(session, [field.value for field in fields])
 
 
 @router.get(

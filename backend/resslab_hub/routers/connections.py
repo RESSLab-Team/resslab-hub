@@ -41,6 +41,7 @@ component = Component(
     model_type=ConnectionModel,
     id_column=Connection.id,
     ignored_columns={
+        Connection.not_reported,
         Connection.beam_count,
         Connection.beam_west_count,
         Connection.global_count,

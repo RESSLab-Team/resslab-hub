@@ -612,7 +612,6 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
     {
       id: 'experimental_program_details',
       match: [
-        'hidden_index',
         'experimental_program',
         'id',
         'date',
@@ -623,7 +622,6 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'latitude',
         'longitude',
         'citekey',
-        'hidden_dataset_index',
         'data_curation_status'
       ]
     },

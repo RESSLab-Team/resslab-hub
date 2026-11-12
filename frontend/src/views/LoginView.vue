@@ -6,9 +6,11 @@
  * The mail also carries a link, which lands on LoginVerifyView instead, so
  * whichever device holds the mailbox works.
  *
- * The academic identity providers of the mockup (EPFL, eduGAIN, ORCID) come
- * with #249, #250 and #252: each needs a registration EPFL IT has to file.
+ * ORCID (#250) needs nothing from EPFL IT: a public API client is free.
+ * The other academic providers of the mockup (EPFL, eduGAIN) come with #249
+ * and #252, each with a registration EPFL IT has to file.
  */
+import OrcidIcon from '@/components/auth/OrcidIcon.vue'
 import { useAuthStore } from '@/stores/auth'
 import { mdiAlertCircleOutline, mdiArrowLeft, mdiEmailOutline, mdiGithub } from '@mdi/js'
 import { computed, onMounted, ref } from 'vue'
@@ -37,7 +39,7 @@ const emailLooksValid = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.v
 const codeLooksValid = computed(() => /^\d{6}$/.test(code.value.trim()))
 
 onMounted(() => {
-  // The GitHub round trip comes back here with a reason when it could not
+  // The GitHub and ORCID round trips come back here with a reason when it could not
   // finish, since a redirect has no other way to report one.
   const reason = route.query.error
   if (reason) error.value = t(`auth.errors.${reason}`, t('auth.errors.generic'))
@@ -100,6 +102,16 @@ function restart(): void {
           <span>{{ $t('auth.login.github') }}</span>
         </button>
         <p class="provider-note">{{ $t('auth.login.github_note') }}</p>
+
+        <button
+          class="provider provider-next"
+          type="button"
+          @click="auth.goToOrcid({ redirectTo: next })"
+        >
+          <OrcidIcon :size="20" />
+          <span>{{ $t('auth.login.orcid') }}</span>
+        </button>
+        <p class="provider-note">{{ $t('auth.login.orcid_note') }}</p>
 
         <div class="sep">
           <span>{{ $t('auth.login.or_email') }}</span>
@@ -190,8 +202,8 @@ function restart(): void {
   font-size: 13px;
   line-height: 1.45;
 }
-/* Full-width, like the mockup: the academic providers (#249, #250, #252)
-   will stack under it. */
+/* Full-width, like the mockup: the providers stack (GitHub, ORCID, then
+   #249 and #252). */
 .provider {
   display: flex;
   align-items: center;
@@ -209,6 +221,9 @@ function restart(): void {
 .provider:hover {
   border-color: var(--fg);
   background: var(--bg-subtle);
+}
+.provider-next {
+  margin-top: 16px;
 }
 .provider-note {
   margin: 8px 0 0;

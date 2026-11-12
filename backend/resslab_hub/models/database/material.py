@@ -3,6 +3,7 @@ Material Database Models
 """
 
 from sqlalchemy import (
+    ARRAY,
     BigInteger,
     Column,
     Date,
@@ -37,7 +38,6 @@ class Material(Base):  # type: ignore
     __tablename__ = "material"
 
     # START_OF_GENERATED_CODE
-    hidden_index = Column(SmallInteger, nullable=False)
     experimental_program = Column(String, nullable=False)
     id = Column(String, primary_key=True)
     profile_type = Column(String, nullable=False)
@@ -107,7 +107,6 @@ class Material(Base):  # type: ignore
     uvc_g1 = Column(DecimalFloat, nullable=True)
     uvc_c2__mpa_ = Column(DecimalFloat, nullable=True)
     uvc_g2 = Column(DecimalFloat, nullable=True)
-    hidden_dataset_index = Column(SmallInteger, nullable=False)
     uvc_sigma_sat__mpa_ = Column(DecimalFloat, nullable=True)
     uvc_sigma_hard__mpa_ = Column(DecimalFloat, nullable=True)
     uvc_rho_yield = Column(DecimalFloat, nullable=True)
@@ -116,6 +115,11 @@ class Material(Base):  # type: ignore
     uvc_rho_d = Column(DecimalFloat, nullable=True)
     data_curation_status = Column(String, nullable=False)
     # END_OF_GENERATED_CODE
+
+    # Names of the non-text columns whose cell was `nr` (not reported), so a
+    # NULL there is not mistaken for `na`. Filled by the uploader, see
+    # resslab_hub/data/not_reported.py (#427).
+    not_reported = Column(ARRAY(String), nullable=False, server_default=text("'{}'"))
     type = column_property(grade + text("'-'") + spec)
 
     year = column_property(func.extract("year", date))

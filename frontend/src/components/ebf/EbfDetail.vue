@@ -2,6 +2,7 @@
 import type { EccentricBracedFrameModel } from '@/backend'
 import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
+import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { ebfApi } from '@/plugins/axios'
 import { formatNumber } from '@/utils/formatter'
 import { computed, ref, watch } from 'vue'
@@ -110,21 +111,21 @@ const imageSrc = computed(() => {
                 :name="$t('detail.ebf.nominal_yield_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(eccentricBracedFrame.f_y_n_flg) }}
+                {{ formatNumber(eccentricBracedFrame, 'f_y_n_flg') }}
               </property-item>
               <property-item
                 column="f_y_m_flg"
                 :name="$t('detail.ebf.measured_yield_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(eccentricBracedFrame.f_y_m_flg) }}
+                {{ formatNumber(eccentricBracedFrame, 'f_y_m_flg') }}
               </property-item>
               <property-item
                 column="f_u_m_flg"
                 :name="$t('detail.ebf.measured_ultimate_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(eccentricBracedFrame.f_u_m_flg) }}
+                {{ formatNumber(eccentricBracedFrame, 'f_u_m_flg') }}
               </property-item>
             </v-col>
             <v-col cols="12">
@@ -137,27 +138,32 @@ const imageSrc = computed(() => {
                 :name="$t('detail.ebf.nominal_yield_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(eccentricBracedFrame.f_y_n_web) }}
+                {{ formatNumber(eccentricBracedFrame, 'f_y_n_web') }}
               </property-item>
               <property-item
                 column="f_y_m_web"
                 :name="$t('detail.ebf.measured_yield_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(eccentricBracedFrame.f_y_m_web) }}
+                {{ formatNumber(eccentricBracedFrame, 'f_y_m_web') }}
               </property-item>
               <property-item
                 column="f_u_m_web"
                 :name="$t('detail.ebf.measured_ultimate_stress')"
                 unit="MPa"
               >
-                {{ formatNumber(eccentricBracedFrame.f_u_m_web) }}
+                {{ formatNumber(eccentricBracedFrame, 'f_u_m_web') }}
               </property-item>
             </v-col>
           </v-row>
         </v-col>
         <v-col cols="12" sm="6">
-          <v-img v-if="imageSrc" :src="imageSrc" max-height="400" contain />
+          <zoomable-image
+            v-if="imageSrc"
+            :src="imageSrc"
+            :alt="$t('detail.ebf.figure_alt')"
+            :max-height="400"
+          />
         </v-col>
       </v-row>
     </template>

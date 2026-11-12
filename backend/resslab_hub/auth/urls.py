@@ -18,8 +18,14 @@ def public_base() -> str:
 
 
 def api_base() -> str:
-    """Where this API is reached from a browser, ``/api`` prefix included."""
-    return public_base() + str(settings.root_path).rstrip("/")
+    """Where this API is reached from a browser, ``/api`` prefix included.
+
+    A browser always goes through ``/api``: Traefik in the deployments, the
+    Vite proxy in dev. In dev ``root_path`` is empty (the backend has no
+    prefix), so fall back to ``/api``, or the OAuth callbacks would point to
+    the SPA instead of the backend.
+    """
+    return public_base() + (str(settings.root_path).rstrip("/") or "/api")
 
 
 def frontend_url(path: str) -> str:

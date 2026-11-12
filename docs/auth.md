@@ -8,7 +8,7 @@ review it, or to decide who can do what.
 
 ## What exists today (phase 1)
 
-Two ways to sign in:
+Three ways to sign in:
 
 - **Email code.** You type an address, the backend mails a six-digit code and a
   link. Either one signs you in. The code is for when the mailbox is on another
@@ -16,6 +16,9 @@ Two ways to sign in:
 - **GitHub.** OAuth through a GitHub App: in the deployments the same App that
   opens the contribution pull requests, locally a dev App. You can also link
   GitHub to an account you already have, from the account page.
+- **ORCID (#250).** OAuth with a client of the ORCID public API. Same as
+  GitHub: sign in, or link the iD from the account page. ORCID gives an iD
+  and a name, never an address (see "ORCID and the missing address" below).
 
 Linking GitHub is worth doing: a submission from an account with a GitHub login
 mentions that login on its pull request, so GitHub notifies the contributor of
@@ -45,12 +48,14 @@ decides who submits, who reviews and who manages the others. See Roles below
   replicas. Finished challenges are purged a day later, when a new one starts.
 - **The second step happens in the browser that did the first.** A ten-minute
   `resslab_login` cookie names the sign-in in progress: the mailed challenge,
-  or the GitHub `state`. A code, or a GitHub callback URL, is useless in any
+  or the GitHub or ORCID `state`. Each provider has its own challenge kind, so
+  a GitHub `state` cannot finish on the ORCID callback. A code, or a GitHub callback URL, is useless in any
   other browser. The mailed link is the exception, on purpose: it carries its
   own 256-bit token.
 - **Accounts are never merged** because two providers report the same address.
   Whoever holds an address keeps it; the second one is told to sign in with it
-  and link the provider from the account page.
+  and link the provider from the account page. The one exception is a bare
+  account, joined only on two proofs (see "ORCID and the missing address").
 - **An account can hold several addresses (#402).** Each verified address is
   an `email` row in `auth_identity`, and any of them signs in to the same
   account by code. `auth_user.email` is the main one: the contact address, and
@@ -64,12 +69,13 @@ decides who submits, who reviews and who manages the others. See Roles below
   to my account" and have the owner of the address click it. With a code,
   only the person who reads the mailbox and holds the session can finish. An
   address that already belongs to another account is refused (409
-  `email_in_use`): a person never joins two accounts alone. An admin can
-  (see "The admin page").
+  `email_in_use`): a person never joins two accounts alone, except from a
+  bare account (below). An admin can (see "The admin page").
 - **Removing an address.** `DELETE /auth/identities/{id}` removes any email
   row except the main one, and never the last way to sign in (409
   `cannot_unlink`). To drop the main address, make another one main first
-  (`POST /auth/identities/{id}/main`). GitHub can be unlinked the same way.
+  (`POST /auth/identities/{id}/main`). GitHub and ORCID can be unlinked the
+  same way. Unlinking ORCID also clears the iD of the profile.
 - **A submission belongs to the account that made it.** Updating an open one
   from the Hub (#321) checks the `Submitted-by` trailer on its branch's first
   Hub commit against every verified address of the account (a pull request
@@ -79,6 +85,30 @@ decides who submits, who reviews and who manages the others. See Roles below
   can update any open one: the commit is then the curator's, and the trailers
   keep naming the person who submitted. Anyone else gets a 403. The review
   page offers "Edit on the Hub" to the owner and to curators.
+- **ORCID and the missing address.** We only ask ORCID for `/authenticate`,
+  and we never read an address from it: few records have a public one, and an
+  address here is always proved by our own code. So a first ORCID sign-in
+  makes an account with only the iD (role `viewer`), and sends the browser to
+  `/account?add_email=1&next=<where it was going>`, once. The account page
+  opens the add form with a line that says why. The person adds an address by
+  code, or skips. Later sign-ins go straight on. `auth_user.orcid` follows the
+  proved iD at each ORCID sign-in or link, so a typed iD is replaced.
+- **A bare account can join another one.** A bare account has no address and
+  exactly one identity, which is not an email (`users.is_bare`). It cannot own
+  a submission, an access request or an invitation, since all of them need an
+  address. Two places join it to another account (`users.absorb_bare_account`):
+  - It adds, by code, an address that belongs to another account. The person
+    proved the iD (the session) and the mailbox (the code), the same two
+    proofs as "sign in by mail, then link ORCID". The iD moves to the account
+    of the address, the bare account is deleted, and this browser is signed
+    in to the other account.
+  - Someone signed in links an ORCID iD that sits on a bare account (they
+    skipped the address the first time). The iD moves the same way.
+
+  The join is refused when the other account is disabled (403
+  `account_disabled`) or already has an identity of that provider (409
+  `email_in_use`, or `identity_taken` on a link). The GitHub callback does not
+  join yet: a GitHub account with a private address has the same dead end.
 - **Absolute URLs** (the OAuth callback, the mailed link) are built from the
   `PUBLIC_BASE_URL` setting. They cannot come from the request: Traefik has
   already stripped `/api` and the `Host` is an internal service name.
@@ -145,6 +175,40 @@ Without the two `GITHUB_OAUTH_*` settings the GitHub button is still shown,
 but clicking it comes back to the login page with `?error=github_disabled`
 ("GitHub sign-in is not available here"), so a deployment without the pair
 does not show a raw JSON error.
+
+### ORCID
+
+ORCID is self-service: a client of the public API is free, and EPFL has
+nothing to register. The client belongs to the ORCID record that creates it.
+For production, create it from a lab record, not a personal one.
+
+1. Sign in to ORCID, open "Developer tools" and register a public API client.
+   For tests and a laptop, do this on https://sandbox.orcid.org. The sandbox
+   has its own accounts, and it only sends mail to `@mailinator.com`
+   addresses, so make the sandbox account with one.
+2. Add the redirect URI: `<PUBLIC_BASE_URL>/api/auth/orcid/callback`, one entry
+   per environment. Locally, that is the Vite port, for example
+   `http://127.0.0.1:5173/api/auth/orcid/callback`, or the worktree's
+   `FRONTEND_PORT`. Register the exact URL. The form refuses `localhost`
+   (for the redirect URI and for the application URL), so use `127.0.0.1`,
+   and the GitHub repository as the application URL.
+3. Put the client id and secret in `secrets/.env`, with `ORCID_SANDBOX=true`
+   for a sandbox client:
+
+```
+ORCID_CLIENT_ID=APP-...
+ORCID_CLIENT_SECRET=...
+ORCID_SANDBOX=true
+PUBLIC_BASE_URL=http://127.0.0.1:5173      # or the worktree's FRONTEND_PORT
+```
+
+Restart the backend after you edit the file. As for GitHub, open the app on
+the host of `PUBLIC_BASE_URL`, or the `resslab_login` cookie is lost on the
+way back.
+
+Without the two keys the ORCID button is still shown. A click comes back to
+the login page with `?error=orcid_disabled` ("ORCID sign-in is not available
+here").
 
 ### Mail
 
@@ -216,6 +280,8 @@ never is.
 | `PUBLIC_BASE_URL` | Where the app is reached, without `/api`. Every absolute URL comes from it. |
 | `API_USERNAME` / `API_PASSWORD` | The machine credential (Basic auth). Username defaults to `user`. |
 | `GITHUB_OAUTH_CLIENT_ID` / `_SECRET` | The App's OAuth pair (above). |
+| `ORCID_CLIENT_ID` / `_SECRET` | The ORCID public API client (above). |
+| `ORCID_SANDBOX` | `true` talks to sandbox.orcid.org instead of orcid.org. `false` by default. |
 | `SMTP_HOST` / `SMTP_PORT` | The relay. No host = log-only mode locally, `503 mail_not_configured` in a deployment (above). |
 | `SMTP_STARTTLS` | On by default; the EPFL relay needs it on port 587. |
 | `SMTP_USER` / `SMTP_PASSWORD` | The service account (above, mind the quoting). |
@@ -556,10 +622,13 @@ What is in the dump and how to restore it:
 
 ## Later
 
-- **#249, #250, #252** the academic identity providers of the mockup: ORCID is
-  self-service; SWITCH edu-ID / eduGAIN and EPFL Entra ID each need EPFL to
-  register the application, so those requests should be filed early. Each one
-  is another provider in `auth_identity` and a copy of `auth/github_oauth.py`.
+- **#249, #252** the other academic identity providers of the mockup: SWITCH
+  edu-ID / eduGAIN and EPFL Entra ID each need EPFL to register the
+  application, so those requests should be filed early. Each one is another
+  provider in `auth_identity` and a copy of `auth/orcid_oauth.py`, with the
+  shared `state` of `auth/oauth_state.py`.
+- Join a bare GitHub account the same way as an ORCID one, from the GitHub
+  callback.
 - **#254** approve or ask for changes from the Hub.
 - Academic domains edited from the admin page rather than in
   `CONTRIBUTOR_DOMAINS`, and a "my submissions" list for contributors.

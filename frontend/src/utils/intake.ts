@@ -166,6 +166,13 @@ export interface IntakePending {
   reason: 'orphan' | 'ambiguous' | 'unknown' | 'foreign'
   /** The response types still possible (one for an orphan, none for `foreign`). */
   kinds: TimeSeriesKind[]
+  /**
+   * An ambiguous file with a rival in the same drop (same name, same possible
+   * types): only a folder name could place it, and the drop lost it. Most
+   * likely a folder dragged out of a zip window. The report says to extract
+   * the zip first.
+   */
+  lostFolder?: boolean
 }
 
 export interface IntakePlan {
@@ -255,7 +262,9 @@ function rivalKey(fileStem: string, kinds: TimeSeriesKind[]): string {
  *  2. otherwise its headers, when they single out one response type. When
  *     they fit several types and only one of them is required, a file alone
  *     for its experiment goes to the required one, flagged `assumed` (a drop
- *     that lost its folder names: strong and weak axis share their headers);
+ *     that lost its folder names: strong and weak axis share their headers).
+ *     Two such files for the same experiment are never guessed: they stay
+ *     pending with `lostFolder`, and the report asks for the extracted folder;
  *  3. its stem is a specimen id (case-insensitive), through the kind's naming
  *     rule (`id74` for EBF).
  * Ids from a primary CSV in the same drop count, so a whole folder lands in one go.
@@ -345,7 +354,15 @@ export async function classifyIntake(
       continue
     }
     if (kinds.length > 1) {
-      plan.pending.push({ id: pendingCounter++, file, text, reason: 'ambiguous', kinds })
+      const lostFolder = (rivals.get(rivalKey(stem(file.name), kinds)) ?? 0) > 1
+      plan.pending.push({
+        id: pendingCounter++,
+        file,
+        text,
+        reason: 'ambiguous',
+        kinds,
+        ...(lostFolder ? { lostFolder } : {})
+      })
       continue
     }
     const kind = kinds[0]

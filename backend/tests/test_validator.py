@@ -77,6 +77,18 @@ class TestTableValidator:
 
         assert result.is_valid(), str(result)
 
+    def test_needs_no_not_reported_column(self, tmp_path: Path):
+        # The Hub fills it at upload (#427), contributors never send it.
+        file_path = tmp_path / "braces.csv"
+        write_main_csv(file_path, Brace, [{"id": "B1", "area": "NR"}])
+        header = file_path.read_text(encoding="utf-8").splitlines()[0]
+        assert "not_reported" not in header.split(",")
+
+        result = TableValidator(Brace).validate_one(str(file_path))
+
+        assert result.is_valid(), str(result)
+        assert not [w for w in result.warnings if "not_reported" in w.message]
+
     def test_missing_required_column_is_an_error(self, tmp_path: Path):
         file_path = tmp_path / "braces.csv"
         with open(file_path, "w", newline="", encoding="utf-8") as handle:

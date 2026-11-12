@@ -25,7 +25,9 @@ const categorical: FilterDescriptor = {
   kind: 'categorical',
   distinct: 2,
   nonNull: 8,
-  missing: 2,
+  missing: 3,
+  notReported: 2,
+  notApplicable: 1,
   options: [
     { value: 'RBS', count: 5 },
     { value: 'WUF-W', count: 3 }
@@ -39,6 +41,8 @@ const numeric: FilterDescriptor = {
   distinct: 4,
   nonNull: 4,
   missing: 0,
+  notReported: 0,
+  notApplicable: 0,
   min: 0,
   max: 100,
   binEdges: [0, 50, 100],
@@ -90,7 +94,10 @@ describe('FilterInput', () => {
   })
 
   it('shows the distinct/missing footnote by default and hides it on request', () => {
-    expect(mountInput(categorical).find('.afr-meta').text()).toContain('2')
+    const meta = mountInput(categorical).find('.afr-meta').text()
+    // Not reported and not applicable are counted apart (#427).
+    expect(meta).toMatch(/2\s+not reported/)
+    expect(meta).toMatch(/1\s+not applicable/)
     expect(mountInput(categorical, { meta: false }).find('.afr-meta').exists()).toBe(false)
   })
 
@@ -109,6 +116,8 @@ describe('FilterInput', () => {
       distinct: 20,
       nonNull: 100,
       missing: 0,
+      notReported: 0,
+      notApplicable: 0,
       options: [
         { value: 'Fell, Kanvinde & Deierlein', count: 6 },
         { value: 'Black et al.', count: 4 }

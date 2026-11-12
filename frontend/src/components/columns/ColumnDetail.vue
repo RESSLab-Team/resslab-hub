@@ -2,8 +2,10 @@
 import type { ColumnModel } from '@/backend'
 import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
+import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { columnsApi } from '@/plugins/axios'
 import { getColumnImage } from '@/utils/component'
+import { formatNumber } from '@/utils/formatter'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -101,11 +103,16 @@ watch(
             column="l_b_over_r_yc"
             :name="$t('detail.column.member_slenderness_ratio')"
           >
-            {{ column.l_b_over_r_yc }}
+            {{ formatNumber(column, 'l_b_over_r_yc', 1) }}
           </property-item>
         </v-col>
         <v-col cols="12" sm="6">
-          <v-img max-height="256" :src="imageSrc" />
+          <zoomable-image
+            v-if="imageSrc"
+            :src="imageSrc"
+            :alt="$t('detail.column.figure_alt')"
+            :max-height="256"
+          />
         </v-col>
       </v-row>
     </template>
@@ -114,17 +121,17 @@ watch(
         {{ column.steel_c }}
       </property-item>
       <property-item column="f_yn" :name="$t('detail.column.nominal_yield_stress')" unit="MPa">
-        {{ column.f_yn }}
+        {{ formatNumber(column, 'f_yn') }}
       </property-item>
       <property-item
         column="f_ymf"
         :name="$t('detail.column.nominal_yield_stress_flange')"
         unit="MPa"
       >
-        {{ column.f_ymf }}
+        {{ formatNumber(column, 'f_ymf') }}
       </property-item>
       <property-item column="f_ymw" :name="$t('detail.column.nominal_yield_stress_web')" unit="MPa">
-        {{ column.f_ymw }}
+        {{ formatNumber(column, 'f_ymw') }}
       </property-item>
     </template>
   </common-detail>

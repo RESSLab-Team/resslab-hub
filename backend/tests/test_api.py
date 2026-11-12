@@ -166,6 +166,26 @@ async def test_braces_csv_headers_and_rows(client, tmp_path):
     assert len(lines) - 1 == 2  # two data rows beyond the header
 
 
+async def test_braces_page_carries_the_not_reported_list(client, tmp_path):
+    csv_path = tmp_path / "steel_braces.csv"
+    write_main_csv(csv_path, Brace, [{"id": "B1", "area": "NR", "b_br": "NA"}])
+    upload_one(Type.BRACE, str(csv_path))
+    response = await client.get("/braces")
+    assert response.json()["items"][0]["not_reported"] == ["area"]
+
+
+async def test_braces_csv_writes_nr_and_na_like_the_source(client, tmp_path):
+    csv_path = tmp_path / "steel_braces.csv"
+    write_main_csv(csv_path, Brace, [{"id": "B1", "area": "NR", "b_br": "NA"}])
+    upload_one(Type.BRACE, str(csv_path))
+    response = await client.get("/braces/csv", params={"ids": ["B1"]})
+    header, row = [line for line in response.text.splitlines() if line]
+    cells = dict(zip(header.split(","), row.split(",")))
+    assert "not_reported" not in cells
+    assert cells["area"] == "NR"
+    assert cells["b_br"] == "NA"
+
+
 async def test_braces_displacement_series(client, tmp_path):
     _seed_braces(tmp_path)
     response = await client.get("/braces/B1/displacement")

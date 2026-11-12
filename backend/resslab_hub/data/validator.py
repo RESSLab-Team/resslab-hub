@@ -43,6 +43,7 @@ from resslab_hub.data.common import (
 )
 from resslab_hub.data.count_flags import COUNT_FLAGS
 from resslab_hub.data.curation_status import ALLOWED, STATUS_COLUMN, VERIFIED
+from resslab_hub.data.not_reported import NOT_REPORTED_COLUMN
 from resslab_hub.data.uploader import (
     Type,
     get_args_all,
@@ -388,12 +389,15 @@ class TableValidator(Validator):
                 check_empty_headers(result, headers)
 
                 debug(f"Validating headers for {path.basename(file_path)}")
-                # Validate headers. Derived *_count flags are physical columns
-                # on the model but have no CSV header (recomputed at upload),
-                # so they are never required from a contributed file.
-                expected_columns = {
-                    col.key for col in self.base_model.__table__.c
-                } - set(COUNT_FLAGS.get(self.base_model, {}))
+                # Validate headers. Derived *_count flags and the
+                # `not_reported` list are physical columns on the model but
+                # have no CSV header (the upload fills them), so they are
+                # never required from a contributed file.
+                expected_columns = (
+                    {col.key for col in self.base_model.__table__.c}
+                    - set(COUNT_FLAGS.get(self.base_model, {}))
+                    - {NOT_REPORTED_COLUMN}
+                )
 
                 debug(f"Expected columns: {expected_columns}")
                 debug(f"Found columns: {headers}")

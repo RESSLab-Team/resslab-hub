@@ -12,7 +12,8 @@
  */
 import type { DictColumn } from '@/stores/dictionary'
 import { range as numericRange } from '@/utils/aggregate'
-import { formatValue, type Row } from '@/utils/queryEngine'
+import { cellKey, type Row } from '@/utils/queryEngine'
+import { NOT_APPLICABLE, NOT_REPORTED } from '@/utils/missing'
 import { toBins, type BinData, type Count } from '@/utils/statistics'
 
 export type FilterKind = 'categorical' | 'text' | 'numeric' | 'date' | 'boolean' | 'hidden'
@@ -21,7 +22,7 @@ export type FilterKind = 'categorical' | 'text' | 'numeric' | 'date' | 'boolean'
 export type HiddenReason = 'denylist' | 'unique' | 'url' | 'empty' | 'constant' | 'missing'
 
 export interface FilterOption {
-  /** Formatted value, as the query engine compares it (`'NA'` groups nulls). */
+  /** Formatted value, as the query engine compares it (`NR` and `NA` for empty cells, #427). */
   value: string
   count: number
 }
@@ -35,8 +36,12 @@ export interface FilterDescriptor {
   /** Distinct non-null values. */
   distinct: number
   nonNull: number
-  /** Rows whose value is null/NaN — offered as the `NA` option. */
+  /** Rows whose value is null/NaN: `notReported + notApplicable`. */
   missing: number
+  /** Empty because the paper didn't give it, offered as the `NR` option (#427). */
+  notReported: number
+  /** Empty because it doesn't exist for the specimen, offered as the `NA` option. */
+  notApplicable: number
   /**
    * categorical + boolean + date: value → count, most frequent first.
    * text: only the most common values, as read-only context for the search box.
@@ -87,15 +92,12 @@ const DSL_CHARS = /[,;]/
 
 const NUMERIC_TYPES = new Set(['SmallInteger', 'Integer', 'BigInteger', 'Numeric', 'DecimalFloat'])
 
-/** Missing-value sentinels produced by `formatValue` (null and NaN). */
-export const MISSING = new Set(['NA', 'NR'])
-export const MISSING_OPTION = 'NA'
-
 interface Accumulator {
   column: DictColumn
   /** Non-null formatted value → row count. */
   values: Map<string, number>
-  missing: number
+  notReported: number
+  notApplicable: number
 }
 
 /**
@@ -119,16 +121,20 @@ export function profileColumns(rows: Row[], columns: DictColumn[]): FilterDescri
       descriptors.set(column.name, hidden(column, 'denylist'))
       continue
     }
-    accumulators.push({ column, values: new Map(), missing: 0 })
+    accumulators.push({ column, values: new Map(), notReported: 0, notApplicable: 0 })
   }
 
   // Rows outer / columns inner: each row object is touched once, and the ~70
   // property reads on it hit the same hidden class.
   for (const row of rows) {
     for (const accumulator of accumulators) {
-      const formatted = formatValue(row[accumulator.column.name])
-      if (MISSING.has(formatted)) {
-        accumulator.missing += 1
+      const formatted = cellKey(row, accumulator.column.name)
+      if (formatted === NOT_REPORTED) {
+        accumulator.notReported += 1
+        continue
+      }
+      if (formatted === NOT_APPLICABLE) {
+        accumulator.notApplicable += 1
         continue
       }
       accumulator.values.set(formatted, (accumulator.values.get(formatted) ?? 0) + 1)
@@ -155,12 +161,15 @@ function hidden(column: DictColumn, reason: HiddenReason): FilterDescriptor {
     hiddenReason: reason,
     distinct: 0,
     nonNull: 0,
-    missing: 0
+    missing: 0,
+    notReported: 0,
+    notApplicable: 0
   }
 }
 
 function classify(rows: Row[], accumulator: Accumulator): FilterDescriptor {
-  const { column, values, missing } = accumulator
+  const { column, values, notReported, notApplicable } = accumulator
+  const missing = notReported + notApplicable
   const nonNull = rows.length - missing
   const base: FilterDescriptor = {
     key: column.name,
@@ -168,13 +177,15 @@ function classify(rows: Row[], accumulator: Accumulator): FilterDescriptor {
     kind: 'hidden',
     distinct: values.size,
     nonNull,
-    missing
+    missing,
+    notReported,
+    notApplicable
   }
 
   if (values.size === 0) return { ...base, hiddenReason: 'empty' }
 
   if (column.type === 'Boolean') {
-    return { ...base, kind: 'boolean', options: sortOptions(values, missing) }
+    return { ...base, kind: 'boolean', options: sortOptions(values, notReported, notApplicable) }
   }
 
   if (column.type === 'Date') {
@@ -214,7 +225,7 @@ function classify(rows: Row[], accumulator: Accumulator): FilterDescriptor {
     return { ...base, kind: 'text', demoted: true, options: topValues(values) }
   }
 
-  return { ...base, kind: 'categorical', options: sortOptions(values, missing) }
+  return { ...base, kind: 'categorical', options: sortOptions(values, notReported, notApplicable) }
 }
 
 /**
@@ -249,16 +260,21 @@ function histogram(
  * when nothing recurs — a list of singletons is noise, not a distribution.
  */
 function topValues(values: Map<string, number>): FilterOption[] | undefined {
-  const options = sortOptions(values, 0).slice(0, TEXT_TOP_VALUES)
+  const options = sortOptions(values, 0, 0).slice(0, TEXT_TOP_VALUES)
   return options[0]?.count > 1 ? options : undefined
 }
 
-/** Most frequent first; the missing-value bucket always sorts last. */
-function sortOptions(values: Map<string, number>, missing: number): FilterOption[] {
+/** Most frequent first; the `NR` and `NA` buckets always sort last. */
+function sortOptions(
+  values: Map<string, number>,
+  notReported: number,
+  notApplicable: number
+): FilterOption[] {
   const options = [...values.entries()]
     .map(([value, count]) => ({ value, count }))
     .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value))
-  if (missing > 0) options.push({ value: MISSING_OPTION, count: missing })
+  if (notReported > 0) options.push({ value: NOT_REPORTED, count: notReported })
+  if (notApplicable > 0) options.push({ value: NOT_APPLICABLE, count: notApplicable })
   return options
 }
 

@@ -8,20 +8,18 @@ with a loopback callback (docs/auth.md).
 
 The OAuth ``state`` is a ``LoginChallenge`` row whose id also goes in the
 ``resslab_login`` cookie, so the callback only works in the browser that
-started the round trip.
+started the round trip (``oauth_state``, shared with ORCID).
 """
 
 from dataclasses import dataclass
-from datetime import timedelta
 from typing import Optional
 from urllib.parse import urlencode
 
 import httpx
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from resslab_hub.auth.challenges import aware, now, purge_expired
-from resslab_hub.auth.urls import api_url, safe_redirect
+from resslab_hub.auth import oauth_state
+from resslab_hub.auth.urls import api_url
 from resslab_hub.config import settings
 from resslab_hub.models.database.auth import LoginChallenge
 
@@ -29,8 +27,8 @@ AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
 TOKEN_URL = "https://github.com/login/oauth/access_token"
 API_URL = "https://api.github.com"
 
-#: An OAuth round trip is a redirect and back; ten minutes is generous.
-STATE_TTL = timedelta(minutes=10)
+#: The ``LoginChallenge.kind`` of a GitHub round trip.
+KIND = "oauth_github"
 
 
 class GitHubOAuthError(Exception):
@@ -77,44 +75,14 @@ async def start(
     ip: str = "",
 ) -> str:
     """Record a pending round trip; its row id is the OAuth ``state``."""
-    await purge_expired(db)
-    challenge = LoginChallenge(
-        kind="oauth_github",
-        redirect_to=safe_redirect(redirect_to),
-        link_user_id=link_user_id,
-        ip=ip,
-        expires_at=now() + STATE_TTL,
-    )
-    db.add(challenge)
-    await db.commit()
-    return challenge.id
+    return await oauth_state.start(db, KIND, redirect_to, link_user_id, ip)
 
 
 async def consume_state(
     db: AsyncSession, state: str, expected: str
 ) -> Optional[LoginChallenge]:
-    """Look up and burn a ``state``.
-
-    None when unknown, used, expired, or not the one this browser started
-    (``expected`` is the cookie value).
-    """
-    if not state or state != expected:
-        return None
-    result = await db.execute(
-        select(LoginChallenge).where(
-            LoginChallenge.id == state, LoginChallenge.kind == "oauth_github"
-        )
-    )
-    challenge = result.scalar_one_or_none()
-    if (
-        challenge is None
-        or challenge.consumed_at is not None
-        or aware(challenge.expires_at) <= now()
-    ):
-        return None
-    challenge.consumed_at = now()
-    await db.commit()
-    return challenge
+    """Look up and burn a GitHub ``state`` (see ``oauth_state``)."""
+    return await oauth_state.consume_state(db, KIND, state, expected)
 
 
 async def exchange_code(code: str) -> str:

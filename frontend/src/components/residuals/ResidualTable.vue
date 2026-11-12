@@ -6,7 +6,6 @@ import { useDataset } from '@/composables/useDataset'
 import { RESIDUAL_KEY, fetchResiduals } from '@/components/residuals/data'
 import { residualsApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
-import { formatNumber } from '@/utils/formatter'
 import { toRef } from 'vue'
 
 const columns: Column[] = [
@@ -38,7 +37,7 @@ const columns: Column[] = [
     value: ResidualStressField.HOverB,
     title: 'h/b<sub>f</sub>',
     type: 'number',
-    format: (value) => formatNumber(value, 2)
+    format: (value) => Number(value).toFixed(2)
   }
 ]
 

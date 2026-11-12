@@ -529,7 +529,8 @@
     "no_variables_found": "No variable matches this search.",
     "loading_filters": "Loading filters…",
     "distinct_values": "distinct values",
-    "missing_values": "not reported",
+    "not_reported_values": "not reported",
+    "not_applicable_values": "not applicable",
     "all_recorded_properties": "All recorded properties",
     "unverified": {
       "tag": "Unverified",
@@ -543,7 +544,8 @@
       "verified_only": "Verified only",
       "verified_only_hint": "Hide the experiments our team has not reviewed yet",
       "status_label": "Review status"
-    }
+    },
+    "zoom_image": "Open {name} full size"
   },
   "field_group": {
     "experimental_program_details": "Experimental program details",
@@ -650,7 +652,8 @@
       "chart_moment_weak": "Moment Weak",
       "axis_chord_rotation": "Chord Rotation [rads]",
       "axis_axial_shortening": "Axial Shortening [mm]",
-      "axis_moment": "Moment [kN-mm]"
+      "axis_moment": "Moment [kN-mm]",
+      "figure_alt": "Column test setup"
     },
     "brace": {
       "section_loading_geometric": "Loading and Geometric Parameters",
@@ -671,7 +674,8 @@
       "no_gusset_plates": "The configuration does not include gusset plates",
       "chart_force_displacement": "Force Displacement",
       "axis_displacement": "Displacement [mm]",
-      "axis_force": "Force [kN]"
+      "axis_force": "Force [kN]",
+      "figure_alt": "Brace end condition"
     },
     "hss": {
       "moment_rotation_title": "Moment Rotation",
@@ -687,7 +691,8 @@
       "steel_type": "Steel type",
       "nominal_yield_stress": "Nominal yield stress",
       "measured_yield_stress": "Measured yield stress",
-      "measured_ultimate_stress": "Measured ultimate stress"
+      "measured_ultimate_stress": "Measured ultimate stress",
+      "figure_alt": "Test configuration"
     },
     "ebf": {
       "link_rotation_axis": "Link Rotation [rad]",
@@ -707,7 +712,8 @@
       "steel_type": "Steel Type",
       "nominal_yield_stress": "Nominal Yield Stress",
       "measured_yield_stress": "Measured Yield Stress",
-      "measured_ultimate_stress": "Measured Ultimate Stress"
+      "measured_ultimate_stress": "Measured Ultimate Stress",
+      "figure_alt": "Link configuration"
     },
     "material": {
       "error_message": "The graph cannot be displayed because the input material model parameters are not available.",
@@ -735,7 +741,8 @@
       "backstress_magnitude_2": "Magnitude of backstress 2, C2",
       "backstress_rate_1": "Rate of backstress 1, γ1",
       "backstress_rate_2": "Rate of backstress 2, γ2",
-      "model_footnote": "* The material model is based on"
+      "model_footnote": "* The material model is based on",
+      "figure_alt": "Coupon geometry"
     },
     "residual": {
       "error_message": "The graph cannot be displayed because the input material model parameters are not available.",
@@ -756,7 +763,8 @@
       "web_thickness_of_the_cross_section": "Web thickness of the cross section",
       "flange_thickness_of_the_cross_section": "Flange thickness of the cross section",
       "fillet_radii_of_the_cross_section": "Fillet radii of the cross section",
-      "area_of_the_cross_section": "Area of the cross section"
+      "area_of_the_cross_section": "Area of the cross section",
+      "figure_alt": "Residual stress pattern"
     },
     "tensile_coupon": {
       "engineering_stress_strain": "Engineering stress-strain",
@@ -772,7 +780,8 @@
       "measured_yield_stress": "Measured yield stress",
       "nominal_ultimate_stress": "Nominal ultimate stress",
       "measured_ultimate_stress": "Measured ultimate stress",
-      "youngs_modulus_e": "Young's modulus, E"
+      "youngs_modulus_e": "Young's modulus, E",
+      "figure_alt": "Coupon geometry"
     },
     "ductile_fracture": {
       "structural_steel_element": "Structural Steel Element",
@@ -788,7 +797,8 @@
       "measured_ultimate_stress": "Measured ultimate stress",
       "fracture_model_parameters": "Fracture Model Parameters",
       "characteristic_length": "Characteristic length",
-      "sem_button": "Scanning Electron Microscopy (SEM)"
+      "sem_button": "Scanning Electron Microscopy (SEM)",
+      "figure_alt": "Specimen geometry"
     }
   },
   "enum": {
@@ -819,8 +829,8 @@
     "forceKn": "Force [kN]",
     "triaxiality": "Triaxiality",
     "lodeAngle": "Lode angle",
-    "notApplicable": "Not Applicable",
-    "notReported": "Not Reported",
+    "notApplicable": "Not applicable",
+    "notReported": "Not reported",
     "metric": "Metric",
     "imperial": "Imperial",
     "true": "True",
@@ -1272,6 +1282,7 @@
       "loaded": "{added} experiment(s) added, {updated} updated.",
       "attached": "{count} file(s) attached.",
       "assumed": "{count} of them had no folder to tell their type, see the report.",
+      "lost_folders": "Folder names are missing: extract the zip first, then drop the extracted folder.",
       "to_resolve": "{count} file(s) need your attention, see below.",
       "nothing": "Nothing recognised in what was dropped.",
       "report_title": "Last drop",
@@ -1279,6 +1290,7 @@
       "line_primary": "{name}: {added} experiment(s) added, {updated} updated.",
       "line_attached": "{kind}: {count} file(s) attached.",
       "line_assumed": "{kind}: {count} file(s) had no folder to tell their type and the same headers as {other}, so they were taken as {kind}. If one is {other}, remove it from the card and attach it there.",
+      "line_lost_folders": "{count} file(s) have the same name and the same headers, and no folder to tell them apart (strong axis or weak axis, for example). Extract the zip first, then drop the extracted folder. Or pick the type of each file below.",
       "line_missing": "{kind}: {count} experiment(s) still without a file.",
       "line_candidates": "Also looked like an experiments CSV, left alone: {files}",
       "line_skipped": "Not CSV, skipped: {files}",
@@ -1496,6 +1508,8 @@
       "lede": "Browsing needs no account. You need one to submit data or to review a submission.",
       "github": "Continue with GitHub",
       "github_note": "Linking GitHub lets you follow and answer the review of your own submission.",
+      "orcid": "Continue with ORCID",
+      "orcid_note": "For researchers. We only read your ORCID iD and your name.",
       "or_email": "or with your email",
       "email_label": "Email",
       "send_code": "Send me a code",
@@ -1519,9 +1533,11 @@
       "no_email": "No confirmed address",
       "verified": "confirmed",
       "identities": "Ways to sign in",
-      "identities_lede": "Each one signs you into the same account. GitHub can be added and removed.",
+      "identities_lede": "Each one signs you into the same account. GitHub and ORCID can be added and removed.",
       "unlink": "Remove",
       "link_github": "Link GitHub",
+      "link_orcid": "Link ORCID",
+      "link_orcid_why": "Your ORCID iD goes with your submissions, so the data cites you.",
       "link_github_why": "With GitHub linked, your submission mentions you on its pull request, so you get the review comments and can answer them.",
       "sign_out": "Sign out",
       "github_role_hint": "Write access on the data repository on GitHub makes you a curator here, admin access makes you an administrator. Link GitHub to use it. The role follows GitHub within the hour.",
@@ -1537,9 +1553,12 @@
       "code_label": "Code from the mail",
       "confirm": "Add the address",
       "cancel": "Cancel",
+      "skip": "Skip for now",
+      "add_email_orcid": "ORCID does not give us your address. Add one to contribute and to get our mails. If it already has an account here, your ORCID iD moves to that account.",
       "email_added": "{email} is now on your account.",
+      "orcid_joined": "{email} already had an account here. Your ORCID iD is on that account now, and you are signed in to it.",
       "add_errors": {
-        "email_in_use": "That address belongs to another account here. Accounts are not joined: sign in with it to use that account."
+        "email_in_use": "That address belongs to another account here. Sign in with it to use that account."
       }
     },
     "forbidden": {
@@ -1580,10 +1599,13 @@
       "invalid_or_expired": "That code or link is no longer valid. Ask for a new one.",
       "too_many_attempts": "Too many tries. Ask for a new code.",
       "github_failed": "GitHub sign-in did not finish. Please try again.",
-      "email_in_use": "That address already has an account here. Sign in with it, then link GitHub from your account page.",
-      "identity_taken": "That GitHub account is already linked to another account here.",
+      "email_in_use": "That address already has an account here. Sign in with it, then link GitHub or ORCID from your account page.",
+      "identity_taken": "That GitHub or ORCID account is already linked to another account here.",
       "github_denied": "You cancelled the GitHub sign-in.",
       "github_disabled": "GitHub sign-in is not available here. Use your email address.",
+      "orcid_failed": "ORCID sign-in did not finish. Please try again.",
+      "orcid_denied": "You cancelled the ORCID sign-in.",
+      "orcid_disabled": "ORCID sign-in is not available here. Use your email address.",
       "cannot_unlink": "This one cannot be removed. Make another address main first, and keep at least one way to sign in.",
       "account_disabled": "This account is disabled. Ask an administrator of the lab if you think it is a mistake.",
       "already_pending": "Your request is already waiting for an administrator.",

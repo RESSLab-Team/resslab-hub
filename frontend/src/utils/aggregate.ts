@@ -9,7 +9,7 @@
  *   `get_matrix`  → per-row id + fields (no group) → `matrix`
  */
 import type { CountModel, DateRangeModel, MatrixModel, RangeModel } from '@/backend'
-import { formatValue, type Row } from '@/utils/queryEngine'
+import { cellKey, type Row } from '@/utils/queryEngine'
 import { extent } from 'd3-array'
 
 // Control char so multi-field group keys can't collide with values that
@@ -23,7 +23,7 @@ const KEY_SEPARATOR = '\u0000'
 export function counts(rows: Row[], fields: string[]): CountModel[] {
   const groups = new Map<string, CountModel>()
   for (const row of rows) {
-    const names = fields.map((field) => formatValue(row[field]))
+    const names = fields.map((field) => cellKey(row, field))
     const key = names.join(KEY_SEPARATOR)
     const existing = groups.get(key)
     if (existing) existing.value += 1

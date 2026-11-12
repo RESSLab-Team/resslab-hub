@@ -123,11 +123,11 @@ it, and `fieldGroups.spec.ts` fails on a column with none.
 | Loading details | 3 | `l_p_typ`, `n_d_n_pl_ten`, `n_d_n_pl_comp` |
 | Measured response | 1 | `fail_mode` |
 
-## Cyclic coupons, 78 columns in 7 groups
+## Cyclic coupons, 76 columns in 7 groups
 
 | Group | n | Columns |
 |---|---:|---|
-| Experimental program details | 13 | `hidden_index`, `experimental_program`, `id`, `date`, `investigator`, `location`, `reference`, `link`, `latitude`, `longitude`, `citekey`, `hidden_dataset_index`, `data_curation_status` |
+| Experimental program details | 11 | `experimental_program`, `id`, `date`, `investigator`, `location`, `reference`, `link`, `latitude`, `longitude`, `citekey`, `data_curation_status` |
 | Specimen details | 8 | `profile_type`, `profile`, `source`, `thickness`, `grade`, `spec`, `lp`, `size` |
 | Geometric properties | 4 | `gage_length__mm_`, `avg_reduced_dia__mm_`, `avg_fractured_dia_top__mm_`, `avg_fractured_dia_bot__mm_` |
 | Material properties | 6 | `fy_n__mpa_`, `fu_n__mpa_`, `t_a__deg_c_`, `yield_stress__mpa_`, `elastic_modulus__mpa_`, `fracture_strain` |

@@ -42,6 +42,24 @@ describe('filterProfile: dictionary type dispatch', () => {
     ])
   })
 
+  it('offers not reported and not applicable as two options (#427)', () => {
+    const rows: Row[] = [
+      { id: '1', slab: true, not_reported: [] },
+      { id: '2', slab: null, not_reported: ['slab'] },
+      { id: '3', slab: null, not_reported: ['slab'] },
+      { id: '4', slab: null, not_reported: [] }
+    ]
+    const descriptor = profileColumns(rows, [column('slab', 'Boolean')])[0]
+    expect(descriptor.options).toEqual([
+      { value: 'True', count: 1 },
+      { value: 'NR', count: 2 },
+      { value: 'NA', count: 1 }
+    ])
+    expect(descriptor.notReported).toBe(2)
+    expect(descriptor.notApplicable).toBe(1)
+    expect(descriptor.missing).toBe(3)
+  })
+
   it('exposes ISO bounds for date columns', () => {
     const descriptor = profileOne('date', 'Date', ['2010-06-02', '2001-01-01', '2005-03-04'])
     expect(descriptor.dateMin).toBe('2001-01-01')

@@ -2,6 +2,7 @@
 import type { BraceModel } from '@/backend'
 import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
+import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { bracesApi } from '@/plugins/axios'
 import { publicPath } from '@/utils/common'
 import { formatNumber, formatString } from '@/utils/formatter'
@@ -18,12 +19,6 @@ const emit = defineEmits<{
 }>()
 
 const carouselItems = ref<DetailCarouselItem[][]>([])
-
-// The database stores `nr` and `na` both as null for numbers. For braces most
-// of them are `nr`, so an empty stress says "Not Reported". See #427.
-function formatStress(value?: number | null, fractionDigits = 0): string {
-  return value == null ? t('enum.notReported') : formatNumber(value, fractionDigits)
-}
 
 const isGussetPlate = computed<boolean>(() => props.brace.boundary_condition === 'Gusset plate')
 
@@ -134,21 +129,21 @@ watch(
                 :name="$t('detail.brace.nominal_yield_stress')"
                 unit="MPa"
               >
-                {{ formatStress(brace.f_yn) }}
+                {{ formatNumber(brace, 'f_yn') }}
               </property-item>
               <property-item
                 column="fy_m"
                 :name="$t('detail.brace.measured_yield_stress')"
                 unit="MPa"
               >
-                {{ formatStress(brace.fy_m) }}
+                {{ formatNumber(brace, 'fy_m') }}
               </property-item>
               <property-item
                 column="f_um"
                 :name="$t('detail.brace.ultimate_tensile_stress')"
                 unit="MPa"
               >
-                {{ formatStress(brace.f_um) }}
+                {{ formatNumber(brace, 'f_um') }}
               </property-item>
               <h3>{{ $t('detail.brace.sub_gusset_plate') }}</h3>
               <template v-if="isGussetPlate">
@@ -160,21 +155,21 @@ watch(
                   :name="$t('detail.brace.nominal_yield_stress')"
                   unit="MPa"
                 >
-                  {{ formatStress(brace.f_yn_gp) }}
+                  {{ formatNumber(brace, 'f_yn_gp') }}
                 </property-item>
                 <property-item
                   column="f_ym_gp"
                   :name="$t('detail.brace.measured_yield_stress')"
                   unit="MPa"
                 >
-                  {{ formatStress(brace.f_ym_gp, 2) }}
+                  {{ formatNumber(brace, 'f_ym_gp', 2) }}
                 </property-item>
                 <property-item
                   column="f_um_gp"
                   :name="$t('detail.brace.ultimate_tensile_stress')"
                   unit="MPa"
                 >
-                  {{ formatStress(brace.f_um_gp, 2) }}
+                  {{ formatNumber(brace, 'f_um_gp', 2) }}
                 </property-item>
               </template>
               <template v-else>{{ $t('detail.brace.no_gusset_plates') }}</template>
@@ -182,7 +177,11 @@ watch(
           </v-row>
         </v-col>
         <v-col cols="12" sm="6">
-          <v-img :src="imageTypeSrc" />
+          <zoomable-image
+            v-if="imageTypeSrc"
+            :src="imageTypeSrc"
+            :alt="$t('detail.brace.figure_alt')"
+          />
         </v-col>
       </v-row>
     </template>

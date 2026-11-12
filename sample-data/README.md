@@ -59,7 +59,7 @@ Without the database, or with an empty table, each column gets one fixed value o
 
 `POST /validate` warns when a number is more than one full span outside the `[min, max]` of the existing data for its column. It only does this for columns with at least `RANGE_MIN_COUNT` (20) values in the database. The warning does not block the submission. It asks the contributor to check the value.
 
-The last `--outliers` rows each get 2 columns out of range, a different pair on each row. The value looks like a real mistake: the template value times 1000 (a unit slip, mm written as µm) when that is far enough, else `max + 3 × span`. Years, coordinates and internal indexes are never used.
+The last `--outliers` rows each get 2 columns out of range, a different pair on each row. The value looks like a real mistake: the template value times 1000 (a unit slip, mm written as µm) when that is far enough, else `max + 3 × span`. Years and coordinates are never used.
 
 The run prints each one with the range that the UI quotes back:
 

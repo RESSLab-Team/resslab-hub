@@ -161,4 +161,31 @@ describe('SimpleTable header menu', () => {
     const descriptions = wrapper.findAll('.stbl-menu-desc').map((p) => p.text())
     expect(descriptions).toEqual(['Member slenderness ratio'])
   })
+
+  // #427: an empty cell says NR or NA, with the full words on hover.
+  it('shows NR or NA in an empty number cell, from the not_reported list', () => {
+    const rows = [
+      { id: 'A', f_um: 500, not_reported: [] },
+      { id: 'B', f_um: null, not_reported: ['f_um'] },
+      { id: 'C', f_um: null, not_reported: [] }
+    ]
+    const wrapper = mount(SimpleTable, {
+      props: {
+        items: rows,
+        columns: [{ value: 'f_um', type: 'number' as const, title: 'fu' }],
+        totalCount: rows.length,
+        totalFilteredCount: rows.length
+      },
+      global: {
+        plugins: [i18n.value, createVuetify()],
+        stubs: { 'v-menu': true, 'v-icon': true, 'v-dialog': true, CheckboxDialog: true }
+      }
+    })
+    const cells = wrapper.findAll('tbody td:last-child')
+    const texts = cells.map((cell) => cell.text())
+    expect(texts).toEqual(expect.arrayContaining(['500', 'NR', 'NA']))
+    const titles = cells.map((cell) => cell.attributes('title'))
+    expect(titles).toEqual(expect.arrayContaining(['Not reported', 'Not applicable']))
+    expect(wrapper.findAll('.cell-missing')).toHaveLength(2)
+  })
 })

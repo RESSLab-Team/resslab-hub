@@ -365,7 +365,8 @@
       "chart_moment_weak": "Moment axe faible",
       "axis_chord_rotation": "Rotation de corde [rads]",
       "axis_axial_shortening": "Raccourcissement axial [mm]",
-      "axis_moment": "Moment [kN-mm]"
+      "axis_moment": "Moment [kN-mm]",
+      "figure_alt": "Montage d'essai de la colonne"
     },
     "brace": {
       "section_loading_geometric": "Paramètres de chargement et géométriques",
@@ -386,7 +387,8 @@
       "no_gusset_plates": "La configuration ne comprend pas de gousset",
       "chart_force_displacement": "Force-déplacement",
       "axis_displacement": "Déplacement [mm]",
-      "axis_force": "Force [kN]"
+      "axis_force": "Force [kN]",
+      "figure_alt": "Condition d'appui du contreventement"
     },
     "hss": {
       "moment_rotation_title": "Moment-rotation",
@@ -402,7 +404,8 @@
       "steel_type": "Type d'acier",
       "nominal_yield_stress": "Limite d'élasticité nominale",
       "measured_yield_stress": "Limite d'élasticité mesurée",
-      "measured_ultimate_stress": "Contrainte ultime mesurée"
+      "measured_ultimate_stress": "Contrainte ultime mesurée",
+      "figure_alt": "Configuration d'essai"
     },
     "ebf": {
       "link_rotation_axis": "Rotation du tronçon [rad]",
@@ -422,7 +425,8 @@
       "steel_type": "Type d'acier",
       "nominal_yield_stress": "Limite d'élasticité nominale",
       "measured_yield_stress": "Limite d'élasticité mesurée",
-      "measured_ultimate_stress": "Contrainte ultime mesurée"
+      "measured_ultimate_stress": "Contrainte ultime mesurée",
+      "figure_alt": "Configuration du lien"
     },
     "material": {
       "error_message": "Le graphique ne peut pas être affiché car les paramètres du modèle de matériau ne sont pas disponibles.",
@@ -450,7 +454,8 @@
       "backstress_magnitude_2": "Amplitude de la contrainte de rappel 2, C2",
       "backstress_rate_1": "Vitesse de la contrainte de rappel 1, γ1",
       "backstress_rate_2": "Vitesse de la contrainte de rappel 2, γ2",
-      "model_footnote": "* Le modèle de matériau est basé sur"
+      "model_footnote": "* Le modèle de matériau est basé sur",
+      "figure_alt": "Géométrie de l'éprouvette"
     },
     "residual": {
       "error_message": "Le graphique ne peut pas être affiché car les paramètres du modèle de matériau ne sont pas disponibles.",
@@ -471,7 +476,8 @@
       "web_thickness_of_the_cross_section": "Épaisseur de l'âme de la section transversale",
       "flange_thickness_of_the_cross_section": "Épaisseur de la semelle de la section transversale",
       "fillet_radii_of_the_cross_section": "Rayons de congé de la section transversale",
-      "area_of_the_cross_section": "Aire de la section transversale"
+      "area_of_the_cross_section": "Aire de la section transversale",
+      "figure_alt": "Distribution des contraintes résiduelles"
     },
     "tensile_coupon": {
       "engineering_stress_strain": "Contrainte-déformation conventionnelle",
@@ -487,7 +493,8 @@
       "measured_yield_stress": "Limite d'élasticité mesurée",
       "nominal_ultimate_stress": "Contrainte ultime nominale",
       "measured_ultimate_stress": "Contrainte ultime mesurée",
-      "youngs_modulus_e": "Module de Young, E"
+      "youngs_modulus_e": "Module de Young, E",
+      "figure_alt": "Géométrie de l'éprouvette"
     },
     "ductile_fracture": {
       "structural_steel_element": "Élément en acier de construction",
@@ -503,7 +510,8 @@
       "measured_ultimate_stress": "Contrainte ultime mesurée",
       "fracture_model_parameters": "Paramètres du modèle de rupture",
       "characteristic_length": "Longueur caractéristique",
-      "sem_button": "Microscopie électronique à balayage (MEB)"
+      "sem_button": "Microscopie électronique à balayage (MEB)",
+      "figure_alt": "Géométrie de l'éprouvette"
     }
   },
   "shell": {
@@ -626,7 +634,8 @@
     "no_variables_found": "Aucune variable ne correspond à cette recherche.",
     "loading_filters": "Chargement des filtres…",
     "distinct_values": "valeurs distinctes",
-    "missing_values": "non renseignées",
+    "not_reported_values": "non renseignées",
+    "not_applicable_values": "non applicables",
     "all_recorded_properties": "Toutes les propriétés enregistrées",
     "unverified": {
       "tag": "Non vérifiée",
@@ -640,7 +649,8 @@
       "verified_only": "Vérifiées seulement",
       "verified_only_hint": "Masquer les expériences que notre équipe n'a pas encore relues",
       "status_label": "Statut de relecture"
-    }
+    },
+    "zoom_image": "Ouvrir {name} en grand"
   },
   "table": {
     "hss": {
@@ -1272,6 +1282,7 @@
       "loaded": "{added} essai(s) ajouté(s), {updated} mis à jour.",
       "attached": "{count} fichier(s) attaché(s).",
       "assumed": "{count} d’entre eux n’avaient pas de dossier pour dire leur type, voir le rapport.",
+      "lost_folders": "Les noms de dossier manquent : extrayez d’abord le zip, puis déposez le dossier extrait.",
       "to_resolve": "{count} fichier(s) demandent votre attention, voir dessous.",
       "nothing": "Rien de reconnu dans ce qui a été déposé.",
       "report_title": "Dernier dépôt",
@@ -1279,6 +1290,7 @@
       "line_primary": "{name} : {added} essai(s) ajouté(s), {updated} mis à jour.",
       "line_attached": "{kind} : {count} fichier(s) attaché(s).",
       "line_assumed": "{kind} : {count} fichier(s) sans dossier pour dire leur type, avec les mêmes en-têtes que {other}, ont été pris comme {kind}. Si l’un d’eux est {other}, retirez-le de la fiche et attachez-le là.",
+      "line_lost_folders": "{count} fichier(s) ont le même nom et les mêmes en-têtes, sans dossier pour les distinguer (axe fort ou axe faible, par exemple). Extrayez d’abord le zip, puis déposez le dossier extrait. Ou choisissez le type de chaque fichier ci-dessous.",
       "line_missing": "{kind} : {count} essai(s) encore sans fichier.",
       "line_candidates": "Ressemblaient aussi à un CSV d’essais, laissés de côté : {files}",
       "line_skipped": "Pas des CSV, ignorés : {files}",
@@ -1496,6 +1508,8 @@
       "lede": "La consultation ne demande pas de compte. Il en faut un pour soumettre des données ou pour relire une soumission.",
       "github": "Continuer avec GitHub",
       "github_note": "Lier GitHub vous permet de suivre et de répondre à la relecture de votre soumission.",
+      "orcid": "Continuer avec ORCID",
+      "orcid_note": "Pour les chercheurs et chercheuses. Nous lisons seulement votre identifiant ORCID et votre nom.",
       "or_email": "ou avec votre email",
       "email_label": "Email",
       "send_code": "Envoyez-moi un code",
@@ -1519,9 +1533,11 @@
       "no_email": "Pas d'adresse confirmée",
       "verified": "confirmée",
       "identities": "Moyens de connexion",
-      "identities_lede": "Chacun ouvre le même compte. GitHub peut être ajouté et retiré.",
+      "identities_lede": "Chacun ouvre le même compte. GitHub et ORCID peuvent être ajoutés et retirés.",
       "unlink": "Retirer",
       "link_github": "Lier GitHub",
+      "link_orcid": "Lier ORCID",
+      "link_orcid_why": "Votre identifiant ORCID accompagne vos soumissions, pour que les données vous citent.",
       "link_github_why": "Avec GitHub lié, votre soumission vous mentionne sur sa pull request, donc vous recevez les commentaires de relecture et pouvez y répondre.",
       "sign_out": "Se déconnecter",
       "github_role_hint": "L'accès en écriture au dépôt de données sur GitHub vous rend curateur ici, l'accès admin vous rend administrateur. Liez GitHub pour en profiter. Le rôle suit GitHub dans l'heure.",
@@ -1537,9 +1553,12 @@
       "code_label": "Code reçu par mail",
       "confirm": "Ajouter l'adresse",
       "cancel": "Annuler",
+      "skip": "Plus tard",
+      "add_email_orcid": "ORCID ne nous donne pas votre adresse. Ajoutez-en une pour contribuer et recevoir nos mails. Si elle a déjà un compte ici, votre identifiant ORCID passe sur ce compte.",
       "email_added": "{email} est maintenant sur votre compte.",
+      "orcid_joined": "{email} avait déjà un compte ici. Votre identifiant ORCID est maintenant sur ce compte, et vous y êtes connecté.",
       "add_errors": {
-        "email_in_use": "Cette adresse appartient à un autre compte ici. Les comptes ne sont pas fusionnés : connectez-vous avec elle pour utiliser ce compte."
+        "email_in_use": "Cette adresse appartient à un autre compte ici. Connectez-vous avec elle pour utiliser ce compte."
       }
     },
     "forbidden": {
@@ -1580,10 +1599,13 @@
       "invalid_or_expired": "Ce code ou ce lien n'est plus valable. Demandez-en un nouveau.",
       "too_many_attempts": "Trop d'essais. Demandez un nouveau code.",
       "github_failed": "La connexion GitHub n'a pas abouti. Réessayez.",
-      "email_in_use": "Cette adresse a déjà un compte ici. Connectez-vous avec, puis liez GitHub depuis votre page compte.",
-      "identity_taken": "Ce compte GitHub est déjà lié à un autre compte ici.",
+      "email_in_use": "Cette adresse a déjà un compte ici. Connectez-vous avec, puis liez GitHub ou ORCID depuis votre page compte.",
+      "identity_taken": "Ce compte GitHub ou ORCID est déjà lié à un autre compte ici.",
       "github_denied": "Vous avez annulé la connexion GitHub.",
       "github_disabled": "La connexion GitHub n'est pas disponible ici. Utilisez votre adresse e-mail.",
+      "orcid_failed": "La connexion ORCID n'a pas abouti. Réessayez.",
+      "orcid_denied": "Vous avez annulé la connexion ORCID.",
+      "orcid_disabled": "La connexion ORCID n'est pas disponible ici. Utilisez votre adresse e-mail.",
       "cannot_unlink": "Celle-ci ne peut pas être retirée. Rendez d'abord une autre adresse principale, et gardez au moins un moyen de connexion.",
       "account_disabled": "Ce compte est désactivé. Demandez à un administrateur du laboratoire si vous pensez que c'est une erreur.",
       "already_pending": "Votre demande attend déjà un administrateur.",

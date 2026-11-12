@@ -477,7 +477,7 @@
           "auth"
         ],
         "summary": "Verify Add Email",
-        "description": "Add the address, with the code typed in the session that asked (#402).\n\nNo session is created: this browser is already signed in, as the account\nthe address goes to. An address of another account is refused, the two\naccounts are never joined.",
+        "description": "Add the address, with the code typed in the session that asked (#402).\n\nNo session is created: this browser is already signed in, as the account\nthe address goes to. An address of another account is refused, with one\nexception. When this account is bare (only an ORCID iD or a GitHub login,\nno address, see ``users.is_bare``), the person just proved both the\nidentity and the mailbox. Its identity then moves to the account holding\nthe address, and this browser is signed in there instead (#250).",
         "operationId": "verify_add_email",
         "requestBody": {
           "content": {
@@ -615,6 +615,120 @@
         "summary": "Finish Github Login",
         "description": "Come back from GitHub: sign the person in, or link the account.\n\nAlways a redirect into the SPA, with ``?error=<slug>`` when something went\nwrong: the browser lands here by navigation and cannot render JSON.",
         "operationId": "finish_github_login",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Code"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "State"
+            }
+          },
+          {
+            "name": "error",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Error"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/orcid/start": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Start Orcid Login",
+        "description": "Send the browser to ORCID, to sign in or to link an iD.",
+        "operationId": "start_orcid_login",
+        "parameters": [
+          {
+            "name": "redirect_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "/",
+              "title": "Redirect To"
+            }
+          },
+          {
+            "name": "link",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Link"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/orcid/callback": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Finish Orcid Login",
+        "description": "Come back from ORCID: sign the person in, or link the iD.\n\nORCID gives no address (we do not ask for it). A first sign-in makes an\naccount with only the iD and sends the person to the account page to add\nan address, once. If that address belongs to an existing account, the\ntwo join there (``verify_add_email``).",
+        "operationId": "finish_orcid_login",
         "parameters": [
           {
             "name": "code",
@@ -8280,6 +8394,7 @@
           "latitude",
           "longitude",
           "data_curation_status",
+          "not_reported",
           "displacement_count"
         ],
         "title": "BraceField"
@@ -8983,6 +9098,13 @@
             "type": "string",
             "title": "Data Curation Status"
           },
+          "not_reported": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Not Reported"
+          },
           "displacement_count": {
             "type": "integer",
             "title": "Displacement Count"
@@ -9061,6 +9183,7 @@
           "latitude",
           "longitude",
           "data_curation_status",
+          "not_reported",
           "displacement_count"
         ],
         "title": "BraceModel"
@@ -9214,6 +9337,7 @@
           "latitude",
           "longitude",
           "data_curation_status",
+          "not_reported",
           "built_up",
           "axial_shortening_count",
           "moment_strong_count",
@@ -10140,6 +10264,13 @@
             "type": "string",
             "title": "Data Curation Status"
           },
+          "not_reported": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Not Reported"
+          },
           "built_up": {
             "type": "boolean",
             "title": "Built Up"
@@ -10257,6 +10388,7 @@
           "latitude",
           "longitude",
           "data_curation_status",
+          "not_reported",
           "built_up",
           "axial_shortening_count",
           "moment_strong_count",
@@ -10506,6 +10638,7 @@
           "latitude",
           "longitude",
           "data_curation_status",
+          "not_reported",
           "beam_count",
           "beam_west_count",
           "global_count",
@@ -12084,6 +12217,13 @@
             "type": "string",
             "title": "Data Curation Status"
           },
+          "not_reported": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Not Reported"
+          },
           "beam_count": {
             "type": "integer",
             "title": "Beam Count"
@@ -12261,6 +12401,7 @@
           "latitude",
           "longitude",
           "data_curation_status",
+          "not_reported",
           "beam_count",
           "beam_west_count",
           "global_count",
@@ -13097,6 +13238,7 @@
           "longitude",
           "has_sem",
           "data_curation_status",
+          "not_reported",
           "force_elongation_count",
           "force_elongation_simulation_count",
           "force_radial_count",
@@ -13656,6 +13798,13 @@
             "type": "string",
             "title": "Data Curation Status"
           },
+          "not_reported": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Not Reported"
+          },
           "force_elongation_count": {
             "type": "integer",
             "title": "Force Elongation Count"
@@ -13766,6 +13915,7 @@
           "longitude",
           "has_sem",
           "data_curation_status",
+          "not_reported",
           "force_elongation_count",
           "force_elongation_simulation_count",
           "force_radial_count",
@@ -13946,6 +14096,7 @@
           "latitude",
           "longitude",
           "data_curation_status",
+          "not_reported",
           "shear_link_angle_count"
         ],
         "title": "EccentricBracedFrameField"
@@ -14817,6 +14968,13 @@
             "type": "string",
             "title": "Data Curation Status"
           },
+          "not_reported": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Not Reported"
+          },
           "shear_link_angle_count": {
             "type": "integer",
             "title": "Shear Link Angle Count"
@@ -14923,6 +15081,7 @@
           "latitude",
           "longitude",
           "data_curation_status",
+          "not_reported",
           "shear_link_angle_count"
         ],
         "title": "EccentricBracedFrameModel"
@@ -15549,6 +15708,7 @@
           "latitude",
           "longitude",
           "data_curation_status",
+          "not_reported",
           "moment_rotation_count"
         ],
         "title": "HSSColumnField"
@@ -16128,6 +16288,13 @@
             "type": "string",
             "title": "Data Curation Status"
           },
+          "not_reported": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Not Reported"
+          },
           "moment_rotation_count": {
             "type": "integer",
             "title": "Moment Rotation Count"
@@ -16196,6 +16363,7 @@
           "latitude",
           "longitude",
           "data_curation_status",
+          "not_reported",
           "moment_rotation_count"
         ],
         "title": "HSSColumnModel"
@@ -16694,7 +16862,6 @@
       "MaterialField": {
         "type": "string",
         "enum": [
-          "hidden_index",
           "experimental_program",
           "id",
           "profile_type",
@@ -16764,7 +16931,6 @@
           "uvc_g1",
           "uvc_c2__mpa_",
           "uvc_g2",
-          "hidden_dataset_index",
           "uvc_sigma_sat__mpa_",
           "uvc_sigma_hard__mpa_",
           "uvc_rho_yield",
@@ -16772,6 +16938,7 @@
           "uvc_rho_kin",
           "uvc_rho_d",
           "data_curation_status",
+          "not_reported",
           "type",
           "year",
           "stress_strain_count"
@@ -16780,10 +16947,6 @@
       },
       "MaterialModel": {
         "properties": {
-          "hidden_index": {
-            "type": "integer",
-            "title": "Hidden Index"
-          },
           "experimental_program": {
             "type": "string",
             "title": "Experimental Program"
@@ -17453,10 +17616,6 @@
             ],
             "title": "Uvc G2"
           },
-          "hidden_dataset_index": {
-            "type": "integer",
-            "title": "Hidden Dataset Index"
-          },
           "uvc_sigma_sat__mpa_": {
             "anyOf": [
               {
@@ -17527,6 +17686,13 @@
             "type": "string",
             "title": "Data Curation Status"
           },
+          "not_reported": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Not Reported"
+          },
           "type": {
             "type": "string",
             "title": "Type"
@@ -17542,7 +17708,6 @@
         },
         "type": "object",
         "required": [
-          "hidden_index",
           "experimental_program",
           "id",
           "profile_type",
@@ -17612,7 +17777,6 @@
           "uvc_g1",
           "uvc_c2__mpa_",
           "uvc_g2",
-          "hidden_dataset_index",
           "uvc_sigma_sat__mpa_",
           "uvc_sigma_hard__mpa_",
           "uvc_rho_yield",
@@ -17620,6 +17784,7 @@
           "uvc_rho_kin",
           "uvc_rho_d",
           "data_curation_status",
+          "not_reported",
           "type",
           "year",
           "stress_strain_count"
@@ -17629,7 +17794,6 @@
       "MaterialNumberField": {
         "type": "string",
         "enum": [
-          "hidden_index",
           "thickness",
           "gage_length__mm_",
           "avg_reduced_dia__mm_",
@@ -17683,7 +17847,6 @@
           "uvc_g1",
           "uvc_c2__mpa_",
           "uvc_g2",
-          "hidden_dataset_index",
           "uvc_sigma_sat__mpa_",
           "uvc_sigma_hard__mpa_",
           "uvc_rho_yield",
@@ -17811,6 +17974,7 @@
           "latitude",
           "longitude",
           "data_curation_status",
+          "not_reported",
           "qp_coefficient_count",
           "distribution_F1_count",
           "distribution_F2_count",
@@ -18023,6 +18187,13 @@
             "type": "string",
             "title": "Data Curation Status"
           },
+          "not_reported": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Not Reported"
+          },
           "qp_coefficient_count": {
             "type": "integer",
             "title": "Qp Coefficient Count"
@@ -18072,6 +18243,7 @@
           "latitude",
           "longitude",
           "data_curation_status",
+          "not_reported",
           "qp_coefficient_count",
           "distribution_F1_count",
           "distribution_F2_count",
@@ -18182,6 +18354,7 @@
           "publication_key",
           "datacol_version",
           "data_curation_status",
+          "not_reported",
           "stress_strain_count"
         ],
         "title": "TensileCouponField"
@@ -18787,6 +18960,13 @@
             "type": "string",
             "title": "Data Curation Status"
           },
+          "not_reported": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Not Reported"
+          },
           "stress_strain_count": {
             "type": "integer",
             "title": "Stress Strain Count"
@@ -18865,6 +19045,7 @@
           "publication_key",
           "datacol_version",
           "data_curation_status",
+          "not_reported",
           "stress_strain_count"
         ],
         "title": "TensileCouponModel"

@@ -3,6 +3,7 @@ Tensile Coupon Database Models
 """
 
 from sqlalchemy import (
+    ARRAY,
     BigInteger,
     Boolean,
     Column,
@@ -109,6 +110,11 @@ class TensileCoupon(Base):  # type: ignore
     datacol_version = Column(SmallInteger, nullable=False)
     data_curation_status = Column(String, nullable=False)
     # END_OF_GENERATED_CODE
+
+    # Names of the non-text columns whose cell was `nr` (not reported), so a
+    # NULL there is not mistaken for `na`. Filled by the uploader, see
+    # resslab_hub/data/not_reported.py (#427).
+    not_reported = Column(ARRAY(String), nullable=False, server_default=text("'{}'"))
 
     # 0/1 "has data" flags, recomputed by recompute_count_flags() at the end
     # of every upload (see resslab_hub/data/count_flags.py).

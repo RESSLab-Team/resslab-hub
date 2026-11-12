@@ -2,6 +2,7 @@
 Database Service
 """
 
+from pathlib import Path
 from typing import AsyncIterator
 from urllib.parse import quote_plus
 
@@ -49,13 +50,33 @@ class BaseUnmapped:
 Base = declarative_base(cls=BaseUnmapped)
 
 
+def alembic_config() -> Config:
+    """
+    The alembic config, whatever folder the process started from.
+
+    In a checkout, alembic.ini sits in backend/, next to the package. In the
+    image, the package is installed in site-packages and alembic.ini is in
+    /app, the working directory. So try next to the package first, then the
+    working directory.
+    """
+    candidates = [
+        Path(__file__).resolve().parents[2] / "alembic.ini",
+        Path.cwd() / "alembic.ini",
+    ]
+    for path in candidates:
+        if path.is_file():
+            return Config(str(path))
+    raise FileNotFoundError(
+        "alembic.ini not found, looked in: " + ", ".join(map(str, candidates))
+    )
+
+
 def upgrade_database():
     """
     Run database migration with alembic
     https://alembic.sqlalchemy.org/en/latest/api/commands.html
     """
-    alembic_cfg = Config("alembic.ini")
-    upgrade(alembic_cfg, "head")
+    upgrade(alembic_config(), "head")
 
 
 async def get_session() -> AsyncIterator[AsyncSession]:

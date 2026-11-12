@@ -17,6 +17,7 @@ from pathlib import Path
 
 from resslab_hub.data.count_flags import COUNT_FLAGS
 from resslab_hub.data.curation_status import STATUS_COLUMN
+from resslab_hub.data.not_reported import NOT_REPORTED_COLUMN
 from resslab_hub.models.database.brace import Brace
 from resslab_hub.models.database.column import ColumnEntity
 from resslab_hub.models.database.connection import Connection
@@ -48,9 +49,10 @@ def contributed_columns(model) -> list:
     The *_count flags are physical columns recomputed at upload; they have no
     CSV header in the data repo, and the validator treats them as unexpected.
     The review status is stamped by the submission (#253), so a contributor
-    never sends it either.
+    never sends it either. The `not_reported` list is written by the upload
+    from the row's `nr` cells (#427).
     """
-    derived = set(COUNT_FLAGS.get(model, {})) | {STATUS_COLUMN}
+    derived = set(COUNT_FLAGS.get(model, {})) | {STATUS_COLUMN, NOT_REPORTED_COLUMN}
     return [c for c in model.__table__.c if c.key not in derived]
 
 

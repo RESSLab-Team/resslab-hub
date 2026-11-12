@@ -34,6 +34,7 @@ component = Component(
     model_type=BraceModel,
     id_column=Brace.id,
     ignored_columns={
+        Brace.not_reported,
         Brace.displacement_count,
     },
 )

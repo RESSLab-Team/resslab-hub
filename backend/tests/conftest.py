@@ -44,6 +44,7 @@ from sqlalchemy import (  # noqa: E402
 from resslab_hub.config import settings  # noqa: E402
 from resslab_hub.data.count_flags import COUNT_FLAGS  # noqa: E402
 from resslab_hub.data.curation_status import STATUS_COLUMN, VERIFIED  # noqa: E402
+from resslab_hub.data.not_reported import NOT_REPORTED_COLUMN  # noqa: E402
 from resslab_hub.utils.database import Base, url  # noqa: E402
 
 # asyncpg/SQLAlchemy echo is hardcoded on; keep test output readable.
@@ -300,8 +301,9 @@ def write_main_csv(file_path, model, rows):
     ``rows`` is a list of dicts keyed by ORM column key; any column missing from
     a row dict is filled with a type-appropriate default.
     """
-    # derived *_count flags have no header in the real CSVs either
-    derived = COUNT_FLAGS.get(model, {})
+    # derived *_count flags and the not_reported list have no header in the
+    # real CSVs either
+    derived = set(COUNT_FLAGS.get(model, {})) | {NOT_REPORTED_COLUMN}
     columns = [c.key for c in model.__table__.columns if c.key not in derived]
     with open(file_path, "w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle, lineterminator="\n")

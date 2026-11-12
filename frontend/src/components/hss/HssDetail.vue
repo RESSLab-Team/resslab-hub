@@ -2,6 +2,7 @@
 import type { HSSColumnModel } from '@/backend'
 import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
+import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { hssApi } from '@/plugins/axios'
 import { getHSSColumnImage } from '@/utils/component'
 import { formatNumber } from '@/utils/formatter'
@@ -90,26 +91,26 @@ const testConfigurationImageSrc = computed<string>(() =>
               :name="$t('detail.hss.nominal_yield_stress')"
               unit="MPa"
             >
-              {{ formatNumber(hssColumn.fy_nominal__n_mm2) }}
+              {{ formatNumber(hssColumn, 'fy_nominal__n_mm2') }}
             </property-item>
             <property-item
               column="fy_measured__n_mm2"
               :name="$t('detail.hss.measured_yield_stress')"
               unit="MPa"
             >
-              {{ formatNumber(hssColumn.fy_measured__n_mm2) }}
+              {{ formatNumber(hssColumn, 'fy_measured__n_mm2') }}
             </property-item>
             <property-item
               column="f_ultimate__n_mm2"
               :name="$t('detail.hss.measured_ultimate_stress')"
               unit="MPa"
             >
-              {{ formatNumber(hssColumn.f_ultimate__n_mm2) }}
+              {{ formatNumber(hssColumn, 'f_ultimate__n_mm2') }}
             </property-item>
           </p>
         </v-col>
         <v-col cols="12" sm="6">
-          <v-img :src="testConfigurationImageSrc" />
+          <zoomable-image :src="testConfigurationImageSrc" :alt="$t('detail.hss.figure_alt')" />
         </v-col>
       </v-row>
     </template>
