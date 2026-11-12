@@ -3,15 +3,15 @@
 - Branch: `review/03-roles`
 - Commit reviewed: `0e15c031` (from `dev`, with ORCID)
 - Date: 2026-11-12
-- Tests run: no. The sandbox hides `secrets/.env`, so the DB tests stop on `OperationalError` (the proxy refuses `localhost:5432`). The three `test_review_03_*` tests are collected and lint clean, but they are "not run". The browser proofs were made on the local servers.
+- Tests run: yes, from the host shell (the sandbox hides `secrets/.env`). With `--runxfail`, the three `test_review_03_*` tests fail on their assert, as expected. The browser proofs were made on the local servers.
 
 ## Summary
 
 | Id   | Severity | Title                                                                  | Suspicion        | Proof                    |
 | ---- | -------- | ---------------------------------------------------------------------- | ---------------- | ------------------------ |
-| 03-1 | medium   | A role stays after its source is gone, until the next sign-in          |                  | test (not run)           |
-| 03-2 | medium   | An admin can merge a locked admin away                                 |                  | test (not run)           |
-| 03-3 | low      | The GitHub role is read by login name, a renamed login reads someone else | S4 (confirmed) | test (not run)           |
+| 03-1 | medium   | A role stays after its source is gone, until the next sign-in          |                  | test                     |
+| 03-2 | medium   | An admin can merge a locked admin away                                 |                  | test                     |
+| 03-3 | low      | The GitHub role is read by login name, a renamed login reads someone else | S4 (confirmed) | test                     |
 | 03-4 | low      | `/curation/:prNumber` refuses an owner who is a viewer                 |                  | Python call + code       |
 | 03-5 | note     | With contributions off, nobody can sign out                            |                  | existing test            |
 | 03-6 | note     | `CONTRIBUTOR_DOMAINS` is empty, and `alumni.epfl.ch` counts as academic | B6 (confirmed)  | k8s config + Python call |
@@ -181,7 +181,7 @@ An admin cannot change a locked admin (an `ADMIN_EMAILS` address or a GitHub adm
 
 `POST /admin/users/{keep}/merge` with `from_user_id` set to a locked admin only refuses when that account is the caller's own. `merge_users` then moves the identities and the main address of the locked admin to the kept account, deletes the locked admin's account and ends its sessions. The `ADMIN_EMAILS` address now signs in to the kept account, which becomes admin. So an admin can do with a merge what `locked_admin` refuses with `PATCH`: remove a configured admin, or give its address (and the admin role) to another account. It needs an admin who clicks the wrong pair, or who wants to do it.
 
-Proof: `backend/tests/test_review_03_admin.py::test_an_admin_cannot_merge_a_locked_admin_away`, marked `xfail(strict=True)`. Not run (sandbox). The test first checks that `PATCH` on the same account answers `locked_admin`, then that the merge does too.
+Proof: `backend/tests/test_review_03_admin.py::test_an_admin_cannot_merge_a_locked_admin_away`, marked `xfail(strict=True)`. Run with `--runxfail`: fails with `assert 200 == 403`. The test first checks that `PATCH` on the same account answers `locked_admin`, then that the merge does too.
 
 Fix: refuse the merge with 403 `locked_admin` when `other` is a locked admin, like `PATCH`. Keep merging into a locked admin allowed (that is how a configured admin gathers their own accounts).
 
@@ -196,7 +196,7 @@ The stored `role` is worked out again (`apply_role`) only at a sign-in, an addre
 
 The workaround: once the address left `ADMIN_EMAILS`, the account is no longer locked, so another admin can disable it or lower it with `PATCH`, which recomputes the role and ends the sessions.
 
-Proof: `backend/tests/test_review_03_roles.py::test_an_address_removed_from_admin_emails_is_no_longer_admin`, marked `xfail(strict=True)`. Not run (sandbox).
+Proof: `backend/tests/test_review_03_roles.py::test_an_address_removed_from_admin_emails_is_no_longer_admin`, marked `xfail(strict=True)`. Run with `--runxfail`: fails with `assert 200 == 403`.
 
 Fix: recompute the role in `get_current_user` when it is cheap (`derive_role` reads only the row and the settings), or revoke the sessions whose `role_source` no longer matches at startup.
 
@@ -215,7 +215,7 @@ The permission is read at a GitHub sign-in or link (`backend/resslab_hub/routers
 
 The GitHub identity is stored by its numeric id, but the permission is asked for `user.github_login`, the name saved at the last GitHub sign-in or link. When a person renames their GitHub login and keeps signing in by email or ORCID, the Hub keeps asking for the old name every hour. If someone else takes that name, the Hub gives the person the permission of the new holder on the data repo, up or down. `github_login` is not unique, so two accounts can also hold the same name. It needs a rename, then a stranger who takes the name and has access to the data repo: very unlikely.
 
-Proof: `backend/tests/test_review_03_roles.py::test_a_github_role_is_not_read_from_a_login_someone_else_took`, with the `github_permissions` fixture, marked `xfail(strict=True)`. Not run (sandbox).
+Proof: `backend/tests/test_review_03_roles.py::test_a_github_role_is_not_read_from_a_login_someone_else_took`, with the `github_permissions` fixture, marked `xfail(strict=True)`. Run with `--runxfail`: fails with `assert 'admin' != 'admin'`.
 
 Fix: read the login from the GitHub id before asking the permission (`GET /user/{id}`), or store the id and refresh `github_login` at each sync.
 
@@ -368,4 +368,3 @@ Fix: none needed.
 
 - The admin and curator columns in the browser: the local `ADMIN_EMAILS` is empty, so no local account is admin, and giving one a role needs an admin. These cells come from the code and the existing tests (`test_admin.py`, `test_curation.py`, `test_verification.py`).
 - `POST /contributions`, `PUT /contributions/{pr}` and `POST /verification` in the browser: they write on GitHub.
-- The three `test_review_03_*` tests: not run, the sandbox hides `secrets/.env`.
