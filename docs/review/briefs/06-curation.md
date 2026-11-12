@@ -38,7 +38,7 @@ You review the pages where curators read submissions, and the verification flow 
 
 1. Read the routes, then the frontend views.
 2. For each question, make the smallest proof:
-   - First choice: a `wtx curl backend /contributions/...` transcript on your local server. The local backend reads the test fork, so the queue shows real test pull requests. Codes are in `.wt-logs/backend.log`.
+   - First choice: a Claude in Chrome transcript on your local server: open `http://127.0.0.1:$FRONTEND_PORT/`, sign in, then call `fetch('/api/contributions/...')` from the page with `javascript_tool`, and paste the status, the headers and the body. `wtx curl` and plain `curl` do not reach the servers from the sandbox, do not try them. The local backend reads the test fork, so the queue shows real test pull requests. Codes are in `.wt-logs/backend.log`.
    - Second choice: a test in a new file `backend/tests/test_review_06_<topic>.py`, marked `@pytest.mark.xfail(strict=True, reason="review 06: <finding id>")`, with the GitHub mocks of `test_curation.py`.
    - For the frontend: a spec in `frontend/src/components/curation/__tests__/review-06-<topic>.spec.ts`, with `it.fails(...)`.
 3. If the DB tests fail with `OperationalError`, the sandbox hides `secrets/.env`. Write the test anyway, write "not run" in the finding.
@@ -47,7 +47,7 @@ You review the pages where curators read submissions, and the verification flow 
 
 - Review only. Do not change application code. You add only test files that prove a finding, and your findings file.
 - A finding needs a file and line, and a proof.
-- Send requests only to your own servers, with `wtx curl`. Never to stage, prod or any `epfl.ch` host.
+- Send requests only to your own servers, with Claude in Chrome on the ports of your worktree. Never to stage, prod or any `epfl.ch` host.
 - Do not write on GitHub: no `POST /verification` against the real fork, no comment, no merge. Reading the test fork through your local backend is fine.
 - Give each finding a severity from the scale in `docs/review/README.md`.
 - Write in simple English. No em dash.

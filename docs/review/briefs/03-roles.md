@@ -45,7 +45,7 @@ The routes use `require_user`, `require_role(...)`, `require_service`, `require_
 
 1. Make the matrix of question 1 first. It is the main output of this package. Get the route list by reading the routers, and write it in the findings file.
 2. For each surprising cell, prove it:
-   - First choice: a `wtx curl backend <path>` transcript on your local server, signed in as the role you need. Codes are in `.wt-logs/backend.log`. You can give a role to a local account from the admin page or the API, signed in as admin.
+   - First choice: a Claude in Chrome transcript on your local server: open `http://127.0.0.1:$FRONTEND_PORT/`, sign in, then call `fetch('/api<path>')` from the page with `javascript_tool`, and paste the status, the headers and the body. `wtx curl` and plain `curl` do not reach the servers from the sandbox, do not try them Sign in as the role you need. Codes are in `.wt-logs/backend.log`. You can give a role to a local account from the admin page or the API, signed in as admin.
    - Second choice: a test in a new file `backend/tests/test_review_03_<topic>.py`, marked `@pytest.mark.xfail(strict=True, reason="review 03: <finding id>")`.
 3. If the DB tests fail with `OperationalError`, the sandbox hides `secrets/.env`. Write the test anyway, write "not run" in the finding.
 
@@ -53,7 +53,7 @@ The routes use `require_user`, `require_role(...)`, `require_service`, `require_
 
 - Review only. Do not change application code. You add only test files that prove a finding, and your findings file.
 - A finding needs a file and line, and a proof.
-- Send requests only to your own servers, with `wtx curl`. Never to stage, prod or any `epfl.ch` host.
+- Send requests only to your own servers, with Claude in Chrome on the ports of your worktree. Never to stage, prod or any `epfl.ch` host.
 - Do not call GitHub for real. Use the `github_permissions` fixture of `conftest.py`. Do not post anything on GitHub.
 - Give each finding a severity from the scale in `docs/review/README.md`.
 - Write in simple English. No em dash.

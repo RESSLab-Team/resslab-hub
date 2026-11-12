@@ -40,16 +40,16 @@ Answer each one with "problem" (a finding) or "no problem" (and why).
 
 1. Read the code of each route, top to bottom. Write down every check and its order.
 2. For each question, make the smallest proof:
-   - First choice: a `wtx curl backend /auth/...` transcript on your local server. The sign-in code and link go to `.wt-logs/backend.log`, because dev has no SMTP. Read it with `tail -n 50 .wt-logs/backend.log`.
+   - First choice: a Claude in Chrome transcript on your local server: open `http://127.0.0.1:$FRONTEND_PORT/`, sign in, then call `fetch('/api/auth/...')` from the page with `javascript_tool`, and paste the status, the headers and the body. `wtx curl` and plain `curl` do not reach the servers from the sandbox, do not try them. The sign-in code and link go to `.wt-logs/backend.log`, because dev has no SMTP. Read it with `tail -n 50 .wt-logs/backend.log`.
    - Second choice: a test in a new file `backend/tests/test_review_01_<topic>.py`, marked `@pytest.mark.xfail(strict=True, reason="review 01: <finding id>")`. Copy the helpers of `test_auth_flow.py` (`_start`, `_github_state`, the `sign_in` fixture of `conftest.py`).
-3. If the DB tests fail with `OperationalError`, the sandbox hides `secrets/.env`. Write the test anyway, write "not run" in the finding, and give a `wtx curl` transcript if you can.
+3. If the DB tests fail with `OperationalError`, the sandbox hides `secrets/.env`. Write the test anyway, write "not run" in the finding, and give a Claude in Chrome transcript if you can.
 4. For the OAuth callbacks you cannot reach GitHub or ORCID. Use the monkeypatch pattern of `test_auth_flow.py`.
 
 ## Rules
 
 - Review only. Do not change application code. You add only test files that prove a finding, and your findings file.
 - A finding needs a file and line, and a proof.
-- Send requests only to your own servers, with `wtx curl`. Never to stage, prod or any `epfl.ch` host.
+- Send requests only to your own servers, with Claude in Chrome on the ports of your worktree. Never to stage, prod or any `epfl.ch` host.
 - Do not call GitHub or ORCID for real. Do not post anything on GitHub.
 - Give each finding a severity from the scale in `docs/review/README.md`. Pierre decides the final one.
 - Write in simple English. No em dash.

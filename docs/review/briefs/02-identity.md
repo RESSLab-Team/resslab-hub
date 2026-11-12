@@ -44,7 +44,7 @@ Check that the code really does this:
 
 1. Read `auth/users.py` first, then the routes that call each function.
 2. For each question, make the smallest proof:
-   - First choice: a `wtx curl backend /auth/...` transcript on your local server. Codes are in `.wt-logs/backend.log` (no SMTP in dev). Read it with `tail -n 50`. Sign in as admin with an address of `ADMIN_EMAILS` (ask Pierre which one if you cannot see it).
+   - First choice: a Claude in Chrome transcript on your local server: open `http://127.0.0.1:$FRONTEND_PORT/`, sign in, then call `fetch('/api/auth/...')` from the page with `javascript_tool`, and paste the status, the headers and the body. `wtx curl` and plain `curl` do not reach the servers from the sandbox, do not try them. Codes are in `.wt-logs/backend.log` (no SMTP in dev). Read it with `tail -n 50`. Sign in as admin with an address of `ADMIN_EMAILS` (ask Pierre which one if you cannot see it).
    - Second choice: a test in a new file `backend/tests/test_review_02_<topic>.py`, marked `@pytest.mark.xfail(strict=True, reason="review 02: <finding id>")`. Copy the helpers of `test_admin.py` (`_user`, `_identity`, `_two_accounts`, `_sign_in_by_mail`).
 3. If the DB tests fail with `OperationalError`, the sandbox hides `secrets/.env`. Write the test anyway, write "not run" in the finding.
 
@@ -52,7 +52,7 @@ Check that the code really does this:
 
 - Review only. Do not change application code. You add only test files that prove a finding, and your findings file.
 - A finding needs a file and line, and a proof.
-- Send requests only to your own servers, with `wtx curl`. Never to stage, prod or any `epfl.ch` host.
+- Send requests only to your own servers, with Claude in Chrome on the ports of your worktree. Never to stage, prod or any `epfl.ch` host.
 - Do not call GitHub or ORCID for real. Do not post anything on GitHub.
 - Give each finding a severity from the scale in `docs/review/README.md`.
 - Write in simple English. No em dash.

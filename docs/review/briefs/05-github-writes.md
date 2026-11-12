@@ -54,7 +54,7 @@ From `contributions/submission.py`:
 
 - Review only. Do not change application code. You add only test files that prove a finding, and your findings file.
 - A finding needs a file and line, and a proof.
-- Send requests only to your own servers, with `wtx curl`. Never to stage, prod or any `epfl.ch` host.
+- Send requests only to your own servers, with Claude in Chrome on the ports of your worktree. Never to stage, prod or any `epfl.ch` host.
 - Do not call GitHub for real: no submit, no push to the data repo, no issue, no comment. The data repo is public.
 - Give each finding a severity from the scale in `docs/review/README.md`.
 - Write in simple English. No em dash.

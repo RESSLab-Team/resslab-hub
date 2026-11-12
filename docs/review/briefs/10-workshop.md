@@ -41,7 +41,7 @@ About 30 attendees in one room, on the EPFL network or eduroam, so probably one 
 ## Rules
 
 - Review only. Do not change application code.
-- Load only your own local backend, with `wtx curl` or a script that reads `$BACKEND_PORT`. Never stage, prod or any `epfl.ch` host.
+- Load only your own local backend. A script cannot reach it from the sandbox: write the script, say "not run", and Pierre runs it. For a single request, use `fetch` from Claude in Chrome. Never stage, prod or any `epfl.ch` host.
 - Do not submit for real, do not call GitHub for real, do not post anything on GitHub.
 - Your local backend writes the mail codes to the log because dev has no SMTP. Do not set `SMTP_HOST`.
 - Give each finding a severity from the scale in `docs/review/README.md`.

@@ -42,7 +42,7 @@ You review how the Hub runs on the cluster: ingress, headers, forwarded IP, secr
 ## Rules
 
 - Review only. Never write in `~/code/enack8s-app-config`. Do not change application code.
-- Send requests only to your own servers, with `wtx curl`. Never to stage, prod or any `epfl.ch` host.
+- Send requests only to your own servers, with Claude in Chrome on the ports of your worktree. Never to stage, prod or any `epfl.ch` host.
 - Do not post anything on GitHub.
 - Never copy a secret value into the findings, even a test one. Write the key name only.
 - Give each finding a severity from the scale in `docs/review/README.md`.

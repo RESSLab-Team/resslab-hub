@@ -38,14 +38,14 @@ You review the browser side of sign-in, accounts and the contribution pipeline: 
 2. For each question, make the smallest proof:
    - First choice: a Vitest spec in a new file next to the component, `__tests__/review-08-<topic>.spec.ts`, with `it.fails(...)` so it fails until the fix. Look at `frontend/src/views/__tests__/ContributeView.spec.ts` for the mount setup (Vuetify, i18n, Pinia).
    - Second choice: a Claude in Chrome check on `http://localhost:$FRONTEND_PORT/`, with a screenshot or the console text in the finding. Sign in with the code from `.wt-logs/backend.log` (use `tail -n 50`).
-   - For headers: `wtx curl frontend / -I`.
+   - For headers: `fetch('/', {method: 'HEAD'})` from the page. In dev, Vite serves the page, not nginx, so the headers of `nginx-security-headers.conf` are not there: read the file for those.
 3. Run your specs with `cd frontend && pnpm run test:unit <file>`.
 
 ## Rules
 
 - Review only. Do not change application code. You add only test files that prove a finding, and your findings file.
 - A finding needs a file and line, and a proof.
-- Send requests only to your own servers, with `wtx curl` or the browser on your own port. Never to stage, prod or any `epfl.ch` host.
+- Send requests only to your own servers, with Claude in Chrome on the ports of your worktree. Never to stage, prod or any `epfl.ch` host.
 - Do not post anything on GitHub.
 - In the browser, do not click a button that opens a `confirm()` or `alert()` dialog: it blocks the browser tool.
 - Give each finding a severity from the scale in `docs/review/README.md`.

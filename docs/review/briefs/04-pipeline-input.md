@@ -43,8 +43,8 @@ All three take a `.tar.gz` built in the browser (`frontend/src/utils/tar.ts`).
 
 1. Build bad archives with a small Python script in `$TMPDIR` (use `tarfile`). Keep the script in your findings file, so Pierre can run it again.
 2. For each question, make the smallest proof:
-   - First choice: `wtx curl backend /validate -F file=@$TMPDIR/bad.tar.gz` (check the field name in `routers/root.py`), signed in on your local server. Codes are in `.wt-logs/backend.log`.
-   - Second choice: a test in a new file `backend/tests/test_review_04_<topic>.py`, marked `@pytest.mark.xfail(strict=True, reason="review 04: <finding id>")`. `make_batch` in `test_contributions.py` shows how to build one.
+   - First choice: a test in a new file `backend/tests/test_review_04_<topic>.py`, marked `@pytest.mark.xfail(strict=True, reason="review 04: <finding id>")`. `make_batch` in `test_contributions.py` shows how to build one. The tests of `utils/safe_archive.py` need no database.
+   - Second choice: Claude in Chrome on `http://127.0.0.1:$FRONTEND_PORT/contribute`, signed in as a contributor. Give the archive to the editor with `file_upload`, and paste what the page and the `/api/validate` answer say. Codes are in `.wt-logs/backend.log`. `wtx curl` and plain `curl` do not reach the servers from the sandbox, do not try them.
 3. Use `/validate` for everything you can. It does not write to GitHub. For `POST /contributions`, use the GitHub mocks of `test_contributions.py`. Never submit for real.
 4. If the DB tests fail with `OperationalError`, the sandbox hides `secrets/.env`. Write the test anyway, write "not run" in the finding.
 
@@ -52,7 +52,7 @@ All three take a `.tar.gz` built in the browser (`frontend/src/utils/tar.ts`).
 
 - Review only. Do not change application code. You add only test files that prove a finding, and your findings file.
 - A finding needs a file and line, and a proof.
-- Send requests only to your own servers, with `wtx curl`. Never to stage, prod or any `epfl.ch` host.
+- Send requests only to your own servers, with Claude in Chrome on the ports of your worktree. Never to stage, prod or any `epfl.ch` host.
 - Do not call GitHub for real. Do not post anything on GitHub.
 - Do not fill the disk: delete your test archives at the end.
 - Give each finding a severity from the scale in `docs/review/README.md`.
