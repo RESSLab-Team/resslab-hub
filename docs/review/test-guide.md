@@ -521,7 +521,7 @@ Needs: Browser A, signed in as `M2` (made in 2.1). First remove `GH` from the 3.
 2. Open "Your account". Write the name, address and role.
 3. Sign out. Sign in by code with `M2`.
 
-Expected: Step 1 creates a second, new account, with `you+gh2@gmail.com`. It is not the `M2` account. Step 3 opens the `M2` account, which has no GitHub. This is how the Hub works today: only an administrator can join two accounts (case 10.10). Write in the note if a user can understand what happened.
+Expected: Step 1 creates a second, new account, with `you+gh2@gmail.com`. It is not the `M2` account. Step 3 opens the `M2` account, which has no GitHub. This is how the Hub works today: only an administrator can join two accounts (case 10.6). Write in the note if a user can understand what happened.
 
 - [ ] Pass
 - [ ] Fail, issue:
@@ -539,7 +539,7 @@ Expected: You come back on "Your account" with "That GitHub or ORCID account is 
 
 #### 3.10 GitHub with a private address
 
-Needs: Browser A, signed out. In GitHub, Settings, Emails, tick "Keep my email addresses private". Remove `GH` from every Hub account first (or ask Pierre to merge the account of 3.8 later, in 10.10).
+Needs: Browser A, signed out. In GitHub, Settings, Emails, tick "Keep my email addresses private". Remove `GH` from every Hub account first (or ask Pierre to merge the account of 3.8 later, in 10.6).
 
 1. Click "Continue with GitHub".
 2. Open "Your account".
@@ -2031,7 +2031,7 @@ Expected: The menu shows no account. `/account` goes to the home page. No error 
    - `<dev>/api/verification`
    - `<dev>/api/admin/users`
 
-Expected: `/api/auth/me` answers `{"user":null}`. The others answer 404 with "Contributions are not enabled on this deployment." No answer shows data.
+Expected: `/api/auth/me` answers `{"user":null}` in a private window. In a browser that was signed in before the switch, write what it answers. The others answer 404 with "Contributions are not enabled on this deployment." No answer shows data.
 
 - [ ] Pass
 - [ ] Fail, issue:
