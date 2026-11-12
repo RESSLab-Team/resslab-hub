@@ -318,6 +318,6 @@ No `test_review_02_db_rules.py`: each broken rule has its test in the file of it
 
 ## Not checked
 
-- The tests ran once, on the host. Their failure reasons were not read one by one (`--runxfail`), only the two unit tests.
+- Failure reasons: Pierre ran the tests with `--runxfail`. Each one fails on its own assert, or on the database error the finding names (`IntegrityError` for 02-1, `DBAPIError` for 02-11 and 02-12). None fails on its setup.
 - Real GitHub and ORCID: never called, by the brief. What a real provider allows in a name (length, line breaks, HTML) is not checked.
 - The race tests (02-1, 02-8, 02-9) use `asyncio.gather` on one test client. They xfailed on the first run. If one passes by luck in CI (no interleaving), strict xfail will report `XPASS`. The live proofs of 02-1 and 02-8 show the race is real.
