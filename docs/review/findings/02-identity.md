@@ -3,25 +3,25 @@
 - Branch: `review/02-identity`
 - Commit reviewed: `0e15c031` (from `dev`, with ORCID)
 - Date: 2026-11-12
-- Tests run: partly. The two tests on the pull request body (02-13) run without a database and fail as expected (`xfailed`). The other tests need the database, and the sandbox hides `secrets/.env`, so they are written but not run. The live proofs come from Claude in Chrome on this worktree's own servers.
+- Tests run: yes. Pierre ran `pytest tests/test_review_02_*.py` on the host on 2026-11-12: 19 xfailed, no XPASS, no error. The sandbox hides `secrets/.env`, so the agent could only run the two tests that need no database. The live proofs come from Claude in Chrome on this worktree's own servers.
 
 ## Summary
 
 | Id    | Severity | Title                                                              | Suspicion | Proof                  |
 | ----- | -------- | ------------------------------------------------------------------ | --------- | ---------------------- |
-| 02-1  | low      | Two first sign-ins at once on one address give a 500               |           | Chrome + test (not run) |
-| 02-2  | low      | An account can link a second GitHub or a second ORCID iD           |           | test (not run)         |
-| 02-3  | low      | A bare join drops the role an admin gave the bare account          |           | test (not run)         |
-| 02-4  | low      | An admin merge of two ORCID accounts is not refused                |           | test (not run)         |
-| 02-5  | medium   | An admin merge can fold a locked admin away                        |           | test (not run)         |
+| 02-1  | low      | Two first sign-ins at once on one address give a 500               |           | Chrome + test (xfailed) |
+| 02-2  | low      | An account can link a second GitHub or a second ORCID iD           |           | test (xfailed)         |
+| 02-3  | low      | A bare join drops the role an admin gave the bare account          |           | test (xfailed)         |
+| 02-4  | low      | An admin merge of two ORCID accounts is not refused                |           | test (xfailed)         |
+| 02-5  | medium   | An admin merge can fold a locked admin away                        |           | test (xfailed)         |
 | 02-6  | note     | An admin merge replaces a demotion with the higher role            |           | Chrome                 |
-| 02-7  | low      | A link callback lands on an account disabled in the meantime       |           | test (not run)         |
-| 02-8  | low      | The main address can end with no identity behind it                |           | Chrome + test (not run) |
-| 02-9  | low      | Two unlinks at once can leave an account with no way in            |           | test (not run)         |
-| 02-10 | medium   | Nobody can set their name or institution                           | B5 (confirmed) | Chrome + test (not run) |
-| 02-11 | medium   | A GitHub or ORCID name over 200 characters breaks the sign-in      | S6 (confirmed) | test (not run)         |
-| 02-12 | low      | Admin routes answer 500 to an id that is not a UUID                | S6 (confirmed) | Chrome + test (not run) |
-| 02-13 | low      | The contributor name is raw Markdown in the pull request body      | S6        | test (run, xfailed)    |
+| 02-7  | low      | A link callback lands on an account disabled in the meantime       |           | test (xfailed)         |
+| 02-8  | low      | The main address can end with no identity behind it                |           | Chrome + test (xfailed) |
+| 02-9  | low      | Two unlinks at once can leave an account with no way in            |           | test (xfailed)         |
+| 02-10 | medium   | Nobody can set their name or institution                           | B5 (confirmed) | Chrome + test (xfailed) |
+| 02-11 | medium   | A GitHub or ORCID name over 200 characters breaks the sign-in      | S6 (confirmed) | test (xfailed)         |
+| 02-12 | low      | Admin routes answer 500 to an id that is not a UUID                | S6 (confirmed) | Chrome + test (xfailed) |
+| 02-13 | low      | The contributor name is raw Markdown in the pull request body      | S6        | test (xfailed)    |
 
 All addresses used live are test addresses on `example.org`. Codes, tokens and the admin address are `<redacted>`.
 
@@ -47,7 +47,7 @@ Two POST /api/auth/email/start for rev02.race@example.org, then the two links fr
 backend log: IntegrityError ... duplicate key value violates unique constraint "auth_user_email_key"
 ```
 
-And `backend/tests/test_review_02_takeover.py::test_two_first_sign_ins_at_once_make_no_500`, marked `xfail(strict=True)`, not run.
+And `backend/tests/test_review_02_takeover.py::test_two_first_sign_ins_at_once_make_no_500`, marked `xfail(strict=True)`.
 
 Fix: catch the `IntegrityError` on the user insert, roll back, and read the user the other request just made.
 
@@ -63,7 +63,7 @@ No identity lands on another person's account. The provider subject is unique in
 
 `attach_identity` only refuses an identity that is on another account. It does not check that this account already has one of the same provider. The rule "one ORCID iD per account" exists in `absorb_bare_account` and the GitHub one in `merge_users`, but not here. A person who links a second GitHub ends with two GitHub identities, and `github_login` now names the second one. If they unlink it, the mirror is cleared while the first one stays linked. Same for ORCID and the `orcid` field, which goes into submissions.
 
-Proof: `backend/tests/test_review_02_takeover.py::test_an_account_cannot_link_a_second_github` and `::test_an_account_cannot_link_a_second_orcid`, marked `xfail(strict=True)`, not run.
+Proof: `backend/tests/test_review_02_takeover.py::test_an_account_cannot_link_a_second_github` and `::test_an_account_cannot_link_a_second_orcid`, marked `xfail(strict=True)`.
 
 Fix: in the link branch, refuse with a clear error (for example `already_linked`) when the account already has an identity of that provider.
 
@@ -79,7 +79,7 @@ The docstring of `absorb_bare_account` says the join gives no new power and lose
 
 An admin can set a role on any account, also on a GitHub or ORCID account with no address. When that person later adds the address of their main account, the bare account joins it and is deleted. Its `role_override` is not copied, so the curator role the admin gave is gone, with no word. The admin merge (`merge_users`) does keep the higher override, so the two joins disagree.
 
-Proof: `backend/tests/test_review_02_join_merge.py::test_a_bare_join_keeps_the_role_an_admin_gave`, marked `xfail(strict=True)`, not run.
+Proof: `backend/tests/test_review_02_join_merge.py::test_a_bare_join_keeps_the_role_an_admin_gave`, marked `xfail(strict=True)`.
 
 Fix: copy `role_override` with the same rule as `merge_users` (the higher one wins), or refuse the self join when the bare account has an override and ask for an admin merge.
 
@@ -95,7 +95,7 @@ What moves: identities, sessions are deleted (cascade, the other browser gets a 
 
 The admin merges two accounts that each have an ORCID iD. The merge goes through. `keep` ends with two ORCID identities and one `orcid` field, which names only one of them. Same state as 02-2, reached by an admin.
 
-Proof: `backend/tests/test_review_02_join_merge.py::test_a_merge_of_two_orcid_accounts_is_refused`, marked `xfail(strict=True)`, not run.
+Proof: `backend/tests/test_review_02_join_merge.py::test_a_merge_of_two_orcid_accounts_is_refused`, marked `xfail(strict=True)`.
 
 Fix: refuse `both_orcid` like `both_github`.
 
@@ -107,7 +107,7 @@ Fix: refuse `both_orcid` like `both_github`.
 
 A locked admin comes from `ADMIN_EMAILS` or from GitHub. The admin page refuses to change their role or disable them (`locked_admin`). The merge does not check it. An admin can merge a config admin into any account: the config admin's account is deleted, and its address moves to the other account. That other account would then be admin through `admin-email` (any verified address counts). It needs an admin to do it, so it is a weak protection, not an open door.
 
-Proof: `backend/tests/test_review_02_join_merge.py::test_a_merge_cannot_fold_a_locked_admin_away`, marked `xfail(strict=True)`, not run.
+Proof: `backend/tests/test_review_02_join_merge.py::test_a_merge_cannot_fold_a_locked_admin_away`, marked `xfail(strict=True)`.
 
 Fix: refuse the merge with `locked_admin` when `other` is a locked admin, like `update_user`.
 
@@ -144,7 +144,7 @@ Disabling revokes every session at once (`test_admin.py::test_disabling_signs_th
 
 The link branch reads `link_user_id` from the challenge and loads that account. It does not check `disabled_at`, and it does not check that the browser is still signed in as that account. So if an admin disables the account between "Link GitHub" and the callback, GitHub is linked anyway. The sign-in branch checks `disabled_at` (`auth.py:566`, `:680`), the link branch does not. Nobody gets a session, so the harm is small.
 
-Proof: `backend/tests/test_review_02_lifecycle.py::test_a_link_does_not_land_on_an_account_disabled_meanwhile`, marked `xfail(strict=True)`, not run.
+Proof: `backend/tests/test_review_02_lifecycle.py::test_a_link_does_not_land_on_an_account_disabled_meanwhile`, marked `xfail(strict=True)`.
 
 Fix: in the link branch, refuse a disabled account, and check that the current session is the account in `link_user_id`.
 
@@ -170,7 +170,7 @@ Claude in Chrome, on http://127.0.0.1:19247/, signed in as A (rev02.a + rev02.a2
 user.email = rev02.a2@example.org, identities = [rev02.a@example.org]
 ```
 
-And `backend/tests/test_review_02_lifecycle.py::test_the_main_address_always_has_its_identity`, marked `xfail(strict=True)`, not run.
+And `backend/tests/test_review_02_lifecycle.py::test_the_main_address_always_has_its_identity`, marked `xfail(strict=True)`.
 
 Fix: lock the user row (`SELECT ... FOR UPDATE`) in both functions, then check again.
 
@@ -182,7 +182,7 @@ Fix: lock the user row (`SELECT ... FOR UPDATE`) in both functions, then check a
 
 An account with no address, a GitHub login and an ORCID iD. Two tabs unlink one each. Both read two identities and both delete. The account has no way in left, and only an admin can help (and only by merging). Same cause as 02-8.
 
-Proof: `backend/tests/test_review_02_lifecycle.py::test_two_unlinks_at_once_keep_one_way_in`, marked `xfail(strict=True)`, not run. Not shown live.
+Proof: `backend/tests/test_review_02_lifecycle.py::test_two_unlinks_at_once_keep_one_way_in`, marked `xfail(strict=True)`. Not shown live.
 
 Fix: the same row lock as 02-8.
 
@@ -217,7 +217,7 @@ Claude in Chrome, on http://127.0.0.1:19247/, signed in as rev02.a
 display_name "Rev02 A", institution ""
 ```
 
-And `backend/tests/test_review_02_profile_input.py::test_a_person_can_set_their_name_and_institution`, marked `xfail(strict=True)`, not run.
+And `backend/tests/test_review_02_profile_input.py::test_a_person_can_set_their_name_and_institution`, marked `xfail(strict=True)`.
 
 Fix: add `PATCH /auth/me` for `display_name` and `institution` (trimmed, with the column lengths), and a small form on the account page. Ask for the name before the first submission.
 
@@ -234,7 +234,7 @@ Addresses are safe: `EmailStr` refuses an address that is too long with a 422, s
 
 The name from the provider goes into `display_name` without a cut. A name over 200 characters fails on the database insert, and the callback answers 500. The person can never sign in with that provider. GitHub names are short in practice, an ORCID name (given plus family names) is less sure. A GitHub login over 100 characters (`github_login` String(100)) would do the same, but GitHub logins are at most 39.
 
-Proof: `backend/tests/test_review_02_profile_input.py::test_a_long_github_name_does_not_break_the_sign_in` and `::test_a_long_orcid_name_does_not_break_the_sign_in`, marked `xfail(strict=True)`, not run.
+Proof: `backend/tests/test_review_02_profile_input.py::test_a_long_github_name_does_not_break_the_sign_in` and `::test_a_long_orcid_name_does_not_break_the_sign_in`, marked `xfail(strict=True)`.
 
 Fix: cut the name to the column length before the insert (and the login and handle too).
 
@@ -260,7 +260,7 @@ Claude in Chrome, on http://127.0.0.1:19247/, signed in as the admin
 > PATCH /api/admin/users/00000000-0000-0000-0000-000000000000   404
 ```
 
-And `backend/tests/test_review_02_profile_input.py::test_an_id_that_is_not_a_uuid_is_a_404`, marked `xfail(strict=True)`, not run.
+And `backend/tests/test_review_02_profile_input.py::test_an_id_that_is_not_a_uuid_is_a_404`, marked `xfail(strict=True)`.
 
 Fix: type the path params and `from_user_id` as `UUID`, so FastAPI answers 422, or turn the `DataError` into a 404.
 
@@ -273,7 +273,7 @@ Fix: type the path params and `from_user_id` as `UUID`, so FastAPI answers 422, 
 
 The name comes from GitHub or ORCID and nobody can change it. In the pull request body it is plain Markdown, not in a code span like the dismissed warnings (`_code_span`, #264 H4). A name with `@someone` pings that GitHub user on the public data repo, and a `[text](url)` shows a link. A name with a line break can add a `- **ORCID**:` line, and the review page then shows that iD as the contributor's. The mail notice and the commit trailers clean the name already. Whether GitHub or ORCID let a name hold a line break is not checked.
 
-Proof: `backend/tests/test_review_02_profile_input.py::test_the_name_in_the_pull_request_is_plain_text` and `::test_a_name_cannot_add_a_line_the_review_page_reads`, marked `xfail(strict=True)`. Run: both `xfailed`, they fail on the asserts (`'@victim' is contained here`, `'0000-0002-1825-0097' == ''`).
+Proof: `backend/tests/test_review_02_profile_input.py::test_the_name_in_the_pull_request_is_plain_text` and `::test_a_name_cannot_add_a_line_the_review_page_reads`, marked `xfail(strict=True)`. Both `xfailed`, they fail on the asserts (`'@victim' is contained here`, `'0000-0002-1825-0097' == ''`).
 
 Fix: put the name and the institution in `_code_span`, and drop line breaks, like the trailers do.
 
@@ -318,6 +318,6 @@ No `test_review_02_db_rules.py`: each broken rule has its test in the file of it
 
 ## Not checked
 
-- The DB tests are not run: the sandbox hides `secrets/.env`, so pytest cannot reach the database. Pierre can run them with `cd backend && python3 ../scripts/with-db.py uv run pytest tests/test_review_02_*.py -rxX`. Every test should report `xfailed`.
+- The tests ran once, on the host. Their failure reasons were not read one by one (`--runxfail`), only the two unit tests.
 - Real GitHub and ORCID: never called, by the brief. What a real provider allows in a name (length, line breaks, HTML) is not checked.
-- The race tests (02-1, 02-8, 02-9) use `asyncio.gather` on one test client. If they pass by luck (no interleaving), strict xfail will report `XPASS`. The live proofs of 02-1 and 02-8 show the race is real.
+- The race tests (02-1, 02-8, 02-9) use `asyncio.gather` on one test client. They xfailed on the first run. If one passes by luck in CI (no interleaving), strict xfail will report `XPASS`. The live proofs of 02-1 and 02-8 show the race is real.
