@@ -26,6 +26,7 @@ One line per guide. Start with the root [README](../README.md) to run the app.
 - [adding-a-new-tab.md](adding-a-new-tab.md): the end-to-end playbook for a new component database
 - [modernization-followups.md](modernization-followups.md): toolchain upgrades done and still open, upload perf notes
 - [design/](design/): the brand exploration and the sign-in mail brief and handoff
+- [review/](review/README.md): the review of sign-in, roles and contributions before the workshop: plan, agent briefs, test guide, go-live checklist
 
 `CLAUDE.md` at the root is the map of the repo for coding agents. It repeats
 the facts above in short form and is kept in step with them.
