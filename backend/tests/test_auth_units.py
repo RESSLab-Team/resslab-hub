@@ -59,6 +59,18 @@ def test_own_paths_are_kept(target):
     assert urls.safe_redirect(target) == target
 
 
+@pytest.mark.parametrize("root_path", ["", "/api", "/api/"])
+def test_api_url_always_has_the_api_prefix(monkeypatch, root_path):
+    # In dev root_path is empty, but the browser still reaches the backend
+    # through the Vite proxy on /api.
+    monkeypatch.setattr(urls.settings, "public_base_url", "http://127.0.0.1:5173/")
+    monkeypatch.setattr(urls.settings, "root_path", root_path)
+    assert (
+        urls.api_url("/auth/orcid/callback")
+        == "http://127.0.0.1:5173/api/auth/orcid/callback"
+    )
+
+
 # --- roles ----------------------------------------------------------------
 def test_role_ordering():
     assert roles.at_least("admin", "viewer")
