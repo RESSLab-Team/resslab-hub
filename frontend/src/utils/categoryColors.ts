@@ -9,7 +9,8 @@
  *
  * Slot order = frequency in the full dataset (most common value first, ties
  * alphabetical): the biggest tiles and series get the most distinguishable
- * leading hues. Values past the 8 palette slots cycle the palette muted toward
+ * leading hues, and the closest pairs of the palette (see utils/palette.ts)
+ * land on the rarest values. Values past the 8 palette slots cycle the palette muted toward
  * grey, so the tail still offers a hue hint but reads as secondary.
  */
 import { blendHex, colorPalette } from '@/utils/palette'

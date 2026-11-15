@@ -4,19 +4,23 @@
  */
 import hexRgb from 'hex-rgb'
 
-/** Multi-hue categorical palette — Okabe–Ito (colorblind-safe), handoff order.
+/** Multi-hue categorical palette: the designer's Option 1 from #388, in slot order.
+    It replaced Okabe–Ito, which collaborators found too loud. It is less safe for
+    colour-blind readers (blue, lavender, violet and slate sit close for red-blind
+    eyes), so the slots are handed out by frequency: the closest pairs involve
+    slot 7, which only the rarest values reach.
     Brand red stays reserved for selection/emphasis and is never a series color.
     Dashboard charts never index this by position: a value's slot comes from
     `utils/categoryColors.ts`, so it survives filtering and matches across charts. */
 export const colorPalette: string[] = [
-  '#0072B2', // blue
-  '#E69F00', // amber
-  '#009E73', // green
-  '#CC79A7', // reddish purple
-  '#56B4E9', // sky
-  '#D55E00', // vermillion
-  '#5B6B78', // slate
-  '#332288' // indigo
+  '#6288BE', // blue
+  '#F6C770', // amber
+  '#9EDEC2', // mint
+  '#D08DB1', // pink
+  '#CCCAFD', // lavender
+  '#EB888C', // coral
+  '#AC9EDA', // violet
+  '#787496' // slate grey
 ]
 
 /** Mix hex color `from` toward `to` by `amount` (0 = `from`, 1 = `to`), in sRGB. */

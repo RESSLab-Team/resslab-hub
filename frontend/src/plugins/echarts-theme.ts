@@ -41,8 +41,8 @@ export const RED = '#e30713'
 // The submission itself is RED (--data-submitted).
 export const EXISTING = '#8e8e8e'
 
-// Categorical series palette — Okabe–Ito (colorblind-safe), handoff order; the
-// single definition lives in utils/palette.ts. EPFL red stays reserved for
+// Categorical series palette: the designer's Option 1 from #388. The single
+// definition lives in utils/palette.ts. EPFL red stays reserved for
 // selection/emphasis and is never a series color.
 const SERIES = colorPalette
 

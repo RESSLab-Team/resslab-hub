@@ -39,14 +39,15 @@ Where the app departs from the EPFL heritage, all on purpose:
 | -------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------- |
 | brand red            | `--epfl-red` is web red `#ff0000`, `--epfl-red-print` is `#e30713` | only the print red, as `--epfl-red`                               |
 | structural hairlines | soft black in the first screens                                    | `#cfcfcf` (`--epfl-gray-150`), and table gridlines lighter still  |
-| series colours       | red, canard, blue, grey                                            | Okabe-Ito, red never a series                                     |
+| series colours       | red, canard, blue, grey                                            | the designer's palette from #388, red never a series              |
 | links                | underlined                                                         | never underlined                                                  |
 | icons                | Feather                                                            | Material Design Icons through Vuetify, plus the `rl` database set |
 | dark mode            | none                                                               | `body.theme-dark` re-assigns the decisions                        |
 
 Where the RESSLab Hub mirror is ahead of the code, as of 1.0.0: it publishes
 the chart ink and the eight series as `--chart-*` custom properties (here they
-are constants in `plugins/echarts-theme.ts` and `utils/palette.ts`), it has
+are constants in `plugins/echarts-theme.ts` and `utils/palette.ts`; the mirror
+still has the Okabe-Ito series until it is re-synced after #388), it has
 `--space-1` to `--space-6`, status intents (`--success`, `--info`,
 `--warning`, `--danger`), a `.tnum` utility for tabular figures, and a 2px
 red `:focus-visible` outline on buttons. None of those exist here yet, except
@@ -187,8 +188,8 @@ The page-level scaffolds are `DashboardShell.vue`, `PageHeader.vue` and
   grey, thinner). Never a raw red or grey. Canvas code takes `SUBMITTED_COLOR`
   and `EXISTING_COLOR` from `components/curation/curves.ts`, and
   `DataLegend.vue` names the pair.
-- **Categorical chart colours** come from the Okabe-Ito slots in
-  `utils/palette.ts`, handed out once per field by
+- **Categorical chart colours** come from the eight slots of the designer's
+  palette (#388, Option 1) in `utils/palette.ts`, handed out once per field by
   `useDataset(...).colorFor(field)`. Never colour a series from its position in
   the filtered data. The full rule is in
   [dashboard-architecture.md](dashboard-architecture.md).

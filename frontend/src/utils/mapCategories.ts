@@ -16,7 +16,7 @@ export interface MapCategoryEntry {
   color: string
 }
 
-// The 8 Okabe-Ito slots, then a grey for the 9th (as in the design). The map
+// The 8 palette slots (#388), then a grey for the 9th (as in the design). The map
 // has its own fixed order here, unrelated to the dashboards' categoryColors.
 export const MAP_CATEGORIES: MapCategoryEntry[] = [
   {

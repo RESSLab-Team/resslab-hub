@@ -99,7 +99,8 @@ export const ink: Color = {
 }
 
 /** Test data series lead with Okabe–Ito blue; model overlays follow in ink.
-    (Categorical chart hues use the Okabe–Ito colorblind-safe palette.) */
+    The model and fragility pages keep this ramp. The dashboards' categorical
+    hues moved to the #388 palette in utils/palette.ts. */
 export const primaryColor = okabeBlue
 export const secondaryColor = ink
 
