@@ -1,5 +1,84 @@
 # Changelog
 
+## [2.4.0](https://github.com/RESSLab-Team/resslab-hub/compare/v2.3.0...v2.4.0) (2026-11-15)
+
+
+### Features
+
+* **admin:** let an admin merge two accounts ([a442a55](https://github.com/RESSLab-Team/resslab-hub/commit/a442a5576231b943e99ae1e869afd3b5862870ca))
+* **auth:** add the ORCID button, link and add-address detour ([#250](https://github.com/RESSLab-Team/resslab-hub/issues/250)) ([ab36372](https://github.com/RESSLab-Team/resslab-hub/commit/ab363728f4076e795e1679d8dab23ebd658000e2))
+* **auth:** add the ORCID OAuth client ([#250](https://github.com/RESSLab-Team/resslab-hub/issues/250)) ([fe8fd2e](https://github.com/RESSLab-Team/resslab-hub/commit/fe8fd2edf8abacd9af852f15ffa87e7b08b3cd49))
+* **auth:** let an account have several email addresses ([df913b4](https://github.com/RESSLab-Team/resslab-hub/commit/df913b4b22e639b3f300f1aa3021ebc4b8d7d8be)), closes [#402](https://github.com/RESSLab-Team/resslab-hub/issues/402)
+* **auth:** sign in with ORCID ([#250](https://github.com/RESSLab-Team/resslab-hub/issues/250)) ([e32562e](https://github.com/RESSLab-Team/resslab-hub/commit/e32562ee4e78e2c618543b8370334844731f532d))
+* **auth:** sign in with ORCID ([#250](https://github.com/RESSLab-Team/resslab-hub/issues/250)) ([#444](https://github.com/RESSLab-Team/resslab-hub/issues/444)) ([226315b](https://github.com/RESSLab-Team/resslab-hub/commit/226315bd0b6e8bff3181d6a021ec298c5502ef60))
+* **charts:** use the palette chosen in [#388](https://github.com/RESSLab-Team/resslab-hub/issues/388) (Option 1) ([5a495cf](https://github.com/RESSLab-Team/resslab-hub/commit/5a495cfc325085fe5d20d8d2991af64fb28a5830))
+* **charts:** use the palette chosen in [#388](https://github.com/RESSLab-Team/resslab-hub/issues/388) (Option 1) ([#451](https://github.com/RESSLab-Team/resslab-hub/issues/451)) ([2c820fb](https://github.com/RESSLab-Team/resslab-hub/commit/2c820fb5f5b0ca0e307317af10b2259fffeac22b))
+* **contributions:** a submission from any of your addresses is yours ([7b22952](https://github.com/RESSLab-Team/resslab-hub/commit/7b2295271580e507ab49178fee35ef6d0bd290c3)), closes [#402](https://github.com/RESSLab-Team/resslab-hub/issues/402)
+* **contributions:** refuse new submissions when the queue is full ([#264](https://github.com/RESSLab-Team/resslab-hub/issues/264) H4) ([1eaec16](https://github.com/RESSLab-Team/resslab-hub/commit/1eaec1615e45ad56926a6b81f547a53a0b169e6e))
+* **curation:** fade the compared curves a bit more ([#268](https://github.com/RESSLab-Team/resslab-hub/issues/268)) ([8253782](https://github.com/RESSLab-Team/resslab-hub/commit/825378214235ebd196061052f203bbc9495b6909))
+* **curation:** tell submitted data from existing data by colour ([#268](https://github.com/RESSLab-Team/resslab-hub/issues/268)) ([af18070](https://github.com/RESSLab-Team/resslab-hub/commit/af18070856e30284868ea5f778973ae7af5aa397))
+* **dashboard:** share a link to one specimen ([#417](https://github.com/RESSLab-Team/resslab-hub/issues/417)) ([d8a205a](https://github.com/RESSLab-Team/resslab-hub/commit/d8a205afe675c42c3c3ed778b02c619fb32d44dd))
+* **filters:** rail counts follow the other filters, expand all ([f7182d8](https://github.com/RESSLab-Team/resslab-hub/commit/f7182d872025d76fde1ef89298ea9ad703c3d949)), closes [#329](https://github.com/RESSLab-Team/resslab-hub/issues/329)
+* **glossary:** show the dictionary description on labels and headers ([666a10e](https://github.com/RESSLab-Team/resslab-hub/commit/666a10e7ed7fade1adce01b882b43b69fd35aa03))
+* **sample-data:** build the test batches from real records ([fb1709b](https://github.com/RESSLab-Team/resslab-hub/commit/fb1709b919732f89f5a024b65c1685d52e7c0601))
+* **ui:** click an explanatory image to see it full size ([#160](https://github.com/RESSLab-Team/resslab-hub/issues/160)) ([facb358](https://github.com/RESSLab-Team/resslab-hub/commit/facb3588bcfd721d46d7ac8ab44ef14a873844cd))
+* **ui:** click an explanatory image to see it full size ([#160](https://github.com/RESSLab-Team/resslab-hub/issues/160)) ([#438](https://github.com/RESSLab-Team/resslab-hub/issues/438)) ([dca58ba](https://github.com/RESSLab-Team/resslab-hub/commit/dca58ba748f3d325ded7c7dc32ffd9465c23f3df))
+* **uploader:** report failed files, add --rebuild ([#405](https://github.com/RESSLab-Team/resslab-hub/issues/405)) ([d02bfe7](https://github.com/RESSLab-Team/resslab-hub/commit/d02bfe7d300f6221f4637adf9e9651aeeb1ce9cd))
+
+
+### Bug Fixes
+
+* **a11y:** keyboard drawers, labelled buttons, language switch without reload ([5f11436](https://github.com/RESSLab-Team/resslab-hub/commit/5f11436ce15294b6d2119a4f38361bf32c0f3d49))
+* **a11y:** keyboard drawers, labelled buttons, language switch without reload ([#431](https://github.com/RESSLab-Team/resslab-hub/issues/431)) ([a78a977](https://github.com/RESSLab-Team/resslab-hub/commit/a78a9775cb6644e73f0a4b4240c6ced14dd9c662))
+* **about:** show the photos of the people who built the hub ([b3dccc6](https://github.com/RESSLab-Team/resslab-hub/commit/b3dccc61c8a3fed4ed018d2252fb7a8e6cc46f5c))
+* **about:** show the photos of the people who built the hub ([#419](https://github.com/RESSLab-Team/resslab-hub/issues/419)) ([94ce58b](https://github.com/RESSLab-Team/resslab-hub/commit/94ce58be1ec065e8c599fe296cc3eb5cd69f338b))
+* **analytics:** bound the days window ([#264](https://github.com/RESSLab-Team/resslab-hub/issues/264) Low) ([19860b3](https://github.com/RESSLab-Team/resslab-hub/commit/19860b383c10b9b6f24921e8d81f6ff0391b1263))
+* **api:** a filter value with a colon no longer gives a 500 ([#265](https://github.com/RESSLab-Team/resslab-hub/issues/265)) ([9e85f0c](https://github.com/RESSLab-Team/resslab-hub/commit/9e85f0cdfe58ee50999a26200d482b9e2f840f9f))
+* **api:** answer 400 on an unknown query or sort key ([#264](https://github.com/RESSLab-Team/resslab-hub/issues/264) M7) ([67511d1](https://github.com/RESSLab-Team/resslab-hub/commit/67511d1385cf4b394d56ec6c80afa3691500bf9d))
+* **auth:** apply the swot rules for academic emails, refresh the list ([#433](https://github.com/RESSLab-Team/resslab-hub/issues/433)) ([ac58751](https://github.com/RESSLab-Team/resslab-hub/commit/ac5875106e6e5fc351e436414bfb5a1124aed33e)), closes [#375](https://github.com/RESSLab-Team/resslab-hub/issues/375)
+* **auth:** apply the swot rules on the pyswot data, refresh the list ([1a416af](https://github.com/RESSLab-Team/resslab-hub/commit/1a416af13d46573cea47c82b3dbe12b7dc0564f0)), closes [#375](https://github.com/RESSLab-Team/resslab-hub/issues/375)
+* **auth:** keep the /api prefix in the OAuth callback URLs in dev ([#250](https://github.com/RESSLab-Team/resslab-hub/issues/250)) ([f35e589](https://github.com/RESSLab-Team/resslab-hub/commit/f35e589f476d90297c4a167cd8aee7d0e633ba98))
+* **backend:** small bugs left in [#265](https://github.com/RESSLab-Team/resslab-hub/issues/265) ([90acd18](https://github.com/RESSLab-Team/resslab-hub/commit/90acd186ddcdfdd08a3f5911440fadd77b420162))
+* **backend:** small bugs left in [#265](https://github.com/RESSLab-Team/resslab-hub/issues/265) ([#443](https://github.com/RESSLab-Team/resslab-hub/issues/443)) ([a0e1096](https://github.com/RESSLab-Team/resslab-hub/commit/a0e109620e208a9fe57c3f2df3a42e51b2247850))
+* **charts:** clearer legend title, fragility line legend, real field names ([#328](https://github.com/RESSLab-Team/resslab-hub/issues/328)) ([7d5bce7](https://github.com/RESSLab-Team/resslab-hub/commit/7d5bce74f883ee108749c78330a18ce32b356b5c))
+* **charts:** clearer legend title, fragility line legend, real field names ([#328](https://github.com/RESSLab-Team/resslab-hub/issues/328)) ([#429](https://github.com/RESSLab-Team/resslab-hub/issues/429)) ([0e03514](https://github.com/RESSLab-Team/resslab-hub/commit/0e035144f1dccbeb28995cd518510ce24dcf4a1f))
+* **columns:** strong and weak moment CSVs get different file names ([14bd6e4](https://github.com/RESSLab-Team/resslab-hub/commit/14bd6e4a3f4fd2ab78aa8d5db3a7393bafa6d4c5))
+* **contribute:** ask for the extracted folder when a drop lost its folder names ([51af89b](https://github.com/RESSLab-Team/resslab-hub/commit/51af89b56a199eed80da2d01ed8d491e74da0335)), closes [#437](https://github.com/RESSLab-Team/resslab-hub/issues/437)
+* **contribute:** ask for the extracted folder when a drop lost its folder names ([#440](https://github.com/RESSLab-Team/resslab-hub/issues/440)) ([e956cf4](https://github.com/RESSLab-Team/resslab-hub/commit/e956cf4668c50b68c2e64e573b2996a3804f7a3b)), closes [#437](https://github.com/RESSLab-Team/resslab-hub/issues/437)
+* **contribute:** move to the submission's page after a submit ([3887017](https://github.com/RESSLab-Team/resslab-hub/commit/38870171de80e565e4d7fac4baed18165afa85ac)), closes [#403](https://github.com/RESSLab-Team/resslab-hub/issues/403)
+* **contribute:** move to the submission's page after a submit ([#411](https://github.com/RESSLab-Team/resslab-hub/issues/411)) ([56038d6](https://github.com/RESSLab-Team/resslab-hub/commit/56038d6706930a9d629ac9812d55d16809bc6f62)), closes [#403](https://github.com/RESSLab-Team/resslab-hub/issues/403)
+* **contribute:** place a lone moment-rotation file without folder on the strong axis ([a7bd2e5](https://github.com/RESSLab-Team/resslab-hub/commit/a7bd2e55ebbb3041b837904fec3fc18bebd0b6c8))
+* **contribute:** place a lone moment-rotation file without folder on the strong axis ([#432](https://github.com/RESSLab-Team/resslab-hub/issues/432)) ([8414b28](https://github.com/RESSLab-Team/resslab-hub/commit/8414b28c507e464dd459c2418316a3ec2ce391f1))
+* **contributions:** curators can open anyone's submission in the editor ([cab56a8](https://github.com/RESSLab-Team/resslab-hub/commit/cab56a83e3e370e22233b15ab386af5dfd72aea8)), closes [#402](https://github.com/RESSLab-Team/resslab-hub/issues/402)
+* **csv:** escape the file name in Content-Disposition ([#264](https://github.com/RESSLab-Team/resslab-hub/issues/264) Low) ([7618f09](https://github.com/RESSLab-Team/resslab-hub/commit/7618f09d3f6695ac99392b07379e84de427228d9))
+* **curation:** do not cache file texts over 1 MB ([#264](https://github.com/RESSLab-Team/resslab-hub/issues/264) Low) ([76ded7b](https://github.com/RESSLab-Team/resslab-hub/commit/76ded7bd215e2f26c4e446d0a53b25ec144b2e0a))
+* **curation:** keep the contributor email out of the API body ([#264](https://github.com/RESSLab-Team/resslab-hub/issues/264) M6) ([2329738](https://github.com/RESSLab-Team/resslab-hub/commit/2329738169e68959cdebae2cef87a19f45cd5902))
+* **data:** keep not reported apart from not applicable ([#427](https://github.com/RESSLab-Team/resslab-hub/issues/427)) ([31d1456](https://github.com/RESSLab-Team/resslab-hub/commit/31d1456c38a626fa05fe3e1dc662fcb0d0880d01))
+* **data:** keep not reported apart from not applicable ([#427](https://github.com/RESSLab-Team/resslab-hub/issues/427)) ([#441](https://github.com/RESSLab-Team/resslab-hub/issues/441)) ([44303cf](https://github.com/RESSLab-Team/resslab-hub/commit/44303cf0b772110dc8eb41fec50faba30cc08972))
+* **db:** merge the two alembic heads ([3abd96d](https://github.com/RESSLab-Team/resslab-hub/commit/3abd96db150d19031a1633e7a4a6e4ec34cf86c9))
+* **filters:** text shortcuts write a plain value again ([26e376b](https://github.com/RESSLab-Team/resslab-hub/commit/26e376bcee0b3e483e76ce2665247d6961e70869)), closes [#329](https://github.com/RESSLab-Team/resslab-hub/issues/329)
+* **frontend:** add rel to every new tab link, test isHttpUrl on bad schemes ([97ab3ba](https://github.com/RESSLab-Team/resslab-hub/commit/97ab3bafaa20786d883124283e8156656b2c0586))
+* **frontend:** empty brace stresses say Not Reported again ([60d1e27](https://github.com/RESSLab-Team/resslab-hub/commit/60d1e27f73bb60775b5dcd7c9a7ce0427b4c1396))
+* **frontend:** let the CSP load the About page photos from people.epfl.ch ([#264](https://github.com/RESSLab-Team/resslab-hub/issues/264) M2) ([ce93ec1](https://github.com/RESSLab-Team/resslab-hub/commit/ce93ec12459bbcf55207f555d994b4e9881efc34))
+* **frontend:** remove the inline onload of index.html ([#264](https://github.com/RESSLab-Team/resslab-hub/issues/264) M2) ([1ec2fa6](https://github.com/RESSLab-Team/resslab-hub/commit/1ec2fa678aec703ed17ca2cf72d672bfca908711))
+* **frontend:** sanitise the dictionary symbol before v-html ([b383cd9](https://github.com/RESSLab-Team/resslab-hub/commit/b383cd9f767301f555e1df06d6df9c6a911b0e36))
+* **frontend:** security headers in nginx, CSP in report-only ([#264](https://github.com/RESSLab-Team/resslab-hub/issues/264) M2) ([b03c0e1](https://github.com/RESSLab-Team/resslab-hub/commit/b03c0e1890ad1d81f7132719006f3e7bc9e4e1be))
+* **frontend:** start Google Analytics after the cookie consent ([#264](https://github.com/RESSLab-Team/resslab-hub/issues/264)) ([f6959b2](https://github.com/RESSLab-Team/resslab-hub/commit/f6959b2209ea897bcebcd9316352d6846c63cf9e))
+* **glossary:** quieter drawer rows and a flat tooltip ([e31fbfc](https://github.com/RESSLab-Team/resslab-hub/commit/e31fbfc156302854886001b67b964c60a59c1856))
+* **home:** no more flicker when the hero video starts ([0e17aff](https://github.com/RESSLab-Team/resslab-hub/commit/0e17affb0d7358d826257e99f44656a5d1b5a2d4)), closes [#404](https://github.com/RESSLab-Team/resslab-hub/issues/404)
+* **home:** no more flicker when the hero video starts ([#410](https://github.com/RESSLab-Team/resslab-hub/issues/410)) ([8cbd5d3](https://github.com/RESSLab-Team/resslab-hub/commit/8cbd5d3497043ddcb391f82f9ddd5d238e2fcacc)), closes [#404](https://github.com/RESSLab-Team/resslab-hub/issues/404)
+* **makefile:** stop echoing the API password in validate-% ([#264](https://github.com/RESSLab-Team/resslab-hub/issues/264) Low) ([f39a53f](https://github.com/RESSLab-Team/resslab-hub/commit/f39a53f371fc7c21ef1edd9300765fa4881b2eaf))
+* **uploader:** stop a rebuild that waits too long for its lock ([7bd216f](https://github.com/RESSLab-Team/resslab-hub/commit/7bd216f29c28319d59155e13efff81548d43a28a))
+* **upload:** refuse an archive over the size cap after parsing ([#264](https://github.com/RESSLab-Team/resslab-hub/issues/264) M3) ([f02af1b](https://github.com/RESSLab-Team/resslab-hub/commit/f02af1bc264f1b5f530077a38e0fec68199dbf4e))
+* **validator:** skip the range check on NaN and infinity ([#408](https://github.com/RESSLab-Team/resslab-hub/issues/408)) ([6f72dd1](https://github.com/RESSLab-Team/resslab-hub/commit/6f72dd16cee0345bfd0de914b1a8da86af5ee4ff))
+* **validator:** skip the range check on NaN and infinity ([#408](https://github.com/RESSLab-Team/resslab-hub/issues/408)) ([#413](https://github.com/RESSLab-Team/resslab-hub/issues/413)) ([bda76b3](https://github.com/RESSLab-Team/resslab-hub/commit/bda76b3163447aa743862a02146d7ecc1167b82d))
+
+
+### Performance Improvements
+
+* **contribute:** load all the curves of a submission in one request ([464ba9d](https://github.com/RESSLab-Team/resslab-hub/commit/464ba9d26d23ac6bfe37eb5ba7f2775fa53f5522)), closes [#336](https://github.com/RESSLab-Team/resslab-hub/issues/336)
+* **contribute:** load all the curves of a submission in one request ([#436](https://github.com/RESSLab-Team/resslab-hub/issues/436)) ([e436d40](https://github.com/RESSLab-Team/resslab-hub/commit/e436d407d764cfcd494b36dd28df70cae8a3deaa)), closes [#336](https://github.com/RESSLab-Team/resslab-hub/issues/336)
+
 ## [2.3.0](https://github.com/RESSLab-Team/resslab-hub/compare/v2.2.0...v2.3.0) (2026-11-02)
 
 
