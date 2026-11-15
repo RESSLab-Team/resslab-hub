@@ -96,12 +96,20 @@ because a tooltip is raw DOM outside the app's CSS.
 ### Category colours
 
 Colours for categorical fields come from `utils/categoryColors.ts` through
-`useDataset(...).colorFor(field)`: Okabe-Ito slots handed out once per
-field, by frequency in the unfiltered dataset (ties alphabetical), so a value
+`useDataset(...).colorFor(field)`: the slots of the designer's palette (#388,
+Option 1) handed out once per field, by frequency in the unfiltered dataset (ties alphabetical), so a value
 keeps its colour when a filter reshuffles the ranking and the treemap, the
 stacked histogram and the brush agree. Past eight values the palette repeats
 muted toward grey. `CATEGORY_COLOR_OVERRIDES` (keyed `'<dataset key>:<field>'`)
 pins a value whose colour people have learnt.
+
+The palette is less safe for colour-blind readers than the Okabe-Ito one it
+replaced: for red-blind eyes the blue, lavender, violet and slate slots come
+close. Handing the slots out by frequency keeps that cost low, because the
+closest pairs involve slot 7, which only rare values reach. The treemap
+labels stay white, as in the mockup, even though most slots are pale: on
+amber, mint and lavender white is near 1.5:1. That is a choice made on #388
+(per-tile black text and outlined white text were tried and dropped).
 
 ## The table
 

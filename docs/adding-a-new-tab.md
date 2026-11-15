@@ -514,7 +514,7 @@ The overview map needs no field list here any more, see Step 12.
 Two things the test suite and the UI expect from every new column:
 
 - **A scientific category.** `frontend/src/utils/fieldGroups.ts` maps every column of every database to a group id; `groupFor()` prefers the `group` column of the data dictionary (Step 1.2) and falls back to the per-database patterns in that file. A column with neither lands in `other`, and `fieldGroups.spec.ts` fails: it reads the real column list from `database-columns.json` (add the database to `DATABASE_MODELS` in `backend/resslab_hub/data/columns.py`, then `make api`). Add the database to `FIELD_GROUPS` there, mirroring the dictionary. Tables of the existing groups: [variable-categories.md](variable-categories.md).
-- **Stable colours.** `frontend/src/utils/categoryColors.ts` gives Okabe-Ito slots per field by frequency in the unfiltered dataset, so the treemap, the stacked histogram and the brush agree and a value keeps its colour when filters change. Nothing to add for a new tab; pin a value with `CATEGORY_COLOR_OVERRIDES` (`'<dataset key>:<field>'`) only if a colour people learnt gets reshuffled by a data upload.
+- **Stable colours.** `frontend/src/utils/categoryColors.ts` gives the palette slots (#388, Option 1) per field by frequency in the unfiltered dataset, so the treemap, the stacked histogram and the brush agree and a value keeps its colour when filters change. Nothing to add for a new tab; pin a value with `CATEGORY_COLOR_OVERRIDES` (`'<dataset key>:<field>'`) only if a colour people learnt gets reshuffled by a data upload.
 
 ---
 
@@ -541,7 +541,7 @@ The home map reads one endpoint, `GET /map/sites`, which groups the rows of ever
 
 1. `backend/resslab_hub/models/map.py`: add a `MapCategory` value, the same string as the router's `Component`.
 2. `backend/resslab_hub/routers/map.py`: add a `_Source` to `_SOURCES`. It names the table and the columns that hold the program (`investigator` or `experimental_program`), the year, the link and, if the tab has schematics, the column that picks one (`figure`). Then `make api`.
-3. `frontend/src/utils/mapCategories.ts`: add an entry to `MAP_CATEGORIES` (label key, alt key, database route). The colours come from the 8 Okabe-Ito slots then one grey, so a 10th database needs its own colour: `mapCategories.spec.ts` fails if two categories share one.
+3. `frontend/src/utils/mapCategories.ts`: add an entry to `MAP_CATEGORIES` (label key, alt key, database route). The colours come from the 8 palette slots then one grey, so a 10th database needs its own colour: `mapCategories.spec.ts` fails if two categories share one.
 4. `frontend/src/utils/mapSites.ts`: add a case to `programImage()` that returns the schematic from `utils/component.ts`. Add `map.category_<x>` and `map.alt_<x>` to `en.json` and `fr.json`.
 
 The map, its panel and its legend pick up the new category from there. Site names come from `frontend/src/assets/map-sites.json` (keyed by the same `lat,lng`); a new lab shows its coordinates until someone adds it there.
