@@ -1634,14 +1634,15 @@ function downloadZip(): void {
   /* global .tag pill, minus its border — a ruled pill per row reads too heavy in a table */
   border: 0;
 }
-/* Category value: a tag pill in the chart's color for that value — text in
-   the color (pulled slightly toward ink so amber/sky stay legible) on a
-   desaturated tint of it. Falls back to the muted grey until the dataset's
-   scale is known. */
+/* Category value: a tag pill in the chart's color for that value. The text is
+   the color pulled more than half toward ink, on a light tint of it: the #388
+   palette is pale, and 80% color text fell to about 2:1 on amber, mint and
+   lavender. 45% keeps every slot above 4.5:1 in both themes. Falls back to the
+   muted grey until the dataset's scale is known. */
 .cell-category {
   --category-color: #c1c1c1;
-  color: color-mix(in srgb, var(--category-color) 80%, var(--fg));
-  background: color-mix(in srgb, var(--category-color) 14%, var(--bg));
+  color: color-mix(in srgb, var(--category-color) 45%, var(--fg));
+  background: color-mix(in srgb, var(--category-color) 22%, var(--bg));
   white-space: nowrap;
 }
 

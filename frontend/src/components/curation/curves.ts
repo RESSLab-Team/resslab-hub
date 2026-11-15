@@ -162,10 +162,10 @@ export const EXISTING_OPACITY = 0.85
 
 // Every cohort curve used to be the same grey, so with several of them on a
 // frame a curator could not tell which chip was which line (andskia, #268).
-// Each overlay keeps its own slot of the dashboard palette (Okabe-Ito, colour
-// blind safe), mixed toward the existing-data grey so it reads as "existing"
-// next to the red submission. Too strong a blend turns every hue into the same
-// grey line and the chips cannot be told apart again.
+// Each overlay keeps its own slot of the dashboard palette, mixed toward the
+// existing-data grey so it reads as "existing" next to the red submission.
+// Too strong a blend turns every hue into the same grey line and the chips
+// cannot be told apart again.
 
 /** How far the overlay hues go toward the existing-data grey. */
 const OVERLAY_BLEND = 0.55
