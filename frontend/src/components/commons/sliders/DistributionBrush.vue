@@ -17,6 +17,7 @@
  */
 import { initOptions, stackBrushSeries } from '@/components/commons/charts/utils'
 import { isBrushDragging } from '@/composables/interactionState'
+import { echartsTheme } from '@/plugins/echarts-theme'
 import { blendHex } from '@/utils/palette'
 import type { EChartsOption } from 'echarts'
 import { BarChart, LineChart } from 'echarts/charts'
@@ -518,6 +519,7 @@ const displayMax = computed(() =>
     <div ref="chartEl" class="dist-brush__chart">
       <v-chart
         class="dist-brush__canvas"
+        :theme="echartsTheme"
         :init-options="initOptions"
         :option="option"
         :update-options="{ notMerge: false }"

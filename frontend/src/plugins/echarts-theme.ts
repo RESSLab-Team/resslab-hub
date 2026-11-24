@@ -1,7 +1,7 @@
 /* ============================================================
    RESSLab Hub — brutalist ECharts theme (EPFL design handoff)
-   Applied globally via vue-echarts THEME_KEY (see main.ts), so every
-   <v-chart> picks it up without per-component wiring.
+   Passed to each <v-chart> as `:theme` (vue-echarts 8 keeps its inject key
+   private), and to `init()` in composables/useEChart.ts.
 
    Design language (from the handoff's charts-lib.js):
      · hairline axes  (#C1C1C1)
