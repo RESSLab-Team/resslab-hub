@@ -22,7 +22,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: EPFL-ENAC/epfl-enac-build-push-deploy-action/.github/workflows/deploy.yml@1c3a6acc01b5eb2f3415367d791fa75082ba00a8 # v3.0.5
+    uses: EPFL-ENAC/epfl-enac-build-push-deploy-action/.github/workflows/deploy.yml@3739f2a12ba55f4546dd261e68d9d8d435bdfe6f # v4.2.0
     secrets:
       token: ${{ secrets.CD_TOKEN }}
     with:
