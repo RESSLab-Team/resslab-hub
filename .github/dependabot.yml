@@ -1,0 +1,121 @@
+# Weekly dependency updates, all on `dev` (the default branch).
+# `stage` and `main` only get promotion merges, see docs/src/releasing.md.
+#
+# Per ecosystem: one PR for all minor and patch updates, one PR for each major.
+# Security updates are grouped too (they always target the default branch).
+#
+# Commit prefix, read by commitlint and Release Please:
+#   fix(deps)       runtime dependency, makes a patch release
+#   chore(deps-dev) dev dependency, no release
+#   ci(deps)        GitHub Actions, no release
+version: 2
+
+updates:
+  # Root package.json (commitlint, lefthook) and frontend (pnpm 11, own lockfile).
+  - package-ecosystem: npm
+    directories:
+      - "/"
+      - "/frontend"
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: fix
+      prefix-development: chore
+      include: scope
+    groups:
+      npm-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      npm-minor-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+        patterns: ["*"]
+
+  # Python backend and docs site (uv, with uv.lock).
+  - package-ecosystem: uv
+    directories:
+      - "/backend"
+      - "/docs"
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: fix
+      prefix-development: chore
+      include: scope
+    groups:
+      python-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      python-minor-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+        patterns: ["*"]
+
+  # Base images in backend/Dockerfile, frontend/Dockerfile, docs/Dockerfile.
+  - package-ecosystem: docker
+    directories:
+      - "/backend"
+      - "/frontend"
+      - "/docs"
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: fix
+      include: scope
+    groups:
+      docker-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      docker-minor-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+        patterns: ["*"]
+
+  # Images in docker-compose.yml (traefik, postgres).
+  - package-ecosystem: docker-compose
+    directory: "/"
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: fix
+      include: scope
+    groups:
+      compose-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      compose-minor-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+        patterns: ["*"]
+
+  # Actions used in .github/workflows/.
+  - package-ecosystem: github-actions
+    directory: "/"
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: ci
+      include: scope
+    groups:
+      actions-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      actions-minor-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+        patterns: ["*"]
