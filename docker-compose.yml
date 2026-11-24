@@ -6,6 +6,8 @@ services:
       - frontend
     command:
       - "--providers.docker"
+      # Only the containers with traefik.enable=true get a route (#264, M5).
+      - "--providers.docker.exposedByDefault=false"
       - "--providers.file.directory=/configuration/"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
@@ -14,11 +16,10 @@ services:
       - "--entrypoints.websecure.address=:443"
       # - "--api.dashboard=true"  # Enable Traefik Dashboard
       # - "--api.insecure=true"  # WARNING: Only for development
-    labels:
-      - "traefik.http.middlewares.secureHeaders.headers.stsSeconds=31536000"
-      - "traefik.http.middlewares.secureHeaders.headers.forceSTSHeader=true"
-      - "traefik.http.middlewares.compress.compress=true"
-      # - "traefik.enable=true"
+    # No labels here: with exposedByDefault=false Traefik reads no label of
+    # this container, so the shared middlewares are declared on the frontend.
+    # To turn the dashboard on, add these as labels:
+    # - "traefik.enable=true"
       # - "traefik.http.routers.traefik.rule=Host(`traefik.localhost`)"
       # - "traefik.http.routers.traefik.service=api@internal"
       # - "traefik.http.routers.traefik.entrypoints=websecure"
@@ -31,14 +32,20 @@ services:
       - "443:443"
     restart: unless-stopped
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./traefik.yaml:/configuration/traefik.yml
-      - /etc/ssl:/etc/ssl
+      # All read-only (#264, M5). Note: a read-only socket still lets Traefik
+      # call the Docker API, only a socket proxy would limit that.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yaml:/configuration/traefik.yml:ro
+      - /etc/ssl:/etc/ssl:ro
 
   frontend:
     build: ./frontend
     image: ghcr.io/resslab-team/resslab-hub/frontend:latest
     labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.secureHeaders.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.secureHeaders.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.compress.compress=true"
       - "traefik.http.routers.frontend.tls=true"
       - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
       - "traefik.http.routers.frontend.middlewares=secureHeaders@docker,compress@docker"
@@ -52,7 +59,10 @@ services:
     env_file: secrets/.env
     environment:
       MODULE_NAME: resslab_hub.main
-      FORWARDED_ALLOW_IPS: "*"
+      # Trust X-Forwarded-For only from Traefik, on the compose network
+      # (Docker's default private ranges). With "*" any client could pick the
+      # IP the rate limits count (#264, H4).
+      FORWARDED_ALLOW_IPS: "172.16.0.0/12,192.168.0.0/16"
       POSTGRES_HOST: database
       ROOT_PATH: /api
       # Where a browser reaches the app, without the /api prefix. Every
@@ -60,6 +70,7 @@ services:
       # Traefik has already stripped the prefix and rewritten the Host.
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://resslab-hub.epfl.ch}
     labels:
+      - "traefik.enable=true"
       - "traefik.http.routers.backend.tls=true"
       - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
       - "traefik.http.routers.backend.middlewares=backend-stripprefix,secureHeaders@docker,compress@docker"
@@ -68,10 +79,17 @@ services:
 
   database:
     image: postgres:14-alpine
+    # Loopback only (#264, C3). Docker writes its own iptables rules, so a
+    # port published on every interface skips the host firewall.
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
+    # Only the POSTGRES_* keys, not the app secrets in secrets/.env (#264,
+    # M5). Create it once: echo POSTGRES_PASSWORD=changeit > secrets/db.env
+    # Optional so the CI image build works without it. Postgres refuses to
+    # create a new database with no password, with a clear message.
     env_file:
-      - ./secrets/.env
+      - path: ./secrets/db.env
+        required: false
     restart: unless-stopped
     volumes:
       - database:/var/lib/postgresql/data
