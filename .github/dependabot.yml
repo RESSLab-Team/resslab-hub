@@ -91,6 +91,11 @@ updates:
     commit-message:
       prefix: fix
       include: scope
+    # A new PostgreSQL major cannot read the data files of the old one, and the
+    # cluster runs the same major. We move it by hand, with the cluster.
+    ignore:
+      - dependency-name: postgres
+        update-types: ["version-update:semver-major"]
     groups:
       compose-security:
         applies-to: security-updates
