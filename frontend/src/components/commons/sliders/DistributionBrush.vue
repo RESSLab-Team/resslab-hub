@@ -325,7 +325,11 @@ const option = computed<EChartsOption>(() => {
       type: 'value',
       min: axisLo.value,
       max: axisHi.value,
-      show: false
+      show: false,
+      // ECharts 6 widens a value axis so the bars fit inside it. That moves the
+      // bars away from their slots and from the bars of the main chart. Keep the
+      // range we set.
+      containShape: false
       // No boundaryGap: it's invalid (boolean) on a value axis and moot here
       // anyway since min/max pin the range explicitly.
     },
