@@ -12,3 +12,10 @@ allowBuilds:
 # node_modules looks stale, and prompt for a TTY it does not have. Warn only,
 # like `npx --no-install` did.
 verifyDepsBeforeRun: warn
+
+# Security alerts (Dependabot) on transitive dev tools that no parent release
+# fixes yet. Remove an override when its parent moves to the patched range.
+overrides:
+  shell-quote@<1.11.0: ^1.11.0 # concurrently (via openapi-generator-cli) pins 1.9.0
+  minimatch@>=7.0.0 <11.0.1: ^11.0.1 # glob 10/13 and vue-tsc ask for 9 and 10
+  basic-ftp@<6.2.4: ^6.2.4 # get-uri (via openapi-generator-cli) asks for 5
