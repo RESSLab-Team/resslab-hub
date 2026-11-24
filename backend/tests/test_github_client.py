@@ -10,6 +10,7 @@ content actually changed.
 import asyncio
 from types import SimpleNamespace
 
+import httpx
 import pytest
 
 from resslab_hub.contributions.github import (
@@ -18,6 +19,7 @@ from resslab_hub.contributions.github import (
     _SharedGitHub,
     blob_sha,
     describe_error,
+    public_error,
 )
 from tests.conftest import github_refusal
 
@@ -204,6 +206,23 @@ def test_a_body_that_is_not_json_falls_back_on_the_status():
 
 def test_any_other_error_keeps_its_text():
     assert describe_error(RuntimeError("boom")) == "boom"
+
+
+def test_the_browser_gets_github_reason_but_not_our_own_errors(caplog):
+    body = {"message": "Resource not accessible by integration"}
+    assert public_error(github_refusal(403, body)) == (
+        "GitHub answered 403: Resource not accessible by integration"
+    )
+
+    # Our own errors can carry paths or internal details (#264, H3): they go
+    # to the logs, the browser gets a fixed sentence.
+    secret = RuntimeError("could not open /app/secrets/key.pem")
+    assert "secrets" not in public_error(secret)
+    assert "/app/secrets/key.pem" in caplog.text
+
+    assert public_error(httpx.ReadTimeout("read timed out")) == (
+        "GitHub did not answer in time"
+    )
 
 
 @pytest.mark.asyncio

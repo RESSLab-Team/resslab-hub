@@ -40,6 +40,7 @@ from resslab_hub.contributions.github import (
     DataRepoClient,
     configured,
     describe_error,
+    public_error,
 )
 from resslab_hub.contributions.projection import (
     SubmissionError,
@@ -282,7 +283,7 @@ async def _fetch_pull(client: DataRepoClient, pr_number: int) -> Tuple[dict, Typ
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="The pull request's files could not be read from the data "
-            "repository: " + describe_error(exc),
+            "repository: " + public_error(exc),
         )
     if resolved.kind == "verification":
         raise HTTPException(
@@ -609,7 +610,7 @@ async def get_contribution(request: Request, pr_number: int) -> CurationDetail:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="The submission could not be read from the data repository: "
-            + describe_error(exc),
+            + public_error(exc),
         )
     return detail.model_copy(update={"mine": _is_mine(request, pr_number, detail)})
 
@@ -690,7 +691,7 @@ async def get_contribution_comments(
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="The discussion could not be read from the data repository: "
-            + describe_error(exc),
+            + public_error(exc),
         )
     items = [
         CurationComment(
@@ -829,7 +830,7 @@ async def get_contribution_curves(
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail="The files could not be read from the data repository: "
-                + describe_error(text),
+                + public_error(text),
             )
     response = CurationCurvesResponse(
         pr_number=pr_number,

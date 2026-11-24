@@ -22,7 +22,7 @@ from typing import Dict, Iterable, List, Optional, Tuple
 from resslab_hub.contributions.github import (
     DataRepoClient,
     NewFile,
-    describe_error,
+    public_error,
 )
 from resslab_hub.contributions.projection import (
     SubmissionError,
@@ -305,7 +305,7 @@ async def open_verification(
         raise SubmissionError(
             502,
             "The pull request could not be opened on the data repository "
-            f"({describe_error(exc)}).",
+            f"({public_error(exc)}).",
         )
     # A verification needs an approval too (#266). Best effort, like a submit.
     await request_reviews(client, pull["number"], curator.github_login)

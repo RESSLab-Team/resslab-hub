@@ -17,6 +17,7 @@ client is kept open between calls: see `_SharedGitHub` below.
 
 import asyncio
 import hashlib
+import logging
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import AsyncGenerator, Dict, List, Optional
@@ -26,6 +27,8 @@ from githubkit import AppInstallationAuthStrategy, GitHub
 from githubkit.exception import RequestFailed
 
 from resslab_hub.config import settings
+
+logger = logging.getLogger(__name__)
 
 # GitHub calls per commit that may run at the same time. One connection pool
 # is shared, so this is about not tripping the secondary rate limit, not about
@@ -82,6 +85,22 @@ def describe_error(exc: BaseException) -> str:
                 reasons.append(str(error))
     reason = "; ".join(r for r in reasons if r) or response.reason_phrase
     return f"GitHub answered {response.status_code}: {reason[:300]}"
+
+
+def public_error(exc: BaseException) -> str:
+    """The part of a failure that is safe to send to the browser (#264, H3).
+
+    GitHub's own reason for a refused call stays: it tells the person what to
+    do. Any other error (a bug in our code, a network error) can carry paths
+    or internal details, so it goes to the logs and the person gets a fixed
+    sentence.
+    """
+    if isinstance(exc, RequestFailed):
+        return describe_error(exc)
+    if isinstance(exc, httpx.TimeoutException):
+        return "GitHub did not answer in time"
+    logger.error("Data repository call failed", exc_info=exc)
+    return "an unexpected error, see the server logs"
 
 
 @dataclass

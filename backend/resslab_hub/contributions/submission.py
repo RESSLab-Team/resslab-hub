@@ -33,7 +33,7 @@ from resslab_hub.config import settings
 from resslab_hub.contributions.github import (
     DataRepoClient,
     NewFile,
-    describe_error,
+    public_error,
 )
 from resslab_hub.contributions.projection import (
     SubmissionError,
@@ -562,7 +562,7 @@ async def submit_contribution(
         raise SubmissionError(
             502,
             "The pull request could not be opened on the data repository "
-            f"({describe_error(exc)}).",
+            f"({public_error(exc)}).",
         )
     # The PR is open from here: a failure is only logged, the submit succeeds.
     await request_reviews(client, pull["number"], contributor.github_login)

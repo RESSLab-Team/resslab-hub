@@ -903,6 +903,8 @@ async def test_comments_502_when_github_fails(monkeypatch):
     with pytest.raises(HTTPException) as caught:
         await get_contribution_comments(make_request(), 7)
     assert caught.value.status_code == 502
+    # Not GitHub's answer: the raw text stays in the logs (#264, H3).
+    assert "boom" not in caught.value.detail
 
 
 async def test_invalidate_pull_forgets_a_submission(monkeypatch):
