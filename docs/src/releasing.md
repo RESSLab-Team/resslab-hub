@@ -90,6 +90,14 @@ not match the `v*.*.*` pattern in `deploy.yml`, so prod would not deploy. It
 would also fail to find the previous `v1.1.0` tag and rebuild the whole
 changelog. Leave that option alone.
 
+## Dependabot
+
+`.github/dependabot.yml` opens update PRs on `dev` every week. Minor and patch
+updates come in one PR per ecosystem. Each major update gets its own PR.
+Runtime updates use `fix(deps)`, so they make a patch release. Dev
+dependencies use `chore(deps-dev)` and GitHub Actions use `ci(deps)`: they
+make no release.
+
 ## The token
 
 `release-please.yml` uses `secrets.RELEASE_PLEASE_TOKEN`, not the default
