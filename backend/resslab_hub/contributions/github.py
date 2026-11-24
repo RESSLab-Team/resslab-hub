@@ -17,6 +17,7 @@ client is kept open between calls: see `_SharedGitHub` below.
 
 import asyncio
 import hashlib
+import inspect
 import logging
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -24,7 +25,7 @@ from typing import AsyncGenerator, Dict, List, Optional
 
 import httpx
 from githubkit import AppInstallationAuthStrategy, GitHub
-from githubkit.exception import RequestFailed
+from githubkit.exception import RequestFailed, RequestTimeout
 
 from resslab_hub.config import settings
 
@@ -97,7 +98,7 @@ def public_error(exc: BaseException) -> str:
     """
     if isinstance(exc, RequestFailed):
         return describe_error(exc)
-    if isinstance(exc, httpx.TimeoutException):
+    if isinstance(exc, (httpx.TimeoutException, RequestTimeout)):
         return "GitHub did not answer in time"
     logger.error("Data repository call failed", exc_info=exc)
     return "an unexpected error, see the server logs"
@@ -136,11 +137,20 @@ class _SharedGitHub(GitHub):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._shared_client: Optional[httpx.AsyncClient] = None
+        # Two first calls at the same time must not build two clients, now
+        # that building one can wait (see `get_async_client`).
+        self._client_lock = asyncio.Lock()
 
     @asynccontextmanager
     async def get_async_client(self) -> AsyncGenerator[httpx.AsyncClient, None]:
         if self._shared_client is None:
-            self._shared_client = self._create_async_client()
+            async with self._client_lock:
+                if self._shared_client is None:
+                    # Sync in githubkit 0.12, a coroutine since 0.17.
+                    client = self._create_async_client()
+                    if inspect.isawaitable(client):
+                        client = await client
+                    self._shared_client = client
         yield self._shared_client
 
     async def aclose(self) -> None:
@@ -165,6 +175,10 @@ def _github() -> _SharedGitHub:
                 installation_id=int(settings.github_app_installation_id),
             ),
             timeout=REQUEST_TIMEOUT,
+            # githubkit's cache client (hishel 1.x, githubkit 0.17) ignores the
+            # timeout. We gain nothing from it: githubkit already sends
+            # `Cache-Control: no-cache` on every request.
+            http_cache=False,
         )
     return _shared_github
 
