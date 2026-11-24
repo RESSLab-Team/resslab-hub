@@ -63,7 +63,7 @@ figures = [
 ]
 
 [tool.uv.sources]
-enacit4r-files = { git = "https://github.com/EPFL-ENAC/enacit4r-files", tag = "1.4.0" }
+enacit4r-files = { git = "https://github.com/EPFL-ENAC/enacit4r-files", tag = "1.4.1" }
 
 [build-system]
 requires = ["hatchling"]
@@ -81,6 +81,7 @@ select = ["E", "W", "F", "I"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 
 [tool.coverage.run]
