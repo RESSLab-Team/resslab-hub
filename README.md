@@ -43,11 +43,18 @@ Production: https://resslab-hub.epfl.ch.
 
 ### Secrets
 
-An environment file should be created (see all available keys in `backend/resslab_hub/config.py`).
+Two environment files. `secrets/.env` is for the backend (see all available
+keys in `backend/resslab_hub/config.py`). `secrets/db.env` is for the
+PostgreSQL container, which gets only that one and not the app secrets.
 
 ```bash
-mkdir -p secrets && echo POSTGRES_PASSWORD=changeit > secrets/.env
+mkdir -p secrets
+echo POSTGRES_PASSWORD=changeit > secrets/.env
+echo POSTGRES_PASSWORD=changeit > secrets/db.env
 ```
+
+The password in `secrets/db.env` is only read the first time the database
+volume is created. An existing volume keeps its password.
 
 ### Installation
 
@@ -73,9 +80,18 @@ make dev-frontend
 `make dev-all` runs the three in one terminal, `make tmux-dev-all` as a tmux
 session. `make help` lists every target, here and in `backend/`.
 
-About the database port: `docker-compose.yml` maps 5432, but each checkout
-carries a gitignored `docker-compose.override.yml` that moves it to 5433
-(`scripts/wt-setup.sh` seeds it, so every worktree shares the same container).
+About the database port: `docker-compose.yml` maps 5432 on `127.0.0.1` only,
+but each checkout carries a gitignored `docker-compose.override.yml` that
+moves it to 5433 (`scripts/wt-setup.sh` seeds it, so every worktree shares the
+same container). Keep the loopback address there too:
+
+```yaml
+services:
+  database:
+    ports: !override
+      - "127.0.0.1:5433:5432"
+```
+
 Put `POSTGRES_PORT=5433` in `secrets/.env` to match.
 
 Open the app on the Vite port only. It proxies `/api` to the backend, which is
@@ -170,4 +186,6 @@ make run
 
 Builds the images and starts the full stack (Traefik, frontend, seven backend
 replicas, PostgreSQL). It needs `SSL_CERT_CRT` and `SSL_CERT_KEY` in the
-environment and the `/etc/ssl` mounts of `docker-compose.yml`.
+environment and the `/etc/ssl` mounts of `docker-compose.yml`. Traefik only
+routes the services labelled `traefik.enable=true`, and its mounts are
+read-only.
