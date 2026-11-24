@@ -13,7 +13,7 @@ ENAC apps use. It disables the trailing checksums the EPFL endpoint rejects
 
 Every value comes from the settings, none from this file: the five public ones
 from the resslab-hub-backend ConfigMap in k8s (secrets/.env on a laptop), the
-two keys from Infisical. See docs/sem-images.md.
+two keys from Infisical. See docs/src/sem-images.md.
 """
 
 from __future__ import annotations
@@ -71,7 +71,7 @@ class CdnConfig:
             raise CdnNotConfigured(
                 f"{', '.join(missing)} not set. The SEM upload needs the S3 "
                 "settings (secrets/.env locally, the ConfigMap and Infisical "
-                "in the deployments). See docs/sem-images.md."
+                "in the deployments). See docs/src/sem-images.md."
             )
         return cls(**values)
 

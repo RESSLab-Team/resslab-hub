@@ -3,7 +3,8 @@
 Files under a path of `exclude_docs` (zensical.toml) are not built, so they
 are skipped. Copied from the ENAC-IT4R wiki. A regex on the Markdown link
 forms the docs use ([x](path), [x](<path>), src="path"), not a parser.
-Run from the repo root by `make docs`: python3 scripts/docs-check-orphans.py
+Run from docs/ by `make docs` and by the Dockerfile:
+python3 scripts/check-orphans.py
 """
 
 import os

@@ -28,4 +28,4 @@ jobs:
     with:
       org: epfl-resslab
       repo: resslab-hub
-      build_context: '["./backend", "./frontend"]'
+      build_context: '["./backend", "./frontend", "./docs"]'

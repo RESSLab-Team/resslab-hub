@@ -1,36 +1,31 @@
-# The docs site, built from docs/ by Zensical. Same setup as the ENAC-IT4R wiki.
-# Build: `make docs` (strict, then the link and orphan checks). Preview: `make docs-serve`.
-# Deployed to GitHub Pages from `main` by .github/workflows/deploy-pages.yml.
+# The docs site, built by Zensical from the pages in src/. This folder is a
+# small project of its own (pyproject.toml, Dockerfile, nginx.conf).
+# Build: `make docs` from the repo root (strict, then the link and orphan
+# checks). Preview: `make docs-serve`.
+# Deployed as its own image (docs/Dockerfile), served under /docs/ of each hub.
 [project]
 site_name = "RESSLab Hub docs"
-site_url = "https://resslab-team.github.io/resslab-hub/"
+# Only the /docs/ path matters: the same image runs on dev, stage and prod.
+site_url = "https://resslab-hub.epfl.ch/docs/"
 site_description = "How the RESSLab Hub works: submit and review data, run the data pipeline, maintain the app"
 repo_url = "https://github.com/RESSLab-Team/resslab-hub"
 repo_name = "RESSLab-Team/resslab-hub"
-edit_uri = "edit/dev/docs/"
-docs_dir = "docs"
-
-# Not built at all, so not in the search either. archive/ holds old plans and
-# notes. The worktree guide is about the laptop setup of the team and its
-# agents; it stays readable on GitHub.
-exclude_docs = """
-/archive/
-/worktree-dev-environment.md
-"""
+edit_uri = "edit/dev/docs/src/"
+docs_dir = "src"
 
 # The sidebar, written by hand. A new page goes here, or is linked from a page
 # that is here: scripts/docs_check_orphans.py fails otherwise.
 nav = [
-  { "Home" = "README.md" },
+  { "Home" = "index.md" },
   # For researchers and curators.
   { "Contribute data" = [
     "contribute/index.md",
     { "Submit with the Hub" = "contribute/submit-with-the-hub.md" },
-    # The root README of the data repo, copied by scripts/docs-data-repo.py.
+    # The root README of the data repo, copied by scripts/data-repo.py.
     { "Submit with a pull request" = "data/contributing.md" },
     { "Review and verify" = "contribute/review-and-verify.md" },
   ] },
-  # docs/data/ is generated from the data repo by scripts/docs-data-repo.py
+  # src/data/ is generated from the data repo by scripts/data-repo.py
   # (make docs runs it). A new database folder there needs a line here.
   { "Databases" = [
     "data/index.md",
@@ -66,6 +61,8 @@ nav = [
 
 [project.theme]
 language = "en"
+# System fonts: no call to Google Fonts from an epfl.ch page.
+font = false
 features = [
   "content.action.edit",
   "content.code.copy",

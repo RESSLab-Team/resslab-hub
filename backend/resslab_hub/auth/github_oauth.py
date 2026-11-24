@@ -4,7 +4,7 @@ Sign in with GitHub, and link a GitHub account to an existing user.
 This is the user-to-server side of a GitHub App: an OAuth pair for identifying
 people, separate from the installation token that writes to the data repo. In
 the deployments it is the App that opens the pull requests; locally a dev App
-with a loopback callback (docs/auth.md).
+with a loopback callback (docs/src/auth.md).
 
 The OAuth ``state`` is a ``LoginChallenge`` row whose id also goes in the
 ``resslab_login`` cookie, so the callback only works in the browser that

@@ -61,10 +61,6 @@ figures = [
   "matplotlib>=3.8,<4",
   "numpy>=1.24,<3",
 ]
-# The docs site (zensical.toml at the repo root): `make docs`, `make docs-serve`.
-docs = [
-  "zensical>=0.0.64",
-]
 
 [tool.uv.sources]
 enacit4r-files = { git = "https://github.com/EPFL-ENAC/enacit4r-files", tag = "1.4.0" }

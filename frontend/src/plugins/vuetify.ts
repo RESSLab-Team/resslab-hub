@@ -7,7 +7,7 @@ import 'vuetify/styles'
    properties in assets/styles/epfl-tokens.css. Vuetify wants plain hex here
    (it splits them into the rgb triplets behind --v-theme-*), so the brand
    values are written twice on purpose: once as a token, once here. Change one,
-   change the other, and the ECharts theme too. See docs/design-system.md. */
+   change the other, and the ECharts theme too. See docs/src/design-system.md. */
 export const themes = {
   light: {
     colors: {

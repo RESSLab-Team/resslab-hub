@@ -14,7 +14,7 @@ was on its way (#247). :func:`check_at_startup` also says it in the log.
 In the deployments the relay is the EPFL one, ``mail.epfl.ch:587`` with
 STARTTLS and a service account. That server offers ``AUTH GSSAPI NTLM LOGIN``;
 aiosmtplib knows cram-md5, plain and login, so it picks LOGIN. See
-``docs/auth.md`` for the settings and the deploy runbook.
+``docs/src/auth.md`` for the settings and the deploy runbook.
 
 A relay that refuses or does not answer raises :class:`MailError`. The caller
 undoes the challenge it had just written, so a broken relay does not eat the
@@ -131,7 +131,7 @@ def check_at_startup() -> None:
     elif deployed():
         logger.error(
             "SMTP_HOST is not set on deployment %s: sign-in mails cannot be "
-            "sent and /auth/email/start answers 503. See docs/auth.md.",
+            "sent and /auth/email/start answers 503. See docs/src/auth.md.",
             settings.deployment,
         )
     else:
@@ -173,7 +173,7 @@ def build_add_email_message(email: str, code: str) -> EmailMessage:
     """The mail that proves an address added from the account page (#402).
 
     A code and no link, on purpose: the code must be typed in the session
-    that asked, see ``docs/auth.md``.
+    that asked, see ``docs/src/auth.md``.
     """
     ttl = str(settings.login_code_ttl_minutes)
     text = _fill(_template("add_email.txt"), {"code": code, "ttl_minutes": ttl})

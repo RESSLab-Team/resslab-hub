@@ -61,24 +61,24 @@ upload-data:            ## upload every CSV of the data repo into the local DB (
 backup-dump:            ## make backup-dump DEST_FOLDER=path, pg_dumpall of the dev database
 	@docker compose exec database sh -c 'pg_dumpall -U postgres' > ${DEST_FOLDER}/all-databases.sql
 
-# --- docs site (zensical.toml, docs/). Zensical comes from the docs group of backend/pyproject.toml.
+# --- docs site: docs/ is its own project (zensical.toml, pyproject.toml, pages in docs/src/).
+# The deployed image is docs/Dockerfile, served under /docs/ of each hub.
 DOCS_PORT ?= 8100
-# The data repo pages come from this clone, at this ref (CI passes HEAD).
+# The data repo pages come from this clone, at this ref.
 RESSLAB_DATA_DIR ?= ../resslab-hub-data
 DATA_REF ?= origin/main
-ZENSICAL = cd backend && uv run --only-group docs zensical
 
-docs-data:              ## copy the READMEs and dictionaries of the data repo into docs/data/ (RESSLAB_DATA_DIR, DATA_REF=origin/main)
-	python3 scripts/docs-data-repo.py $(RESSLAB_DATA_DIR) $(DATA_REF)
+docs-data:              ## copy the READMEs and dictionaries of the data repo into docs/src/data/ (RESSLAB_DATA_DIR, DATA_REF=origin/main)
+	cd docs && python3 scripts/data-repo.py $(abspath $(RESSLAB_DATA_DIR)) $(DATA_REF)
 
-docs: docs-data         ## build the docs site into site/ in strict mode, then check links and orphan files
-	$(ZENSICAL) build --config-file ../zensical.toml --clean --strict
-	python3 scripts/docs-data-repo.py --edit-links site
-	python3 scripts/docs-check-links.py site
-	python3 scripts/docs-check-orphans.py
+docs: docs-data         ## build the docs site into docs/site/ in strict mode, then check links and orphan files
+	cd docs && uv run zensical build --clean --strict
+	cd docs && python3 scripts/data-repo.py --edit-links site
+	cd docs && python3 scripts/check-links.py site
+	cd docs && python3 scripts/check-orphans.py
 
-docs-serve: docs-data   ## preview the docs site with live reload on http://127.0.0.1:8100 (DOCS_PORT in a worktree)
-	$(ZENSICAL) serve --config-file ../zensical.toml --dev-addr 127.0.0.1:$(DOCS_PORT)
+docs-serve: docs-data   ## preview the docs site with live reload on http://127.0.0.1:8100/docs/ (DOCS_PORT in a worktree)
+	cd docs && uv run zensical serve --dev-addr 127.0.0.1:$(DOCS_PORT)
 
 data-fork-reset:        ## reset the test fork's main (where local submissions go) to the real data repo's main; needs gh with push on EPFL-ENAC
 	scripts/data-fork-reset.sh

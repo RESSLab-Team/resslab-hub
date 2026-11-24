@@ -2,7 +2,8 @@
 
 Zensical --strict checks the links between pages. This also checks images
 and other files, on the HTML it wrote. Copied from the ENAC-IT4R wiki.
-Run by `make docs`: python3 scripts/docs-check-links.py site
+Run from docs/ by `make docs` and by the Dockerfile:
+python3 scripts/check-links.py site
 """
 
 import html

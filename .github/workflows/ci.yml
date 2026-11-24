@@ -115,31 +115,22 @@ jobs:
       - run: git ls-files -z '*.yml' '*.yaml' | xargs -0 bash scripts/check-yaml.sh
       - run: git ls-files -z | xargs -0 bash scripts/check-large-files.sh
   build-docs:
-    # The docs site in strict mode (a warning fails the build), then the link
-    # and orphan checks. Same command as on a laptop: make docs.
+    # Builds the docs image, the one deploy.yml pushes. Its Dockerfile runs the
+    # strict build (a warning fails it), then the link and orphan checks, and
+    # it clones the data repo for the "Databases" pages.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10.3.3 # Astral publishes no major tag (v10)
-        with:
-          enable-cache: true
-          cache-dependency-glob: "backend/uv.lock"
-      - run: uv sync --frozen --only-group docs
-        working-directory: backend
-      # The data repo is public. Only its READMEs and dictionaries are needed.
-      - uses: actions/checkout@v7
-        with:
-          repository: RESSLab-Team/resslab-hub-data
-          ref: main
-          path: data-repo
-          lfs: false
-          filter: blob:none
-          sparse-checkout: |
-            /README.md
-            /**/README.md
-            /**/*_data_dictionary.csv
-          sparse-checkout-cone-mode: false
-      - run: make docs RESSLAB_DATA_DIR=data-repo DATA_REF=HEAD
+      - run: docker build --pull -t resslab-hub-docs docs
+      - name: The image serves the site under /docs/
+        run: |
+          docker run -d --name docs -p 8080:8080 resslab-hub-docs
+          sleep 2
+          curl -fsS -o /dev/null http://127.0.0.1:8080/docs/
+          curl -fsS -o /dev/null http://127.0.0.1:8080/docs/contribute/
+          curl -fsS -o /dev/null http://127.0.0.1:8080/docs/data/braces/
+          test "$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' http://127.0.0.1:8080/docs)" = "301 http://127.0.0.1:8080/docs/"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/docs/nothing-here/)" = "404"
   build-docker:
     runs-on: ubuntu-latest
     steps:

@@ -18,7 +18,7 @@ Environment:
     S3_ENDPOINT_PROTOCOL, S3_ENDPOINT_HOSTNAME, S3_REGION, S3_BUCKET,
     S3_PATH_PREFIX, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY
                 The CDN, read through the app settings, so ``secrets/.env``
-                or the shell. Required unless DRY_RUN. See docs/sem-images.md.
+                or the shell. Required unless DRY_RUN. See docs/src/sem-images.md.
 """
 
 from __future__ import annotations

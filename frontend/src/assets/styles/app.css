@@ -4,7 +4,7 @@
 /* Layer: app — the shell, the pages and their components.
    The base typography, the title roles and the broad Vuetify overrides live in
    base.css and vuetify-overrides.css; this file is everything above them.
-   See docs/design-system.md. */
+   See docs/src/design-system.md. */
 
 /* ================ APP SHELL (SIDEBAR LAYOUT) ================ */
 .app-shell {
@@ -2046,7 +2046,7 @@ body.theme-dark .logos img {
    (`.stbl` in SimpleTable.vue). A component <style> is unlayered on purpose,
    so it beats every layer here: !important is the only way for the page to
    strip the border back off. The real fix is a variant prop on SimpleTable,
-   see docs/design-system.md. */
+   see docs/src/design-system.md. */
 .dash-table .v-card {
   box-shadow: none !important;
   border: 0 !important;

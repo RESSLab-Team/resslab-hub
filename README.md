@@ -16,12 +16,12 @@ Production: https://resslab-hub.epfl.ch.
 
 - [backend/README.md](backend/README.md): migrations, model generation, uploading data locally and to a deployment
 - [frontend/README.md](frontend/README.md): scripts, source layout, environment files
-- The docs site, <https://resslab-team.github.io/resslab-hub/>, built from `docs/` (`make docs` builds it, `make docs-serve` previews it on port 8100). The most used pages:
-  - [docs/contribute/index.md](docs/contribute/index.md): how data gets into the Hub, from the submit to the upload
-  - [docs/run-the-pipeline.md](docs/run-the-pipeline.md): the rules of the data repo, the upload, the nightly rebuild, the cache
-  - [docs/whats-new-in-2.0.md](docs/whats-new-in-2.0.md): what changed between the old app and this one
-  - [docs/auth.md](docs/auth.md): sign-in, roles, the settings a deployment needs
-  - [docs/sem-images.md](docs/sem-images.md): the SEM images, the script that converts and uploads them
+- The docs site, <https://resslab-hub.epfl.ch/docs/>, built from [docs/](docs/README.md) (`make docs` builds it, `make docs-serve` previews it on port 8100). The most used pages:
+  - [docs/src/contribute/index.md](docs/src/contribute/index.md): how data gets into the Hub, from the submit to the upload
+  - [docs/src/run-the-pipeline.md](docs/src/run-the-pipeline.md): the rules of the data repo, the upload, the nightly rebuild, the cache
+  - [docs/src/whats-new-in-2.0.md](docs/src/whats-new-in-2.0.md): what changed between the old app and this one
+  - [docs/src/auth.md](docs/src/auth.md): sign-in, roles, the settings a deployment needs
+  - [docs/src/sem-images.md](docs/src/sem-images.md): the SEM images, the script that converts and uploads them
 - [docs/worktree-dev-environment.md](docs/worktree-dev-environment.md): one branch, its own servers and agent session (not on the site)
 - `CLAUDE.md`: the map of the repo written for coding agents, also a good quick reference
 
@@ -103,7 +103,7 @@ The data lives in [resslab-hub-data](https://github.com/RESSLab-Team/resslab-hub
    the upload works without LFS installed. If `git lfs` is installed and you
    do not want the images, clone with `GIT_LFS_SKIP_SMUDGE=1`. To get them
    later: `git lfs install` then `git lfs pull`. The images are only needed
-   for `make precompute-sem` ([docs/sem-images.md](docs/sem-images.md)).
+   for `make precompute-sem` ([docs/src/sem-images.md](docs/src/sem-images.md)).
 
 3. Upload:
 
@@ -160,7 +160,7 @@ make api
 
 Promotion goes `dev` -> `stage` -> `main`, and Release Please tags `main`. The
 steps, and the rules that make them work, are in
-[docs/releasing.md](docs/releasing.md).
+[docs/src/releasing.md](docs/src/releasing.md).
 
 ### Locally with Docker Compose
 

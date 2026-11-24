@@ -41,7 +41,7 @@ const features = useFeaturesStore()
 onMounted(() => {
   countsStore.fetch()
   // Hidden until the answer is in, so a deployment that switched the pipeline
-  // off never flashes its links (CONTRIBUTIONS_ENABLED, docs/releasing.md).
+  // off never flashes its links (CONTRIBUTIONS_ENABLED, docs/src/releasing.md).
   features.ensureLoaded()
   // The account block needs the answer, and the sidebar is on every page, so
   // this is where the one /auth/me call gets made for anonymous browsing too.

@@ -372,7 +372,7 @@ async def _add(client, mailbox, email):
     assert response.json() == {"sent": True}
     mail = mailbox[-1]
     assert mail["email"] == email.lower()
-    assert mail["link"] is None  # a code only, see docs/auth.md
+    assert mail["link"] is None  # a code only, see docs/src/auth.md
     return await client.post("/auth/emails/verify", json={"code": mail["code"]})
 
 

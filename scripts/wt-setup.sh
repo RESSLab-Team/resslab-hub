@@ -112,7 +112,7 @@ echo "ports: backend $BACKEND_PORT, frontend $FRONTEND_PORT; database: $DB_NAME"
 
 # 3. This frontend talks to this backend through the Vite proxy, which reads
 #    BACKEND_PORT from .env.worktree (same-origin, no CORS layer: the session
-#    cookie must be first-party, see docs/auth.md). An absolute
+#    cookie must be first-party, see docs/src/auth.md). An absolute
 #    VITE_APP_BACKEND_URL seeded from an older main checkout would send the
 #    browser to the backend port directly and break sign-in, so drop it.
 if [ -f frontend/.env.development.local ]; then
