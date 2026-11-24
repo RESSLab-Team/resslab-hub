@@ -38,7 +38,7 @@ import {
   setWorkerUrl,
   type GeoJSONSource
 } from 'maplibre-gl'
-import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import {
   computed,
   nextTick,
@@ -154,8 +154,10 @@ const tip = computed(() => {
   }
 })
 
-// MapLibre 5+ finds its worker next to its own file. Once bundled, that file is
-// gone, so give it the worker as a Vite asset.
+// MapLibre 6 finds its worker next to its own file. Once bundled, that file is
+// gone, so give it the worker as a Vite asset. `?worker&url` is the setup from
+// the MapLibre docs: Vite bundles the worker as a `.js` file. A plain `?url`
+// keeps the `.mjs` name, and our nginx has no MIME type for it.
 setWorkerUrl(workerUrl)
 
 let map: MapLibre | null = null
