@@ -91,6 +91,12 @@ export const echartsTheme = {
     textStyle: { color: INK, fontFamily: SANS, fontWeight: 'normal' as const }
   },
 
+  // ECharts 6 shrinks the grid so axis names and labels stay inside the canvas
+  // ('all' by default). ECharts 5 did not. Keep the v5 layout: the thumbnails
+  // of the connection fragility page rely on it (their axis name sits outside
+  // the canvas on purpose).
+  grid: { outerBoundsMode: 'none' as const },
+
   // Category axis: keep the baseline, drop the perpendicular gridlines.
   categoryAxis: {
     ...axisCommon,
