@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.5.0](https://github.com/RESSLab-Team/resslab-hub/compare/v2.4.0...v2.5.0) (2026-11-24)
+
+
+### Features
+
+* **shell:** the Documentation link opens the docs site ([6141bd5](https://github.com/RESSLab-Team/resslab-hub/commit/6141bd5ea179acf9681eba3f50f78600f6c967d3))
+* **wtx:** change autocompact limit ([b270ed7](https://github.com/RESSLab-Team/resslab-hub/commit/b270ed728c0973dc4a48a510a287c5a251236486))
+
+
+### Bug Fixes
+
+* **backend:** don't send our own error text to the browser ([3bf8043](https://github.com/RESSLab-Team/resslab-hub/commit/3bf804352ec9edb7c830324d2ecae95a568aca30))
+* **infra:** harden the compose stack before the repo goes public ([3d3374b](https://github.com/RESSLab-Team/resslab-hub/commit/3d3374b760c14cacd621ef81205333b522f4a4eb))
+* last points of the security review before going public ([#457](https://github.com/RESSLab-Team/resslab-hub/issues/457)) ([5a32e39](https://github.com/RESSLab-Team/resslab-hub/commit/5a32e39d503474c56f7708bb9f284a6cf50dff34)), closes [#264](https://github.com/RESSLab-Team/resslab-hub/issues/264)
+
 ## [2.4.0](https://github.com/RESSLab-Team/resslab-hub/compare/v2.3.0...v2.4.0) (2026-11-15)
 
 
