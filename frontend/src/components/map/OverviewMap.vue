@@ -35,8 +35,10 @@ import {
   LngLatBounds,
   Map as MapLibre,
   Marker,
+  setWorkerUrl,
   type GeoJSONSource
 } from 'maplibre-gl'
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import {
   computed,
   nextTick,
@@ -151,6 +153,10 @@ const tip = computed(() => {
     programs: undefined
   }
 })
+
+// MapLibre 5+ finds its worker next to its own file. Once bundled, that file is
+// gone, so give it the worker as a Vite asset.
+setWorkerUrl(workerUrl)
 
 let map: MapLibre | null = null
 let mapLoaded = false

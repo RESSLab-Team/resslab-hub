@@ -31,7 +31,7 @@
     "hex-rgb": "^5.0.0",
     "jszip": "^3.10.1",
     "lodash": "^4.17.21",
-    "maplibre-gl": "^4.7.1",
+    "maplibre-gl": "^6.19.0",
     "marked": "^18.0.10",
     "mathjs": "^11.6.0",
     "pinia": "^2.0.33",
