@@ -67,10 +67,20 @@ const actualOption = computed<EChartsGlOption>(() => {
 
 <template>
   <div v-if="fill" class="sgl-fill">
-    <v-chart autoresize :theme="echartsTheme" :option="actualOption" :update-options="updateOptions" />
+    <v-chart
+      autoresize
+      :theme="echartsTheme"
+      :option="actualOption"
+      :update-options="updateOptions"
+    />
   </div>
   <div v-else class="sgl-box" :style="{ aspectRatio: String(aspectRatio) }">
-    <v-chart autoresize :theme="echartsTheme" :option="actualOption" :update-options="updateOptions" />
+    <v-chart
+      autoresize
+      :theme="echartsTheme"
+      :option="actualOption"
+      :update-options="updateOptions"
+    />
   </div>
 </template>
 
