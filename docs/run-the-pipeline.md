@@ -4,7 +4,7 @@ This page is for the maintainers of the Hub and of the
 [data repository][data-repo]. It explains the rules of the data repository,
 the three workflows that move the data, the nightly rebuild and the cache. It
 ends with the steps to follow when merged data does not show.
-[How data gets into the Hub](index.md) shows the full path.
+[How data gets into the Hub](contribute/index.md) shows the full path.
 
 ## Branches and commit order
 
@@ -135,7 +135,7 @@ data to a deployed environment" in the [backend README][backend-readme].
 
 Before you change the data repository, read its README. The developer
 details of the submission code are in
-[Contribution internals](../contributing-data.md).
+[Contribution internals](contributing-data.md).
 
 [data-repo]: https://github.com/RESSLab-Team/resslab-hub-data
 [backend-readme]: https://github.com/RESSLab-Team/resslab-hub/blob/dev/backend/README.md#upload-data-to-a-deployed-environment-dev-stage-prod

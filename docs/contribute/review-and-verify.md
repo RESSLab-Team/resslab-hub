@@ -1,4 +1,4 @@
-# Review data
+# Review and verify
 
 This page is for the members of the lab who review the submissions. The Hub
 shows each submission next to the data that it already has. You read it in
@@ -68,7 +68,7 @@ The Hub does not approve or merge. Do it on the pull request on GitHub:
 Some minutes after the merge, the rows are on the dashboards as "unverified".
 A browser that showed the database before can need up to one hour to show
 them. If they do not come, tell a maintainer
-([run the pipeline](run-the-pipeline.md#the-data-does-not-show)).
+([run the data pipeline](../run-the-pipeline.md#the-data-does-not-show)).
 
 > Note: A pull request from the test site of the Hub is a test. Close it, do
 > not merge it. Branches of the sample data start with `contrib/<type>/demo-`.

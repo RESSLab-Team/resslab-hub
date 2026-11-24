@@ -6,7 +6,7 @@ next to the data already there. Reviewing is reading; approving, asking for
 changes and merging stay on GitHub.
 
 This page is the developer reference. The steps for a curator are in
-[Review data](data-pipeline/review-data.md). How a submission gets there:
+[Review data](contribute/review-and-verify.md). How a submission gets there:
 [contributing-data.md](contributing-data.md).
 
 ## Who can open it
@@ -221,7 +221,7 @@ so a shared link keeps it. The code: `utils/curationStatus.ts`,
   pull request keeps the trailers readable on `main`.
 - The merge gate is on GitHub: the ruleset `data-contribution` on the data
   repository `main` needs one approving review, three checks, and a squash
-  merge ([Run the pipeline](data-pipeline/run-the-pipeline.md#rules-of-the-data-repository)).
+  merge ([Run the pipeline](run-the-pipeline.md#rules-of-the-data-repository)).
   There is no CODEOWNERS file. Instead, the Hub asks every
   admin of the data repository to review each submission and verification
   it opens (#266, `DATA_REPO_REVIEWERS` in

@@ -1,4 +1,4 @@
-# Submit data
+# Submit with the Hub
 
 This page is for researchers who want to add their experiments to the
 RESSLab Hub. It tells you what you need, how the Hub checks your files, and
@@ -16,7 +16,7 @@ the full path.
   the pull request. Without them, the submit is refused.
 - Your files: one CSV with one row for each experiment, and one curve file for
   each experiment and each type of test data. The page of your database in
-  the [data reference](../data/index.md) gives the column names, the units and
+  [Databases](../data/index.md) gives the column names, the units and
   the file names. The editor shows the same page and the data dictionary next
   to your data.
 
@@ -76,13 +76,13 @@ the comments of the curator.
 
 You can also open a pull request on the data repository yourself. Fork it,
 add your rows and files on a branch, and open the pull request into `main`.
-The README of the data repository gives the steps. The curators see this pull
-request in the same queue. The Hub can show only the rows that it adds to the
-main CSV.
+[Submit with a pull request](../data/contributing.md) gives the steps. The
+curators see this pull request in the same queue. The Hub can show only the
+rows that it adds to the main CSV.
 
 ## Next step
 
 Open `/contribute` on the Hub, or read the page of your database in the
-[data reference](../data/index.md) first.
+[Databases](../data/index.md) first.
 
 [data-repo]: https://github.com/RESSLab-Team/resslab-hub-data

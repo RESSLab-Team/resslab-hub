@@ -2,8 +2,10 @@
 
 This page shows the full path of an experiment, from the submit button in the
 Hub to a row on the public dashboards. Read it first. Then go to the page for
-your role: [submit data](submit-data.md), [review data](review-data.md) or
-[run the pipeline](run-the-pipeline.md).
+your role: [submit with the Hub](submit-with-the-hub.md),
+[submit with a pull request](../data/contributing.md),
+[review and verify](review-and-verify.md) or
+[run the data pipeline](../run-the-pipeline.md).
 
 The data does not live in the Hub. It lives in CSV files in the public
 repository [RESSLab-Team/resslab-hub-data][data-repo] (the data repository).
@@ -59,16 +61,17 @@ flowchart TD
    at once. A browser can still show its own copy until the hour ends.
 
 New rows are `unverified` when they go online. A curator marks them as
-verified later, with a second, small pull request. [Review data](review-data.md)
+verified later, with a second, small pull request. [Review and verify](review-and-verify.md)
 explains this second step.
 
 ## Where to go next
 
 | You are | Read |
 | --- | --- |
-| A researcher with data to share | [Submit data](submit-data.md) |
-| A member of the lab who reviews submissions | [Review data](review-data.md) |
-| A maintainer of the Hub or of the data repository | [Run the pipeline](run-the-pipeline.md) |
+| A researcher with data to share | [Submit with the Hub](submit-with-the-hub.md), or [submit with a pull request](../data/contributing.md) |
+| A researcher who prepares the files | The page of the database in [Databases](../data/index.md) |
+| A member of the lab who reviews submissions | [Review and verify](review-and-verify.md) |
+| A maintainer of the Hub or of the data repository | [Run the data pipeline](../run-the-pipeline.md) |
 | A developer who changes the code | [Contribution internals](../contributing-data.md) and [Curation internals](../curation.md) |
 
 [data-repo]: https://github.com/RESSLab-Team/resslab-hub-data

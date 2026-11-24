@@ -17,7 +17,8 @@ Production: https://resslab-hub.epfl.ch.
 - [backend/README.md](backend/README.md): migrations, model generation, uploading data locally and to a deployment
 - [frontend/README.md](frontend/README.md): scripts, source layout, environment files
 - The docs site, <https://resslab-team.github.io/resslab-hub/>, built from `docs/` (`make docs` builds it, `make docs-serve` previews it on port 8100). The most used pages:
-  - [docs/data-pipeline/index.md](docs/data-pipeline/index.md): how data gets into the Hub, from the submit to the upload
+  - [docs/contribute/index.md](docs/contribute/index.md): how data gets into the Hub, from the submit to the upload
+  - [docs/run-the-pipeline.md](docs/run-the-pipeline.md): the rules of the data repo, the upload, the nightly rebuild, the cache
   - [docs/whats-new-in-2.0.md](docs/whats-new-in-2.0.md): what changed between the old app and this one
   - [docs/auth.md](docs/auth.md): sign-in, roles, the settings a deployment needs
   - [docs/sem-images.md](docs/sem-images.md): the SEM images, the script that converts and uploads them

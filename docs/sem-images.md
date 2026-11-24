@@ -156,7 +156,7 @@ manifest. `components/ductile-fracture/sem/`:
    the hotspots and the dimples.
 3. Run `make precompute-sem` with the CDN credentials, commit the
    `has_sem` change, open the pull request and merge it. The data repo then
-   sends the change to the hubs ([Run the pipeline](data-pipeline/run-the-pipeline.md)).
+   sends the change to the hubs ([Run the pipeline](run-the-pipeline.md)).
 
 Nothing else changes: the CDN path is derived from the id, the dialog reads
 the manifest.

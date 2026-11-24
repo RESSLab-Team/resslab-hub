@@ -22,18 +22,17 @@ exclude_docs = """
 # that is here: scripts/docs_check_orphans.py fails otherwise.
 nav = [
   { "Home" = "README.md" },
-  { "Data pipeline" = [
-    "data-pipeline/index.md",
-    { "Submit data" = "data-pipeline/submit-data.md" },
-    { "Review data" = "data-pipeline/review-data.md" },
-    { "Run the pipeline" = "data-pipeline/run-the-pipeline.md" },
-    { "Contribution internals" = "contributing-data.md" },
-    { "Curation internals" = "curation.md" },
-    { "Variable categories" = "variable-categories.md" },
+  # For researchers and curators.
+  { "Contribute data" = [
+    "contribute/index.md",
+    { "Submit with the Hub" = "contribute/submit-with-the-hub.md" },
+    # The root README of the data repo, copied by scripts/docs-data-repo.py.
+    { "Submit with a pull request" = "data/contributing.md" },
+    { "Review and verify" = "contribute/review-and-verify.md" },
   ] },
   # docs/data/ is generated from the data repo by scripts/docs-data-repo.py
   # (make docs runs it). A new database folder there needs a line here.
-  { "Data reference" = [
+  { "Databases" = [
     "data/index.md",
     { "Braces" = "data/braces/index.md" },
     { "Columns" = "data/columns/index.md" },
@@ -44,15 +43,24 @@ nav = [
     { "Tensile coupons" = "data/material/tensile_coupons/index.md" },
     { "Ductile fracture" = "data/material/ductile_fracture/index.md" },
     { "Residual stresses" = "data/residual_stresses/index.md" },
+    { "Variable categories" = "variable-categories.md" },
   ] },
-  { "For maintainers" = [
-    { "What's new in 2.0" = "whats-new-in-2.0.md" },
-    { "Releasing" = "releasing.md" },
-    { "Sign-in and accounts" = "auth.md" },
-    { "Dashboard architecture" = "dashboard-architecture.md" },
-    { "Design system" = "design-system.md" },
-    { "SEM images" = "sem-images.md" },
-    { "Adding a new tab" = "adding-a-new-tab.md" },
+  # For the people who run a deployment or change the code.
+  { "The Hub app" = [
+    { "Operate" = [
+      { "Run the data pipeline" = "run-the-pipeline.md" },
+      { "Releasing" = "releasing.md" },
+      { "Sign-in and accounts" = "auth.md" },
+      { "SEM images" = "sem-images.md" },
+    ] },
+    { "Develop" = [
+      { "What's new in 2.0" = "whats-new-in-2.0.md" },
+      { "Dashboard architecture" = "dashboard-architecture.md" },
+      { "Design system" = "design-system.md" },
+      { "Adding a new tab" = "adding-a-new-tab.md" },
+      { "Contribution internals" = "contributing-data.md" },
+      { "Curation internals" = "curation.md" },
+    ] },
   ] },
 ]
 
@@ -69,6 +77,8 @@ features = [
   "navigation.instant.prefetch",
   "navigation.path",
   "navigation.sections",
+  "navigation.tabs",
+  "navigation.tabs.sticky",
   "navigation.top",
   "navigation.tracking",
   "search.highlight",

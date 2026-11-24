@@ -6,7 +6,7 @@ repository's own rules (folder layout, headers, units) are in the README of
 each database folder there, shown in the editor as well.
 
 This page is the developer reference. For the steps of each reader (submit,
-review, run), start at [How data gets into the Hub](data-pipeline/index.md).
+review, run), start at [How data gets into the Hub](contribute/index.md).
 Sign-in, roles and the account page are in [auth.md](auth.md). Test batches
 to try all this with: [sample-data/README.md](https://github.com/RESSLab-Team/resslab-hub/blob/dev/sample-data/README.md).
 
@@ -204,7 +204,7 @@ Two things in `contributions/github.py`:
   request ([curation.md](curation.md#verification)).
 - The data reaches the deployments when the pull request is merged: the data
   repo sends the changed files to `/upload` of each hub, and dev also rebuilds
-  its data each night ([Run the pipeline](data-pipeline/run-the-pipeline.md)).
+  its data each night ([Run the pipeline](run-the-pipeline.md)).
   `/upload` expires the response cache of the backend at once, but a browser
   keeps its copy for up to an hour (`CACHE_MAX_AGE`). The nightly rebuild
   cannot expire the cache: restart the backend if its data must show at once.
