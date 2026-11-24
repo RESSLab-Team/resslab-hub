@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",
-    "@commitlint/config-conventional": "^19.5.0",
+    "@commitlint/config-conventional": "^21.2.4",
     "lefthook": "^1.10.0"
   }
 }
