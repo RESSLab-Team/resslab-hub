@@ -51,6 +51,25 @@ from resslab_hub.utils.database import Base, url  # noqa: E402
 logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
 
+@pytest.fixture
+def monkeypatch():
+    """pytest's ``monkeypatch``, plus a restore of the settings at the end.
+
+    Since pytest 9, ``undo()`` calls ``delattr`` for a value that was not in the
+    instance ``__dict__``. On the dynaconf ``settings`` object that deletes the
+    setting for every later test. So after the undo we put back the values the
+    settings had before the test.
+    """
+    before = settings.as_dict()
+    patcher = pytest.MonkeyPatch()
+    yield patcher
+    patcher.undo()
+    missing = object()
+    for key, value in before.items():
+        if settings.get(key, missing) != value:
+            settings.set(key, value)
+
+
 def _maintenance_url() -> str:
     """URL of the DB that CREATE/DROP DATABASE are issued from.
 
