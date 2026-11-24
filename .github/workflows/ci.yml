@@ -126,7 +126,20 @@ jobs:
           cache-dependency-glob: "backend/uv.lock"
       - run: uv sync --frozen --only-group docs
         working-directory: backend
-      - run: make docs
+      # The data repo is public. Only its READMEs and dictionaries are needed.
+      - uses: actions/checkout@v7
+        with:
+          repository: RESSLab-Team/resslab-hub-data
+          ref: main
+          path: data-repo
+          lfs: false
+          filter: blob:none
+          sparse-checkout: |
+            /README.md
+            /**/README.md
+            /**/*_data_dictionary.csv
+          sparse-checkout-cone-mode: false
+      - run: make docs RESSLAB_DATA_DIR=data-repo DATA_REF=HEAD
   build-docker:
     runs-on: ubuntu-latest
     steps:

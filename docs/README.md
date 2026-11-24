@@ -26,6 +26,13 @@ the page for your role:
 - [Variable categories](variable-categories.md): the scientific category of
   each column, for each database.
 
+## Data reference
+
+The [data reference](data/index.md) has one page for each database: the
+identifier of a specimen, the files to send, and the data dictionary with the
+unit and the category of each column. These pages come from the READMEs of
+the data repository, and the site copies them again each night.
+
 ## For maintainers
 
 - [What's new in 2.0](whats-new-in-2.0.md): the rewrite, versus the old app.

@@ -15,10 +15,10 @@ the full path.
 - A name and a confirmed email address on the account. The Hub writes both on
   the pull request. Without them, the submit is refused.
 - Your files: one CSV with one row for each experiment, and one curve file for
-  each experiment and each type of test data. The README of each database
-  folder in the [data repository][data-repo] gives the column names, the units
-  and the file names. The editor shows the same README and the data
-  dictionary next to your data.
+  each experiment and each type of test data. The page of your database in
+  the [data reference](../data/index.md) gives the column names, the units and
+  the file names. The editor shows the same page and the data dictionary next
+  to your data.
 
 > Note: What you submit becomes public, because the data repository is
 > public. The pull request and its commit show your name and your email
@@ -82,7 +82,7 @@ main CSV.
 
 ## Next step
 
-Open `/contribute` on the Hub, or read the README of your database folder in
-the [data repository][data-repo] first.
+Open `/contribute` on the Hub, or read the page of your database in the
+[data reference](../data/index.md) first.
 
 [data-repo]: https://github.com/RESSLab-Team/resslab-hub-data

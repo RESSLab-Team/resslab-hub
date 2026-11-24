@@ -31,6 +31,20 @@ nav = [
     { "Curation internals" = "curation.md" },
     { "Variable categories" = "variable-categories.md" },
   ] },
+  # docs/data/ is generated from the data repo by scripts/docs-data-repo.py
+  # (make docs runs it). A new database folder there needs a line here.
+  { "Data reference" = [
+    "data/index.md",
+    { "Braces" = "data/braces/index.md" },
+    { "Columns" = "data/columns/index.md" },
+    { "Connections" = "data/connections/index.md" },
+    { "HSS columns" = "data/hss_columns/index.md" },
+    { "EBF links" = "data/eccentric_braced_frames/index.md" },
+    { "Cyclic coupons" = "data/material/cyclic_coupons/index.md" },
+    { "Tensile coupons" = "data/material/tensile_coupons/index.md" },
+    { "Ductile fracture" = "data/material/ductile_fracture/index.md" },
+    { "Residual stresses" = "data/residual_stresses/index.md" },
+  ] },
   { "For maintainers" = [
     { "What's new in 2.0" = "whats-new-in-2.0.md" },
     { "Releasing" = "releasing.md" },

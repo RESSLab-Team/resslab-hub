@@ -1,0 +1,164 @@
+"""Copy the docs of the data repo into docs/data/, for the docs site.
+
+The data repo (RESSLab-Team/resslab-hub-data) has a README at its root and one
+README per database folder, next to the data dictionary of that folder. They
+are written for GitHub. This writes them as pages of the docs site:
+
+- <folder>/README.md becomes docs/data/<folder>/index.md (the root README
+  becomes docs/data/index.md), and the data dictionary of the folder is added
+  under it as a table,
+- a link to another README stays inside the site, any other relative link
+  (LICENSE, a CSV) becomes a link to the file on GitHub.
+
+docs/data/ is generated and gitignored: never edit it, edit the data repo.
+Files are read with `git show <ref>:<path>`, so a local clone on another
+branch still gives the docs of main.
+
+Run by `make docs`: python3 scripts/docs-data-repo.py <data repo> <ref>
+
+Zensical has no per-page edit link, so after the build the "edit this page"
+button of these pages points to a file of the hub repo that does not exist.
+`python3 scripts/docs-data-repo.py --edit-links site` points it to the README
+in the data repo.
+"""
+
+import csv
+import io
+import pathlib
+import posixpath
+import re
+import shutil
+import subprocess
+import sys
+
+GITHUB = "https://github.com/RESSLab-Team/resslab-hub-data"
+OUT = pathlib.Path("docs/data")
+# A Markdown link or image: [text](target) or ![alt](target).
+LINK = re.compile(r"(!?\[[^\]]*\])\(([^)\s]+)\)")
+# Dictionary columns shown on the site, with their header.
+COLUMNS = [
+    ("column_name", "Column"),
+    ("description", "Description"),
+    ("symbol", "Symbol"),
+    ("unit", "Unit"),
+    ("type", "Type"),
+    ("nullable", "Required"),
+    ("group", "Category"),
+]
+
+
+def git(repo, *args):
+    return subprocess.run(
+        ["git", "-C", repo, *args], check=True, capture_output=True, text=True
+    ).stdout
+
+
+def page_for(readme):
+    """docs/data/ path of the page made from a README path of the data repo."""
+    folder = posixpath.dirname(readme)
+    return posixpath.join(folder, "index.md") if folder else "index.md"
+
+
+def rewrite_links(text, readme, readmes):
+    folder = posixpath.dirname(readme)
+
+    def fix(match):
+        label, target = match.groups()
+        if re.match(r"^[a-z]+:|^#|^/", target):
+            return match.group(0)
+        path, _, anchor = target.partition("#")
+        resolved = posixpath.normpath(posixpath.join(folder, path))
+        if resolved in readmes:
+            new = posixpath.relpath(
+                page_for(resolved), posixpath.dirname(page_for(readme))
+            )
+        else:
+            new = f"{GITHUB}/blob/main/{resolved}"
+        return f"{label}({new}{'#' + anchor if anchor else ''})"
+
+    return LINK.sub(fix, text)
+
+
+def cell(value):
+    return value.replace("|", "\\|").replace("\n", " ").strip()
+
+
+def dictionary_table(text):
+    rows = list(csv.DictReader(io.StringIO(text)))
+    # A column empty in the whole dictionary (often the symbol) only takes room.
+    columns = [
+        (k, h) for k, h in COLUMNS if any((r.get(k) or "").strip() for r in rows)
+    ]
+    lines = [
+        "| " + " | ".join(header for _, header in columns) + " |",
+        "| " + " | ".join("---" for _ in columns) + " |",
+    ]
+    for row in rows:
+        values = []
+        for key, _ in columns:
+            value = row.get(key) or ""
+            if key == "column_name":
+                value = f"`{value}`"
+            elif key == "nullable":
+                value = "no" if value.strip() == "True" else "yes"
+            values.append(cell(value))
+        lines.append("| " + " | ".join(values) + " |")
+    return "\n".join(lines)
+
+
+def fix_edit_links(site):
+    """Point the edit button of the built data pages to the data repo."""
+    hub = "https://github.com/RESSLab-Team/resslab-hub/edit/dev/docs/data/"
+    edit = re.compile(re.escape(hub) + r"((?:[^\"]*/)?)index\.md")
+    count = 0
+    for page in pathlib.Path(site, "data").rglob("*.html"):
+        text = page.read_text()
+        new = edit.sub(lambda m: f"{GITHUB}/edit/main/{m.group(1)}README.md", text)
+        if new != text:
+            page.write_text(new)
+            count += 1
+    print(f"{count} edit links point to the data repo")
+
+
+def main():
+    if sys.argv[1:2] == ["--edit-links"]:
+        return fix_edit_links(sys.argv[2] if len(sys.argv) > 2 else "site")
+    repo = sys.argv[1] if len(sys.argv) > 1 else "../resslab-hub-data"
+    ref = sys.argv[2] if len(sys.argv) > 2 else "origin/main"
+    if not pathlib.Path(repo, ".git").exists():
+        sys.exit(f"{repo} is not a clone of the data repo. Set RESSLAB_DATA_DIR.")
+    sha = git(repo, "rev-parse", "--short", ref).strip()
+    files = git(repo, "ls-tree", "-r", "--name-only", ref).splitlines()
+    readmes = {f for f in files if posixpath.basename(f) == "README.md"}
+    readmes -= {f for f in readmes if f.startswith(".")}
+    dictionaries = [f for f in files if f.endswith("_data_dictionary.csv")]
+
+    shutil.rmtree(OUT, ignore_errors=True)
+    for readme in sorted(readmes):
+        text = rewrite_links(git(repo, "show", f"{ref}:{readme}"), readme, readmes)
+        source = f"{GITHUB}/blob/main/{readme}"
+        header = (
+            "<!-- Generated by scripts/docs-data-repo.py. Edit the data repo. -->\n\n"
+        )
+        footer = (
+            f"\n\n> Note: This page is the [`{readme}`]({source}) file of the data"
+            f" repository, at commit `{sha}`. To change it, open a pull request"
+            " there.\n"
+        )
+        folder = posixpath.dirname(readme)
+        for dictionary in dictionaries:
+            if folder and posixpath.dirname(dictionary) == folder:
+                name = posixpath.basename(dictionary)
+                text = text.rstrip() + (
+                    f"\n\n## Data dictionary\n\nFrom [`{name}`]"
+                    f"({GITHUB}/blob/main/{dictionary}). Required means that the"
+                    " cell cannot be empty.\n\n"
+                    + dictionary_table(git(repo, "show", f"{ref}:{dictionary}"))
+                )
+        target = OUT / page_for(readme)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(header + text.rstrip() + footer)
+    print(f"{len(readmes)} pages from {repo} at {ref} ({sha}) into {OUT}/")
+
+
+main()
