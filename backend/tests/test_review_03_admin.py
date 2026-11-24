@@ -2,7 +2,7 @@
 Review 03 (roles): the admin page and the accounts it may not touch.
 
 Each test states what should happen and fails today, so it is marked
-``xfail(strict=True)``. See ``docs/review/findings/03-roles.md``.
+``xfail(strict=True)``. See ``docs/archive/review/findings/03-roles.md``.
 """
 
 from datetime import datetime, timezone

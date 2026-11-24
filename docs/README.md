@@ -1,32 +1,29 @@
 # Docs
 
-One line per guide. Start with the root [README](../README.md) to run the app.
+This folder is the docs site of the RESSLab Hub, a small project of its own.
+The site is served under `/docs/` of each hub, for example
+<https://resslab-hub.epfl.ch/docs/>.
 
-## Run it
+| Path | What |
+| --- | --- |
+| `src/` | The pages of the site. `src/index.md` is the home page. |
+| `src/data/` | Generated from the data repository, gitignored. Never edit it. |
+| `zensical.toml` | The configuration and the navigation, written by hand. |
+| `scripts/` | The copy of the data repository pages, the link check, the orphan check. |
+| `Dockerfile`, `nginx.conf` | The image that `deploy.yml` builds and each hub serves. |
+| `archive/` | Old plans and notes. Not on the site. |
+| `worktree-dev-environment.md` | The dev setup of the team with worktrees. Not on the site. |
 
-- [Root README](../README.md): prerequisites, dev servers, populate the database, deploy targets
-- [backend/README.md](../backend/README.md): migrations, model generation, uploads (local and in-cluster)
-- [frontend/README.md](../frontend/README.md): scripts, layout of `src/`, env files
-- [worktree-dev-environment.md](worktree-dev-environment.md): one branch, its own servers, database and Claude session
-- [releasing.md](releasing.md): dev -> stage -> main, Release Please, the token, the prod checklist
+From the root of the repository:
 
-## How it works
+```bash
+make docs         # strict build into docs/site/, then the link and orphan checks
+make docs-serve   # preview with live reload on http://127.0.0.1:8100/docs/
+```
 
-- [whats-new-in-2.0.md](whats-new-in-2.0.md): the refactor, section by section, versus the old app on `main`
-- [auth.md](auth.md): sign-in by email code or GitHub, sessions, roles, the settings a deployment needs
-- [contributing-data.md](contributing-data.md): from a dropped folder to a pull request on the data repo, and editing it
-- [curation.md](curation.md): the review queue, the review page and the verification of live rows
-- [dashboard-architecture.md](dashboard-architecture.md): the client-side dashboard engine, and the backend cache behind it
-- [design-system.md](design-system.md): the tokens, options versus decisions, the cascade layers, a few use cases
-- [variable-categories.md](variable-categories.md): the scientific category of every column, per database
-- [sem-images.md](sem-images.md): the SEM fracture images, from the TIFs in the data repo to the CDN and the dialog
+Both read the data repository from `RESSLAB_DATA_DIR` (default
+`../resslab-hub-data`), at `origin/main`.
 
-## Maintain it
-
-- [adding-a-new-tab.md](adding-a-new-tab.md): the end-to-end playbook for a new component database
-- [modernization-followups.md](modernization-followups.md): toolchain upgrades done and still open, upload perf notes
-- [design/](design/): the brand exploration and the sign-in mail brief and handoff
-- [review/](review/README.md): the review of sign-in, roles and contributions before the workshop: plan, agent briefs, test guide, go-live checklist
-
-`CLAUDE.md` at the root is the map of the repo for coding agents. It repeats
-the facts above in short form and is kept in step with them.
+A new page goes in `src/`, and in the `nav` of `zensical.toml`. A link that
+leaves `src/` must be a full GitHub URL. The site is public: write no internal
+host, no secret store path and no personal name in a page.

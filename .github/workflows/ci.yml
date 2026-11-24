@@ -114,6 +114,23 @@ jobs:
         working-directory: backend
       - run: git ls-files -z '*.yml' '*.yaml' | xargs -0 bash scripts/check-yaml.sh
       - run: git ls-files -z | xargs -0 bash scripts/check-large-files.sh
+  build-docs:
+    # Builds the docs image, the one deploy.yml pushes. Its Dockerfile runs the
+    # strict build (a warning fails it), then the link and orphan checks, and
+    # it clones the data repo for the "Databases" pages.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build --pull -t resslab-hub-docs docs
+      - name: The image serves the site under /docs/
+        run: |
+          docker run -d --name docs -p 8080:8080 resslab-hub-docs
+          sleep 2
+          curl -fsS -o /dev/null http://127.0.0.1:8080/docs/
+          curl -fsS -o /dev/null http://127.0.0.1:8080/docs/contribute/
+          curl -fsS -o /dev/null http://127.0.0.1:8080/docs/data/braces/
+          test "$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' http://127.0.0.1:8080/docs)" = "301 http://127.0.0.1:8080/docs/"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/docs/nothing-here/)" = "404"
   build-docker:
     runs-on: ubuntu-latest
     steps:

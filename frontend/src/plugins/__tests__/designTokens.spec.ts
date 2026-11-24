@@ -13,7 +13,7 @@ import { describe, expect, it } from 'vitest'
  * step, so this reads the real token file and compares.
  *
  * A failure here means one copy moved. Move the other two, do not relax the
- * test. See docs/design-system.md.
+ * test. See docs/src/design-system.md.
  */
 
 const TOKENS = resolve(

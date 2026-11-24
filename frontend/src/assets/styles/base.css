@@ -3,7 +3,7 @@
    colour, links, and the five title roles driven by the --title-* tokens in
    epfl-tokens.css. Loaded through index.css inside @layer base, so any app
    rule (and any component <style>) can restyle it without a fight.
-   See docs/design-system.md. */
+   See docs/src/design-system.md. */
 
 /* ================ BASE / VUETIFY HARMONIZATION ================ */
 .v-application {

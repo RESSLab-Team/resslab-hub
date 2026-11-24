@@ -256,8 +256,8 @@ deletes every id that is not in the CSV, and a brace that still has
 fails on the foreign key and rolls the whole upload back. Keeping the ids also
 keeps the real specimens explorable, curves included.
 
-Then load it, into **a throwaway database only** (a worktree clone;
-`make db-branch` puts the real data back afterwards):
+Then load it, into **a throwaway database only**, never a shared one (a
+local clone; `make db-branch` puts the real data back afterwards):
 
 ```bash
 uv run python -m resslab_hub.data.uploader brace \
@@ -271,11 +271,11 @@ curves in the drawer.
 
 ### Run it
 
-Needs a dev stack up (the worktree's tmux panes, or `make dev-all`) and Chrome.
+Needs a dev stack up (`make dev-all`) and Chrome.
 
 ```bash
 cd frontend
-pnpm run bench:dashboard -- --url http://localhost:19006 --db braces --runs 5
+pnpm run bench:dashboard -- --url http://localhost:5173 --db braces --runs 5
 pnpm run bench:dashboard -- --db connections --runs 5 --cpu 4
 pnpm run bench:dashboard -- --db braces --baseline .bench/braces-300.json
 ```

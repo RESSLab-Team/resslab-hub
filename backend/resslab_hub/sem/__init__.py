@@ -9,5 +9,5 @@ Used today by ``data/precompute_sem.py`` (the maintainer script, run through
 ``make precompute-sem``), and by the submission pipeline when it takes images.
 The heavy dependencies (OpenCV, scikit-image, Pillow, exifread) live in the
 ``sem`` dependency group, so nothing in the running app may import this package
-until that group moves into the image. See docs/sem-images.md.
+until that group moves into the image. See docs/src/sem-images.md.
 """

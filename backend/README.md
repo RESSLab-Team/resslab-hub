@@ -120,13 +120,13 @@ POSTGRES_HOST=localhost
 POSTGRES_PORT=5434
 POSTGRES_USER=<DB_USER>
 POSTGRES_PASSWORD=<DB_PASSWORD>
-API_PASSWORD=<any non-empty value>   # machine credential, see docs/auth.md
+API_PASSWORD=<any non-empty value>   # machine credential, see docs/src/auth.md
 ```
 
 To send real sign-in mails instead of logging them, add the `SMTP_*` block
-from `docs/auth.md`. Watch the quoting of `SMTP_USER`: double quotes turn the
+from `docs/src/auth.md`. Watch the quoting of `SMTP_USER`: double quotes turn the
 backslash into a newline. To upload SEM images to the CDN, add the `S3_*`
-block from `docs/sem-images.md`.
+block from `docs/src/sem-images.md`.
 
 Then from `backend/`, run `make upload-data`. With `REBUILD=1`, it first empties the data tables it touches.
 
@@ -138,7 +138,7 @@ Read the logs of a failed run before that.
 Almost everything in the database comes from the data repo, so the upload job
 can rebuild it. Only the `auth_*` tables live in the database alone: accounts,
 linked identities, roles given by an admin, invitations, access requests and
-sessions (see [docs/auth.md](../docs/auth.md)).
+sessions (see [docs/src/auth.md](../docs/src/auth.md)).
 
 So the CronJob `resslab-hub-db-dump-<env>` dumps only these tables, each night
 at 02:00 UTC. It writes `auth-<date>.dump` (`pg_dump -Fc`, a few kB) to the PVC
@@ -203,6 +203,6 @@ With the backend running, `make validate-braces` (or any type listed by
 ## Submissions and curation
 
 How a contribution from the app becomes a pull request on the data repo, and
-how the review queue reads it back: [docs/contributing-data.md](../docs/contributing-data.md)
-and [docs/curation.md](../docs/curation.md). Sign-in and roles:
-[docs/auth.md](../docs/auth.md).
+how the review queue reads it back: [docs/src/contributing-data.md](../docs/src/contributing-data.md)
+and [docs/src/curation.md](../docs/src/curation.md). Sign-in and roles:
+[docs/src/auth.md](../docs/src/auth.md).

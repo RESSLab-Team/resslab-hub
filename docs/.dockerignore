@@ -1,0 +1,8 @@
+# Not needed to build the site, or rebuilt in the image.
+.venv/
+site/
+src/data/
+archive/
+worktree-dev-environment.md
+Dockerfile
+.dockerignore

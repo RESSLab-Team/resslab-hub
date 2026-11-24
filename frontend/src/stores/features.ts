@@ -3,7 +3,7 @@
  *
  * Read at runtime and not from a `VITE_` variable on purpose: stage and prod
  * run the same image, and prod switches the contribution pipeline off with
- * `CONTRIBUTIONS_ENABLED=false` in its backend ConfigMap (docs/releasing.md).
+ * `CONTRIBUTIONS_ENABLED=false` in its backend ConfigMap (docs/src/releasing.md).
  * Asked once per page load, by the sidebar and by the router guard.
  */
 

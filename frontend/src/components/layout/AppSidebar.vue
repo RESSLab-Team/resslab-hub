@@ -41,7 +41,7 @@ const features = useFeaturesStore()
 onMounted(() => {
   countsStore.fetch()
   // Hidden until the answer is in, so a deployment that switched the pipeline
-  // off never flashes its links (CONTRIBUTIONS_ENABLED, docs/releasing.md).
+  // off never flashes its links (CONTRIBUTIONS_ENABLED, docs/src/releasing.md).
   features.ensureLoaded()
   // The account block needs the answer, and the sidebar is on every page, so
   // this is where the one /auth/me call gets made for anonymous browsing too.
@@ -262,12 +262,8 @@ function toggleGroup(group: NavGroup) {
       <v-icon :icon="mdiInformationOutline" size="16" />
       {{ $t('shell.about_and_credits') }}
     </router-link>
-    <a
-      class="sidebar-link"
-      href="https://github.com/RESSLab-Team/resslab-hub"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
+    <!-- The docs site, its own image behind /docs of the same host (docs/). -->
+    <a class="sidebar-link" href="/docs/" target="_blank" rel="noopener">
       <v-icon :icon="mdiBookOpenVariant" size="16" />
       {{ $t('shell.documentation') }}
     </a>

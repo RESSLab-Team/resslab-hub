@@ -4,7 +4,7 @@
    and stays in app.css.
 
    This layer sits above `vuetify`, so nothing here needs a .v-application
-   prefix or !important to win. See docs/design-system.md. */
+   prefix or !important to win. See docs/src/design-system.md. */
 
 /* ================ BRUTALIST: FLAT CORNERS + NO ELEVATION ================
    Square every corner across the app and Vuetify's own components, from one

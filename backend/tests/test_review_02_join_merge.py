@@ -4,7 +4,7 @@ Review 02, questions 3 and 4: the bare join and the admin merge.
 
 Each test asserts the behaviour we want and is marked xfail(strict): it fails
 today and starts to pass when the finding is fixed. See
-docs/review/findings/02-identity.md.
+docs/archive/review/findings/02-identity.md.
 """
 
 import pytest

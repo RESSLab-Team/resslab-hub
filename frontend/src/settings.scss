@@ -5,7 +5,7 @@
   // instead of by specificity, so the overrides in styles/vuetify-overrides.css
   // need neither a .v-application prefix nor !important. The runtime theme
   // stylesheet is layered separately (`theme.layers` in plugins/vuetify.ts).
-  // See docs/design-system.md.
+  // See docs/src/design-system.md.
   $layers: true,
   $overlay-opacity: 50%,
   // The static Material color pack (.bg-red-lighten-4, .text-blue-*, ~900

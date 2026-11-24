@@ -4,7 +4,7 @@ Review 01, finding 01-1: bad input on the sign-in routes gives a 500.
 The challenge id and the OAuth state go straight to a SELECT on a Postgres
 UUID column, and ``redirect_to`` goes into a ``String(500)`` column. Nothing
 checks them before. Each test asks for an answer below 500, so each one fails
-today. See docs/review/findings/01-sign-in.md.
+today. See docs/archive/review/findings/01-sign-in.md.
 """
 
 import httpx

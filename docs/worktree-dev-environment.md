@@ -286,7 +286,7 @@ instant.
 RESSLab-Team one). So a submission from a worktree opens its pull request on
 the fork, never on the real data repo. A `DATA_REPO` you set by hand is kept,
 and then the installation id is left alone. Details in
-[contributing-data.md](contributing-data.md#trying-it-locally).
+[contributing-data.md](src/contributing-data.md#trying-it-locally).
 
 ### Test database
 

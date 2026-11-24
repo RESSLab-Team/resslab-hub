@@ -183,10 +183,10 @@ tar czf braces.tar.gz braces/
 curl -F file=@braces.tar.gz -u user:$API_PASSWORD "http://127.0.0.1:8000/validate?type=all-braces"
 ```
 
-The archive must hold the database folder, not a bare CSV. `/validate` takes the machine credential (`API_PASSWORD` from `secrets/.env`, see `docs/auth.md`) or a session cookie. Without either, it answers `401`. With data problems it still answers `200` with a structured body, so read `valid` and `results`, not the HTTP status. In a worktree, use `wtx curl backend` for the port.
+The archive must hold the database folder, not a bare CSV. `/validate` takes the machine credential (`API_PASSWORD` from `secrets/.env`, see `docs/src/auth.md`) or a session cookie. Without either, it answers `401`. With data problems it still answers `200` with a structured body, so read `valid` and `results`, not the HTTP status. In a worktree, use `wtx curl backend` for the port.
 
 The backend reads only the exact primary CSV name, so a tar of the folder ignores `<name>.invalid.csv`. To check the invalid file, copy the folder and put the invalid file in place of the primary one. This is what the self-check does.
 
 ## Coverage
 
-All nine databases validate. `validate_one_file` in `backend/resslab_hub/data/validator.py` has a branch per type and per curve type, and each entry of `CONTRIBUTION_DATABASES` has `qualityCheckSupported` on. An unknown type still raises `NotImplementedError`. Add it first when a new tab lands, see `docs/adding-a-new-tab.md` Step 16. Then add the new database to `DATABASES` and `TIME_SERIES` in `generate.py`.
+All nine databases validate. `validate_one_file` in `backend/resslab_hub/data/validator.py` has a branch per type and per curve type, and each entry of `CONTRIBUTION_DATABASES` has `qualityCheckSupported` on. An unknown type still raises `NotImplementedError`. Add it first when a new tab lands, see `docs/src/adding-a-new-tab.md` Step 16. Then add the new database to `DATABASES` and `TIME_SERIES` in `generate.py`.

@@ -2,7 +2,7 @@
 
 Each test states what the code should do. It fails today, so it is marked
 ``xfail(strict=True)``: once the finding is fixed the test passes, the run
-fails, and the mark must go. Findings: docs/review/findings/04-pipeline-input.md
+fails, and the mark must go. Findings: docs/archive/review/findings/04-pipeline-input.md
 """
 
 import gzip

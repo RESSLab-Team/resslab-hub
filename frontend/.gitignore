@@ -31,5 +31,5 @@ coverage
 *.sln
 *.sw?
 
-# Dashboard benchmark output (scripts/bench-dashboard.mjs), see docs/dashboard-architecture.md
+# Dashboard benchmark output (scripts/bench-dashboard.mjs), see docs/src/dashboard-architecture.md
 /.bench/

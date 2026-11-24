@@ -1,4 +1,4 @@
-.PHONY: install hooks go dev-all tmux-dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint run api sample-data upload-data backup-dump data-fork-reset new db-template-light db-template db-branch db-branch-full db-branch-drop db-status wt-land wt-done wt-open
+.PHONY: install hooks go dev-all tmux-dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint run api sample-data upload-data backup-dump data-fork-reset new db-template-light db-template db-branch db-branch-full db-branch-drop db-status wt-land wt-done wt-open docs docs-data docs-serve
 
 .PHONY: help
 help: ## Show available targets
@@ -60,6 +60,25 @@ upload-data:            ## upload every CSV of the data repo into the local DB (
 
 backup-dump:            ## make backup-dump DEST_FOLDER=path, pg_dumpall of the dev database
 	@docker compose exec database sh -c 'pg_dumpall -U postgres' > ${DEST_FOLDER}/all-databases.sql
+
+# --- docs site: docs/ is its own project (zensical.toml, pyproject.toml, pages in docs/src/).
+# The deployed image is docs/Dockerfile, served under /docs/ of each hub.
+DOCS_PORT ?= 8100
+# The data repo pages come from this clone, at this ref.
+RESSLAB_DATA_DIR ?= ../resslab-hub-data
+DATA_REF ?= origin/main
+
+docs-data:              ## copy the READMEs and dictionaries of the data repo into docs/src/data/ (RESSLAB_DATA_DIR, DATA_REF=origin/main)
+	cd docs && python3 scripts/data-repo.py $(abspath $(RESSLAB_DATA_DIR)) $(DATA_REF)
+
+docs: docs-data         ## build the docs site into docs/site/ in strict mode, then check links and orphan files
+	cd docs && uv run zensical build --clean --strict
+	cd docs && python3 scripts/data-repo.py --edit-links site
+	cd docs && python3 scripts/check-links.py site
+	cd docs && python3 scripts/check-orphans.py
+
+docs-serve: docs-data   ## preview the docs site with live reload on http://127.0.0.1:8100/docs/ (DOCS_PORT in a worktree)
+	cd docs && uv run zensical serve --dev-addr 127.0.0.1:$(DOCS_PORT)
 
 data-fork-reset:        ## reset the test fork's main (where local submissions go) to the real data repo's main; needs gh with push on EPFL-ENAC
 	scripts/data-fork-reset.sh

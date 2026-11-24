@@ -5,7 +5,9 @@ read back into a screen that shows a submission the way the database will,
 next to the data already there. Reviewing is reading; approving, asking for
 changes and merging stay on GitHub.
 
-How a submission gets there: [contributing-data.md](contributing-data.md).
+This page is the developer reference. The steps for a curator are in
+[Review data](contribute/review-and-verify.md). How a submission gets there:
+[contributing-data.md](contributing-data.md).
 
 ## Who can open it
 
@@ -43,11 +45,16 @@ pull request at once.
 | Endpoint | What it answers |
 |---|---|
 | `GET /contributions` | every open pull request into `DATA_REPO_BASE_BRANCH`, newest first, up to 100, drafts and forks included. Each one has a `kind`, see [What is in the queue](#what-is-in-the-queue). Cached one minute; `?fresh=true` skips the cache (the Refresh button). With no GitHub App configured: `configured: false`, not an error, and a warning in the backend log. |
-| `GET /contributions/{pr}` | everything the review page needs: summary, provenance (from the trailers, else the pull request body, else the legacy JSON record), the reconstructed rows, the classified files, and `mine`, whether the signed-in account owns it. |
+| `GET /contributions/{pr}` | everything the review page needs: summary, provenance (from the trailers, else the legacy JSON record, else none and a warning; the contributor parsed from the pull request body only fills the summary), the reconstructed rows, the classified files, and `mine`, whether the signed-in account owns it. |
 | `GET /contributions/{pr}/validation` | `validate_all` re-run on the reconstructed batch in a temporary repo-shaped folder. Up to `MAX_CURVE_FILES` (100) curve files are downloaded, with size caps; the skipped ones get an explicit warning ("too large, review on GitHub"). |
 | `GET /contributions/{pr}/comments` | the pull request thread, oldest first, the pull request body as the first entry. Read only. |
 | `GET /contributions/{pr}/files?path=` | the text of one file the pull request added, primary CSV or curve only. Used for the curve preview. |
 | `GET /contributions/{pr}/curves` | every curve the pull request added, with its text, in one answer (#336). The editor loads a submission with it. The files are read from GitHub in parallel, cached per head sha when the batch is 1 MB or less. The answer is complete or it is a 502, never partial: a save deletes the curves the editor does not send back. |
+
+`GET /contributions` needs the `curator` role. The other routes need a
+signed-in account that is a curator or owns the submission (`_check_access`).
+Rate limits per client: 30 per minute for the queue, the detail, the comments
+and the curves, 10 per minute for the validation, 60 per minute for the files.
 
 Response shapes: `backend/resslab_hub/models/curation.py`.
 
@@ -124,7 +131,9 @@ verified address matches the `Submitted-by` trailer of the first Hub commit,
 see provenance in [contributing-data.md](contributing-data.md)), and for every
 curator. It opens `/contribute/edit/<pr number>`. A curator's edit is a commit
 authored by the curator; the trailers keep naming the person who submitted.
-It works on `contrib/` branches only, and never on a fork (`409`).
+It works on `contrib/` branches only (`404` otherwise), never on a fork
+(`409`), and a curator gets `403` when no commit of the branch says who
+submitted.
 
 
 ## Verification
@@ -154,7 +163,7 @@ re-upload, and every change to it is a pull request.
 **Mark as verified** is the button that opens that pull request. It is in
 three places, for curators only: the **To verify** tab, one button per
 database and reference; the review page of a reference (below); and the
-warning at the top of the specimen drawer, for one row. The backend reads the main CSV on the base branch, changes only
+warning at the top of the specimen drawer, for one row. The backend reads the main CSV at the head commit of the base branch, changes only
 the status cells of those ids (line endings and everything else kept),
 commits on `verify/<type slug>/<first id>-<hex>` as the curator, with a
 `Verified-by` trailer, and opens a pull request titled like
@@ -208,10 +217,12 @@ so a shared link keeps it. The code: `utils/curationStatus.ts`,
 ## What curation does not do yet
 
 - No approve, request changes or merge here (#254). Do those on GitHub, and
-  merge with squash only (the data repo CI validates `HEAD~1..HEAD`).
+  merge with squash only: the ruleset allows nothing else, and one commit per
+  pull request keeps the trailers readable on `main`.
 - The merge gate is on GitHub: the ruleset `data-contribution` on the data
-  repository `main` needs one approving review, the checks to pass, and a
-  squash merge. There is no CODEOWNERS file. Instead, the Hub asks every
+  repository `main` needs one approving review, three checks, and a squash
+  merge ([Run the pipeline](run-the-pipeline.md#rules-of-the-data-repository)).
+  There is no CODEOWNERS file. Instead, the Hub asks every
   admin of the data repository to review each submission and verification
   it opens (#266, `DATA_REPO_REVIEWERS` in
   [contributing-data.md](contributing-data.md#settings)).
@@ -224,8 +235,8 @@ Submit a sample batch from the app ([contributing-data.md](contributing-data.md)
 "Trying it locally"), open `/curation`, and close the pull request on GitHub
 when done.
 
-For the **To verify** tab, mark a few rows as unverified in the worktree
-database (never the shared one, check `DB_NAME` in `.env.worktree`), for
+For the **To verify** tab, mark a few rows as unverified in your local
+database (never a shared one), for
 example `UPDATE brace SET data_curation_status = 'unverified' WHERE id IN
 (...)`. The tab shows them at once (`/verification` is not cached), the
 dashboards only after a backend restart (the response cache lasts an hour).

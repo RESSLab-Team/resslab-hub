@@ -21,6 +21,10 @@ node_modules/
 
 # uv virtualenv
 backend/.venv/
+# docs site: build output (make docs), its venv, and the pages it copies from the data repo
+/docs/site/
+/docs/.venv/
+/docs/src/data/
 .env
 
 .python-version

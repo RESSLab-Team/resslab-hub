@@ -20,6 +20,10 @@ main = 8000   # what the main checkout keeps
 name = "frontend"
 main = 5173   # what the main checkout keeps
 
+[[ports.family]]
+name = "docs"
+main = 8100   # make docs-serve, no pane: started by hand when needed
+
 # Gitignored files a fresh worktree needs. Never overwritten.
 [seed]
 copy = ["CLAUDE.md"]

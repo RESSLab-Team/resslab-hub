@@ -4,7 +4,7 @@ Review 02, questions 5 and 6: disable an account, remove an identity.
 
 Each test asserts the behaviour we want and is marked xfail(strict): it fails
 today and starts to pass when the finding is fixed. See
-docs/review/findings/02-identity.md.
+docs/archive/review/findings/02-identity.md.
 """
 
 import asyncio

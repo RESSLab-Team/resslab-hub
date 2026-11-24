@@ -11,7 +11,7 @@ the data repo, `material/ductile_fracture/README.md`.
 | What | Where | Tracked by |
 |---|---|---|
 | Raw TIFs, one folder per coupon | `resslab-hub-data/material/ductile_fracture/sem/<id>/` | git, in Git LFS (`*.tif`, about 700 files, 1.7 GB) |
-| WebP images, dimple JSONs, manifest | `https://enacit4r-cdn.epfl.ch/resslab-hub/sem/<id>/...` | the EPFL enacit4r CDN (an S3 bucket at `s3.epfl.ch`, served under that host) |
+| WebP images, dimple JSONs, manifest | `https://enacit4r-cdn.epfl.ch/resslab-hub/sem/<id>/...` | the EPFL enacit4r CDN (an S3 bucket, served under that host) |
 | Same, on disk after every run | `resslab-hub-data/material/ductile_fracture/sem/_webp/<id>/` | nothing, gitignored in the data repo |
 | The `has_sem` flag | column of `ductile_fracture.csv`, then the database | the data repo, set by the script |
 
@@ -94,7 +94,7 @@ configures every other app.
 | Variable | What | Current value |
 |---|---|---|
 | `S3_ENDPOINT_PROTOCOL` | scheme, with the `//` | `https://` |
-| `S3_ENDPOINT_HOSTNAME` | the S3 host | `s3.epfl.ch` |
+| `S3_ENDPOINT_HOSTNAME` | the S3 host | from EPFL ops |
 | `S3_REGION` | region used to sign | `EU` |
 | `S3_BUCKET` | the shared enacit4r bucket | from EPFL ops |
 | `S3_PATH_PREFIX` | path inside the bucket, before `<id>/` | `resslab-hub/sem` |
@@ -106,8 +106,9 @@ configures every other app.
 
 Where the values live: `secrets/.env` at the repo root on a laptop (the
 Makefile loads it), the `resslab-hub-backend` ConfigMap for the five public
-ones and Infisical for the two keys once the submission pipeline uploads
-images. Ask EPFL ops (KeeWeb) for the bucket and the credentials. All seven
+ones and the secret store of the deployment for the two keys once the
+submission pipeline uploads images. Ask EPFL ops for the bucket and the
+credentials. All seven
 must be set: without `DRY_RUN` the script stops before converting anything and
 names the ones that are missing.
 
@@ -155,7 +156,7 @@ manifest. `components/ductile-fracture/sem/`:
    the hotspots and the dimples.
 3. Run `make precompute-sem` with the CDN credentials, commit the
    `has_sem` change, open the pull request and merge it. The data repo then
-   sends the change to the hubs ([backend/README.md](../backend/README.md)).
+   sends the change to the hubs ([Run the pipeline](run-the-pipeline.md)).
 
 Nothing else changes: the CDN path is derived from the id, the dialog reads
 the manifest.

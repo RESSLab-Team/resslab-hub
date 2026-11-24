@@ -106,38 +106,30 @@ expiry date.
 A tag deploys prod straight away. Before tagging a release that changes the
 database schema or the deployment, do the boring checks: dump the prod database
 (the `pg_dump` command at the end of
-[backend/README.md](../backend/README.md#backup-and-restore-of-a-deployed-database),
+[backend/README.md](https://github.com/RESSLab-Team/resslab-hub/blob/dev/backend/README.md#backup-and-restore-of-a-deployed-database),
 `make backup-dump` only dumps your local database), confirm the prod secrets are in place, and
 confirm the Alembic migrations that ran on stage are the same ones prod will get.
 The backend caches responses for an hour per process, so restart the prod pods if
 new data must show right away.
 
-### Keeping the contribution pipeline off in prod
+### Switching the contribution pipeline off
 
-Submit, curation, sign-in and account can ship to prod switched off, and be
-switched on later without a new release. The switch is `CONTRIBUTIONS_ENABLED`
-([contributing-data.md](contributing-data.md#settings)). Dev sets nothing and
-keeps the default, `true`. Stage sets `true`.
+Submit, curation, sign-in and account can be switched off in one environment
+without a new release. The switch is `CONTRIBUTIONS_ENABLED`
+([contributing-data.md](contributing-data.md#settings)). Dev keeps the
+default, `true`. Stage and prod set `true` in their backend configuration.
 
-Before the first tag that carries the pipeline, add this line to
-`overlays/prod/kustomization.yaml` in `enack8s-app-config/epfl-resslab/resslab-hub`,
-under `configMapGenerator` > `name: resslab-hub-backend` > `literals:`
-(the indentation is the one of the other literals):
-
-```yaml
-      - CONTRIBUTIONS_ENABLED=false
-```
-
-Kustomize puts a hash of the content in the generated ConfigMap name, so ArgoCD
-rolls the backend pods when it syncs the change. If they did not roll, restart
-them by hand, the setting is read at startup:
+To switch it off, set `CONTRIBUTIONS_ENABLED=false` in the backend
+configuration of that environment (the deployment repository, outside this
+repo), then make sure that the backend restarts: the setting is read at
+startup. Check it on the public endpoint, which must say
+`{"contributions":false}`:
 
 ```bash
-kubectl -n epfl-resslab-resslab-hub-prod rollout restart deployment/resslab-hub-backend-prod
+curl https://resslab-hub.epfl.ch/api/features
 ```
 
-Check it with `curl https://resslab-hub.epfl.ch/api/features`, which must say
-`{"contributions":false}`. The frontend needs nothing: it reads that endpoint on
-each page load. To switch the pipeline on, remove the line (or set it to `true`).
-With it on, prod also needs the GitHub App, OAuth and mail secrets of
+The frontend needs nothing: it reads that endpoint on each page load. To
+switch the pipeline on again, set it back to `true`. With it on, an
+environment also needs the GitHub App, OAuth and mail secrets of
 [auth.md](auth.md), or `/features` stays `false`.

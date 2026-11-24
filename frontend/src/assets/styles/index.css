@@ -14,7 +14,7 @@
    no rule below needs !important to be seen.
 
    @font-face is not affected by layers, so fonts.css is imported bare.
-   See docs/design-system.md. */
+   See docs/src/design-system.md. */
 
 @layer vuetify, tokens, base, overrides, app;
 

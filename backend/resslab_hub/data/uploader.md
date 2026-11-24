@@ -80,4 +80,4 @@ flowchart TD
 ```
 
 The perf notes behind `COPY` and the biggest-first scheduling are in
-`docs/modernization-followups.md`.
+`docs/archive/modernization-followups.md`.

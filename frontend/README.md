@@ -38,26 +38,26 @@ the specs that import i18n.
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `views/`       | the pages that are not a database: home, about, login, account, contribute, curation queue and review. The database routes point at `components/{type}/` directly (`{Type}Dashboard.vue`, `{Type}Model.vue`, `{Type}Fragility.vue` where it exists) |
 | `components/`  | by domain (`braces/`, `columns/`, ..., `contribute/`, `curation/`, `map/`, `home/`, `layout/`) and `commons/` for what every dashboard shares (shell, filter rail, charts, sliders, the detail drawer)                                              |
-| `composables/` | the dashboard engine: dataset cache, crossfilter bus, auto filters, virtual rows, ECharts binding. See [docs/dashboard-architecture.md](../docs/dashboard-architecture.md)                                                                          |
+| `composables/` | the dashboard engine: dataset cache, crossfilter bus, auto filters, virtual rows, ECharts binding. See [docs/src/dashboard-architecture.md](../docs/src/dashboard-architecture.md)                                                                  |
 | `stores/`      | Pinia: auth, contribution, curation, counts, dictionary, notification, unit                                                                                                                                                                         |
 | `utils/`       | pure functions: query engine, aggregates, field groups, category colours, submission archive, validation reports                                                                                                                                    |
 | `locales/`     | `en.json` and `fr.json`. Every key exists in both, French keeps its accents                                                                                                                                                                         |
 | `backend/`     | the generated API client. Never edit by hand, run `make api`                                                                                                                                                                                        |
-| `assets/`      | styles (EPFL tokens, Suisse font faces, `app.css`, all pulled by `styles/index.css` - see [design-system.md](../docs/design-system.md)), the section CSVs used by the component selectors, the KPI snapshot                                         |
+| `assets/`      | styles (EPFL tokens, Suisse font faces, `app.css`, all pulled by `styles/index.css` - see [design-system.md](../docs/src/design-system.md)), the section CSVs used by the component selectors, the KPI snapshot                                     |
 | `plugins/`     | axios, i18n, vuetify, the ECharts theme, gtag                                                                                                                                                                                                       |
 
 ## Environment files
 
 - `.env.development`: `VITE_APP_BACKEND_URL=/api` (keep it relative, see above)
   and `VITE_SEM_CDN_BASE_URL=/sem` for the local SEM images (symlink
-  `public/sem`, see [docs/sem-images.md](../docs/sem-images.md)).
+  `public/sem`, see [docs/src/sem-images.md](../docs/src/sem-images.md)).
 - `.env.production`: the real CDN base URL.
 - `.env.development.local` (gitignored): per-checkout overrides. Worktrees
   get theirs from `scripts/wt-setup.sh`.
 
 ## Adding a database tab
 
-[docs/adding-a-new-tab.md](../docs/adding-a-new-tab.md), end to end.
+[docs/src/adding-a-new-tab.md](../docs/src/adding-a-new-tab.md), end to end.
 
 ## Video optimization
 

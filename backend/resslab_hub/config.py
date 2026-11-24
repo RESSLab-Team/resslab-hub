@@ -78,7 +78,7 @@ settings = Dynaconf(
         Validator("login_code_ttl_minutes", default=10),
         # Mail: without a host the mailer logs the code instead of sending it,
         # which is how local dev and the tests work. The relay is the EPFL one,
-        # with the hub's own service account (docs/auth.md). The sender must be
+        # with the hub's own service account (docs/src/auth.md). The sender must be
         # that account's own address:
         # Exchange refuses anything else with 550 5.7.60 "does not have
         # permissions to send as this sender".
@@ -95,14 +95,14 @@ settings = Dynaconf(
         # way (#247).
         Validator("deployment", default=None),
         # OAuth pair of a GitHub App: the one above in the deployments, a
-        # separate dev App locally (docs/auth.md). Both present = "Sign in
+        # separate dev App locally (docs/src/auth.md). Both present = "Sign in
         # with GitHub" is offered.
         Validator("github_oauth_client_id", default=None),
         Validator("github_oauth_client_secret", default=None),
         # Client of the ORCID public API (Developer Tools on orcid.org, free,
         # nothing to ask EPFL). Both present = "Sign in with ORCID" works.
         # ORCID_SANDBOX=true talks to sandbox.orcid.org, for a laptop or dev,
-        # whose client is registered there (docs/auth.md).
+        # whose client is registered there (docs/src/auth.md).
         Validator("orcid_client_id", default=None),
         Validator("orcid_client_secret", default=None),
         Validator("orcid_sandbox", default=False),
@@ -119,7 +119,7 @@ settings = Dynaconf(
         # two keys from Infisical, or from secrets/.env on a laptop. No default
         # here on purpose: the values belong to the deployment, not the code.
         # All unset = no CDN, which is every deployment today; only
-        # `make precompute-sem` reads them. See docs/sem-images.md.
+        # `make precompute-sem` reads them. See docs/src/sem-images.md.
         Validator("s3_endpoint_protocol", default=None),
         Validator("s3_endpoint_hostname", default=None),
         Validator("s3_region", default=None),

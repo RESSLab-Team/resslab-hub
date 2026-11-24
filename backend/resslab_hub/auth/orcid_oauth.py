@@ -8,7 +8,7 @@ to register.
 We only ask for ``/authenticate``: who the person is. The token answer
 already holds the iD and the name, so one call is enough. We never read the
 address from ORCID: it is rarely public, and the address of an account is
-always proved with our own mailed code (docs/auth.md). The access token is
+always proved with our own mailed code (docs/src/auth.md). The access token is
 thrown away.
 
 The ``state`` works like GitHub's (``oauth_state``), with its own kind.

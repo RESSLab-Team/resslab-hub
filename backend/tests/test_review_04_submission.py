@@ -3,7 +3,7 @@
 The validator's database lookups fail softly when Postgres is not reachable
 (no stats, no existing ids), which is all these tests need. Each test states
 what the code should do and is ``xfail(strict=True)`` until the finding is
-fixed. Findings: docs/review/findings/04-pipeline-input.md
+fixed. Findings: docs/archive/review/findings/04-pipeline-input.md
 """
 
 from pathlib import Path

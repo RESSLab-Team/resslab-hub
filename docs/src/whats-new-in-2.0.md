@@ -1,9 +1,8 @@
 # What's new in 2.0
 
-`main` has not moved since April 2026 (v1.1.0, what https://resslab-hub.epfl.ch
-serves today). `dev` and `stage` carry the rewrite of the whole app: about 430
-commits and 650 files since then. This page is the human summary; the commit
-list lands in `CHANGELOG.md` when Release Please cuts the 2.0.0 tag
+Version 2.0.0 (2026-09-28) is a rewrite of the whole app that v1.1.0 (April
+2026) was: about 430 commits and 650 files. This page is the human summary; the
+commit list is in [`CHANGELOG.md`](https://github.com/RESSLab-Team/resslab-hub/blob/dev/CHANGELOG.md)
 ([releasing.md](releasing.md)).
 
 ## What the old app was
@@ -79,9 +78,8 @@ shadows, the red braced-bay mark. Details:
   are cached per process with an ETag and warmed at startup.
 - A backend test suite (18 files, about 380 tests) run in CI against
   Postgres.
-- Per-branch dev environments: a git worktree, its own ports, its own
-  database clone and a tmux session
-  ([worktree-dev-environment.md](worktree-dev-environment.md)).
+- Per-branch dev environments: a git worktree, its own ports and its own
+  database clone.
 - The release pipeline works again (Release Please with its own token,
   `include-component-in-tag: false`).
 
