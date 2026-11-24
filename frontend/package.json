@@ -38,12 +38,12 @@
     "vue": "^3.5.46",
     "vue-echarts": "^6.5.4",
     "vue-gtag": "^2.0.1",
-    "vue-i18n": "^9.2.2",
+    "vue-i18n": "^11.4.23",
     "vue-router": "^4.1.6",
     "vuetify": "^3.3.15"
   },
   "devDependencies": {
-    "@intlify/unplugin-vue-i18n": "^0.10.0",
+    "@intlify/unplugin-vue-i18n": "^11.2.8",
     "@mdi/js": "^7.1.96",
     "@openapitools/openapi-generator-cli": "^2.38.0",
     "@rollup/plugin-dsv": "^3.0.2",
