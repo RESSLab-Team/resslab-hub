@@ -1,4 +1,4 @@
-.PHONY: install hooks go dev-all tmux-dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint run api sample-data upload-data backup-dump data-fork-reset new db-template-light db-template db-branch db-branch-full db-branch-drop db-status wt-land wt-done wt-open
+.PHONY: install hooks go dev-all tmux-dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint run api sample-data upload-data backup-dump data-fork-reset new db-template-light db-template db-branch db-branch-full db-branch-drop db-status wt-land wt-done wt-open docs docs-serve
 
 .PHONY: help
 help: ## Show available targets
@@ -60,6 +60,18 @@ upload-data:            ## upload every CSV of the data repo into the local DB (
 
 backup-dump:            ## make backup-dump DEST_FOLDER=path, pg_dumpall of the dev database
 	@docker compose exec database sh -c 'pg_dumpall -U postgres' > ${DEST_FOLDER}/all-databases.sql
+
+# --- docs site (zensical.toml, docs/). Zensical comes from the docs group of backend/pyproject.toml.
+DOCS_PORT ?= 8100
+ZENSICAL = cd backend && uv run --only-group docs zensical
+
+docs:                   ## build the docs site into site/ in strict mode, then check links and orphan files
+	$(ZENSICAL) build --config-file ../zensical.toml --clean --strict
+	python3 scripts/docs-check-links.py site
+	python3 scripts/docs-check-orphans.py
+
+docs-serve:             ## preview the docs site with live reload on http://127.0.0.1:8100 (DOCS_PORT in a worktree)
+	$(ZENSICAL) serve --config-file ../zensical.toml --dev-addr 127.0.0.1:$(DOCS_PORT)
 
 data-fork-reset:        ## reset the test fork's main (where local submissions go) to the real data repo's main; needs gh with push on EPFL-ENAC
 	scripts/data-fork-reset.sh

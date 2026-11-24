@@ -114,6 +114,19 @@ jobs:
         working-directory: backend
       - run: git ls-files -z '*.yml' '*.yaml' | xargs -0 bash scripts/check-yaml.sh
       - run: git ls-files -z | xargs -0 bash scripts/check-large-files.sh
+  build-docs:
+    # The docs site in strict mode (a warning fails the build), then the link
+    # and orphan checks. Same command as on a laptop: make docs.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3 # Astral publishes no major tag (v10)
+        with:
+          enable-cache: true
+          cache-dependency-glob: "backend/uv.lock"
+      - run: uv sync --frozen --only-group docs
+        working-directory: backend
+      - run: make docs
   build-docker:
     runs-on: ubuntu-latest
     steps:

@@ -21,6 +21,8 @@ node_modules/
 
 # uv virtualenv
 backend/.venv/
+# docs site build output (make docs)
+/site/
 .env
 
 .python-version
