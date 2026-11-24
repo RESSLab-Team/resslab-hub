@@ -29,11 +29,7 @@ const toolList = computed(() => tools())
         <router-link v-for="tool in toolList" :key="tool.to" :to="tool.to">
           {{ tool.name }}
         </router-link>
-        <a
-          href="https://github.com/RESSLab-Team/resslab-hub"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <a href="/docs/" target="_blank" rel="noopener">
           {{ $t('shell.documentation') }}
         </a>
       </div>

@@ -144,6 +144,11 @@ export default defineConfig({
       '/api': {
         target: `http://127.0.0.1:${Number(process.env.BACKEND_PORT) || 8000}`,
         rewrite: (path: string) => path.replace(/^\/api/, '')
+      },
+      // The docs site, when `make docs-serve` runs. In the deployments the
+      // ingress sends /docs to the docs image.
+      '/docs': {
+        target: `http://127.0.0.1:${Number(process.env.DOCS_PORT) || 8100}`
       }
     },
     warmup: {

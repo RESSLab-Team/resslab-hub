@@ -262,12 +262,8 @@ function toggleGroup(group: NavGroup) {
       <v-icon :icon="mdiInformationOutline" size="16" />
       {{ $t('shell.about_and_credits') }}
     </router-link>
-    <a
-      class="sidebar-link"
-      href="https://github.com/RESSLab-Team/resslab-hub"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
+    <!-- The docs site, its own image behind /docs of the same host (docs/). -->
+    <a class="sidebar-link" href="/docs/" target="_blank" rel="noopener">
       <v-icon :icon="mdiBookOpenVariant" size="16" />
       {{ $t('shell.documentation') }}
     </a>
