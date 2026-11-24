@@ -78,7 +78,7 @@ services:
     restart: unless-stopped
 
   database:
-    image: postgres:14-alpine
+    image: postgres:18-alpine
     # Loopback only (#264, C3). Docker writes its own iptables rules, so a
     # port published on every interface skips the host firewall.
     ports:
