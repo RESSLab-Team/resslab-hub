@@ -156,14 +156,14 @@ http://127.0.0.1/api/auth/github/callback
 ```
 
 GitHub ignores the port on the loopback address, so that one entry serves the
-main checkout on 5173 and every worktree port. It documents this for OAuth
+default port 5173 and any other local port. It documents this for OAuth
 authorization and recommends `127.0.0.1` over `localhost`. If a GitHub App ever
 refuses it, register the port too. Then in `secrets/.env`:
 
 ```
 GITHUB_OAUTH_CLIENT_ID=...
 GITHUB_OAUTH_CLIENT_SECRET=...
-PUBLIC_BASE_URL=http://127.0.0.1:5173      # or the worktree's FRONTEND_PORT
+PUBLIC_BASE_URL=http://127.0.0.1:5173      # the Vite port
 ```
 
 and open the app at `http://127.0.0.1:<port>`, not `localhost`. Cookies ignore
@@ -188,8 +188,7 @@ For production, create it from a lab record, not a personal one.
    addresses, so make the sandbox account with one.
 2. Add the redirect URI: `<PUBLIC_BASE_URL>/api/auth/orcid/callback`, one entry
    per environment. Locally, that is the Vite port, for example
-   `http://127.0.0.1:5173/api/auth/orcid/callback`, or the worktree's
-   `FRONTEND_PORT`. Register the exact URL. The form refuses `localhost`
+   `http://127.0.0.1:5173/api/auth/orcid/callback`. Register the exact URL. The form refuses `localhost`
    (for the redirect URI and for the application URL), so use `127.0.0.1`,
    and the GitHub repository as the application URL.
 3. Put the client id and secret in `secrets/.env`, with `ORCID_SANDBOX=true`
@@ -199,7 +198,7 @@ For production, create it from a lab record, not a personal one.
 ORCID_CLIENT_ID=APP-...
 ORCID_CLIENT_SECRET=...
 ORCID_SANDBOX=true
-PUBLIC_BASE_URL=http://127.0.0.1:5173      # or the worktree's FRONTEND_PORT
+PUBLIC_BASE_URL=http://127.0.0.1:5173      # the Vite port
 ```
 
 Restart the backend after you edit the file. As for GitHub, open the app on
@@ -220,48 +219,37 @@ it (`dev`, `stage`, `prod`), and nothing local does. In a deployment with no
 `SMTP_HOST`, the backend logs an error at startup (`SMTP_HOST is not set on
 deployment ...`), and `POST /auth/email/start` answers `503` with
 `mail_not_configured`. The login page then says email sign-in is not set up on
-this server. Before, the code went to `kubectl logs` and the page said a mail
+this server. Before, the code went to the backend log and the page said a mail
 was on its way (#247). The pod still starts: the database must stay up for
 everyone, even when the mail is broken.
 
-The relay is the EPFL one, documented in the team wiki ("Sending email via
-epfl infra", https://enac-it-wiki.epfl.ch). `mail.epfl.ch:587` with STARTTLS,
-and the hub's own service account `noreply-resslab-hub`. Its password is in our
-Infisical as `EMAIL_PASSWORD` (next to `EMAIL_ADDRESS`). Tested on 2026-11-02:
-the relay takes the login and the sender, and the mail reaches an EPFL inbox.
-The server offers `AUTH GSSAPI NTLM LOGIN`; aiosmtplib knows cram-md5, plain
-and login, so it picks LOGIN and no NTLM code is needed.
+The deployments use the EPFL mail relay on port 587 with STARTTLS, and a
+service account of the Hub. Its password is in the secret store of the
+deployment. The relay offers `AUTH GSSAPI NTLM LOGIN`; aiosmtplib knows
+cram-md5, plain and login, so it picks LOGIN and no NTLM code is needed.
 
 ```env
-SMTP_HOST=mail.epfl.ch
+SMTP_HOST=<relay host>
 SMTP_PORT=587
 SMTP_STARTTLS=true
-SMTP_USER=INTRANET\noreply-resslab-hub
-SMTP_PASSWORD=<EMAIL_PASSWORD in Infisical>
-SMTP_FROM=noreply-resslab-hub@epfl.ch
+SMTP_USER=<DOMAIN>\<service account>
+SMTP_PASSWORD=<password of the service account>
+SMTP_FROM=<address of the service account>
 ```
 
 Two traps in that block:
 
 - **Do not put double quotes around `SMTP_USER`.** Dynaconf reads the file
   with python-dotenv, which turns `\n` inside double quotes into a real
-  newline, so `"INTRANET\noreply-resslab-hub"` becomes two broken lines. No
+  newline, so a `DOMAIN\noreply-...` login becomes two broken lines. No
   quotes (as above) or single quotes both keep the backslash. Same rule in
-  YAML. The `INTRANET\...` form is the one that works (2026-09-07 with the
-  shared ENAC IT account, 2026-11-02 with ours); the UPN form was never tried.
-- **The sender must be the account's own address.** Tested on 2026-09-07:
-  anything else comes back as `550 5.7.60 SMTP; Client does not have
-  permissions to send as this sender`. So `SMTP_FROM=noreply-resslab-hub@epfl.ch`
-  and nothing else. The `+suffix` trick in the ENAC IT page (like
-  `noreply+resslab-hub@epfl.ch`) is for the anonymous relay on port 25, not
-  for a service account on 587. Staying under `epfl.ch` is also what makes SPF
-  and DKIM pass; a sender on a subdomain like `resslab-hub.epfl.ch` has no DNS
-  records of its own and gets junked.
-
-Before 2026-11-02 the docs used the shared ENAC IT account
-(`noreply-enacitdev`, password under `/enacit4r-email` in the ENAC IT vault).
-It still works the same way, but our own account keeps our mails apart from
-the other apps, and a password change there cannot break our sign-in.
+  YAML. The `DOMAIN\account` form is the one that works with the EPFL relay.
+- **The sender must be the account's own address.** Anything else comes back
+  as `550 5.7.60 SMTP; Client does not have permissions to send as this
+  sender`. A `+suffix` address is for the anonymous relay on port 25, not for
+  a service account on 587. Staying under `epfl.ch` is also what makes SPF and
+  DKIM pass; a sender on a subdomain with no DNS records of its own gets
+  junked.
 
 Mails go out as `RESSLab Hub <SMTP_FROM>`. There is no `Reply-To`: it is a
 noreply mailbox, and a reply would carry a sign-in code to whoever reads it.
@@ -294,45 +282,27 @@ never is.
 | `DEPLOYMENT` | `dev`, `stage` or `prod`, set by the overlay ConfigMaps. Never set it locally. When set, a missing `SMTP_HOST` is an error. |
 | `CONTRIBUTIONS_ENABLED` | `true` by default. `false` also switches sign-in and the account page off, see [contributing-data.md](contributing-data.md#settings). |
 
-In the deployments these go in Infisical and reach the pods through
-`envFrom: secretRef`, like the existing GitHub App credentials. `CORS_ENABLED`
-is gone and can be removed from the overlays. For the mail keys, see the
-runbook below.
+In the deployments these go in the secret store of the deployment and reach
+the pods as environment variables, like the GitHub App credentials.
 
 ## Deploying the mail relay
 
-The manifests and the secrets live outside this repo, so these steps are done
-by hand, once per environment (`dev`, then `staging`, then `prod`).
+The manifests and the secrets of the deployments live outside this repo. For
+each environment, dev first:
 
-1. Open our vault: project `k8s-prod-yc-rz`, path
-   `/epfl-resslab/resslab-hub` (it lands in the `backend-secret`),
-   environment `dev`, `staging` or `prod`. `EMAIL_ADDRESS` and
-   `EMAIL_PASSWORD` (the account above) are already there.
-2. Add `SMTP_HOST`, `SMTP_USER`, `SMTP_FROM` from the block above, and
-   `SMTP_PASSWORD` set to `${EMAIL_PASSWORD}`, an Infisical reference, so the
-   password lives in one key. If the log then shows an
-   `SMTPAuthenticationError`, the reference was not expanded: paste the value
-   instead. Values are stored as they are, no escaping, so paste
-   `INTRANET\noreply-resslab-hub` plainly. Port and STARTTLS have the right
-   defaults. Always the vault first: the operator overwrites the k8s secret on resync,
-   so a secret patched directly in the cluster silently reverts.
-3. In `enack8s-app-config`, check the backend Deployment already pulls that
-   secret with `envFrom: secretRef` (the GitHub App pair comes in that way,
-   so usually there is nothing to add). The resync runs every 12 hours, so to
-   apply it now delete the `InfisicalSecret` CR from the ArgoCD UI (ArgoCD has
-   the rights for it, your own account may not) or delete the managed secret.
-4. Check the cluster can reach `mail.epfl.ch:587`. The anonymous port 25 relay
-   is network-restricted; the authenticated one on 587 should not be, but try
-   `dev` first before touching the other two.
-5. `kubectl -n epfl-resslab-resslab-hub-<env> rollout restart deployment/resslab-hub-backend-<env>`.
+1. Add `SMTP_HOST`, `SMTP_USER`, `SMTP_FROM` and `SMTP_PASSWORD` to the secret
+   store of the deployment. Paste `DOMAIN\account` plainly, with no escaping.
+2. Make sure that the backend gets the new keys, then restart the backend.
    Dynaconf reads the environment at startup only, so without a restart the
-   pods still have no relay.
-6. Verify: right after startup the backend log says `Mails go through
-   mail.epfl.ch:587`, not `SMTP_HOST is not set`. Sign in on the deployed
-   `/login` with a real address, the mail arrives from "RESSLab Hub". If the
-   keys did not arrive, the page says "Email sign-in is not set up on this
-   server". If the relay refuses, the page says "The sign-in mail could not be
-   sent" and `kubectl logs` has the reason on a `Mail to ... failed` line.
+   backend still has no relay.
+3. Right after startup, the backend log says `Mails go through <host>:587`,
+   not `SMTP_HOST is not set`. Sign in on the deployed `/login` with a real
+   address. The mail arrives from "RESSLab Hub".
+4. If the keys did not arrive, the page says "Email sign-in is not set up on
+   this server". If the relay refuses, the page says "The sign-in mail could
+   not be sent", and the backend log has the reason on a `Mail to ... failed`
+   line. If the log shows an `SMTPAuthenticationError`, read the password and
+   the quoting of `SMTP_USER` again.
 
 ## Signing in locally
 
@@ -340,9 +310,9 @@ With no `SMTP_HOST` configured, the code is in the backend log, so no mail
 server is needed to sign in locally:
 
 ```
-make dev-all              # or the worktree's own tmux session
+make dev-all
 # open http://127.0.0.1:5173/login  (the Vite port, not the backend one)
-grep "Sign-in code" .wt-logs/backend.log
+# then look for the "Sign-in code" line in the output of the backend
 ```
 
 The link on the line below it works too, and skips the typing.
@@ -356,8 +326,9 @@ fork `resslab-hub-data-test`. An installation id is per org, so `DATA_REPO` and
 targets is `DATA_REPO_BASE_BRANCH`, and the curation queue only lists pull
 requests into that branch. Every environment uses `main`, the default.
 
-**Locally**, submissions go to the fork (`scripts/wt-setup.sh` seeds the two
-lines, see [contributing-data.md](contributing-data.md#trying-it-locally)).
+**Locally and on dev**, submissions go to the fork (two lines of settings, see
+[contributing-data.md](contributing-data.md#trying-it-locally)). A merge on the
+fork's `main` goes to the dev hub.
 Merge or close them as you like there, and run `make data-fork-reset` when the
 fork's `main` has drifted too far from the real one.
 
@@ -368,8 +339,8 @@ gh pr list --repo EPFL-ENAC/resslab-hub-data-test --base main
 Roles that come from GitHub (below) are read on `DATA_REPO` too, so locally
 they are your permission on the fork. `ADMIN_EMAILS` still makes you admin.
 
-**From dev and stage**, a submission still opens a real pull request into the
-real `main`, next to the real ones. **Close those, never merge them.**
+**From stage** (the test site), a submission opens a real pull request into
+the real `main`, next to the real ones. **Close those, never merge them.**
 
 ```bash
 gh pr list --repo RESSLab-Team/resslab-hub-data --base main
@@ -539,6 +510,7 @@ Three ways, from the fastest:
 | Update a submission (`PUT /contributions/{pr}`) | | own | any | any |
 | Read one submission (`GET /contributions/{pr}` and below) | | own | any | any |
 | The queue (`GET /contributions`) | | | yes | yes |
+| Verification (`/verification/*`) | | | yes | yes |
 | `/admin/*` | | | | yes |
 
 "Own" means the `Submitted-by` trailer of the first Hub commit matches one of
@@ -618,7 +590,7 @@ The `auth_*` tables are the only data that is not in the data repo. If the
 database is lost, the upload job brings back the data, not the accounts. So
 each deployment dumps these tables every night and keeps 30 days of dumps.
 What is in the dump and how to restore it:
-[backend/README.md](../backend/README.md#backup-and-restore-of-a-deployed-database).
+[backend/README.md](https://github.com/RESSLab-Team/resslab-hub/blob/dev/backend/README.md#backup-and-restore-of-a-deployed-database).
 
 ## Later
 

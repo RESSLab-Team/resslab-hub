@@ -16,12 +16,12 @@ Production: https://resslab-hub.epfl.ch.
 
 - [backend/README.md](backend/README.md): migrations, model generation, uploading data locally and to a deployment
 - [frontend/README.md](frontend/README.md): scripts, source layout, environment files
-- [docs/README.md](docs/README.md): the index of every guide. The most used ones:
+- The docs site, <https://resslab-team.github.io/resslab-hub/>, built from `docs/` (`make docs` builds it, `make docs-serve` previews it on port 8100). The most used pages:
+  - [docs/data-pipeline/index.md](docs/data-pipeline/index.md): how data gets into the Hub, from the submit to the upload
   - [docs/whats-new-in-2.0.md](docs/whats-new-in-2.0.md): what changed between the old app and this one
-  - [docs/worktree-dev-environment.md](docs/worktree-dev-environment.md): one branch, its own servers and Claude session
   - [docs/auth.md](docs/auth.md): sign-in, roles, the settings a deployment needs
-  - [docs/contributing-data.md](docs/contributing-data.md): the submission pipeline
   - [docs/sem-images.md](docs/sem-images.md): the SEM images, the script that converts and uploads them
+- [docs/worktree-dev-environment.md](docs/worktree-dev-environment.md): one branch, its own servers and agent session (not on the site)
 - `CLAUDE.md`: the map of the repo written for coding agents, also a good quick reference
 
 ## Related repositories

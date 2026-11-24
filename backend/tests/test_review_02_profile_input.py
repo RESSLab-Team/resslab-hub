@@ -4,7 +4,7 @@ Review 02, questions 7 and 8: the profile, and bad input.
 
 Each test asserts the behaviour we want and is marked xfail(strict): it fails
 today and starts to pass when the finding is fixed. See
-docs/review/findings/02-identity.md.
+docs/archive/review/findings/02-identity.md.
 
 The two tests on ``build_pr_body`` need no database.
 """

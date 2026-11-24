@@ -3,7 +3,7 @@ Review 01, 01-3: a stranger can see that an address reached its mail cap.
 
 The answer body is the same, but a capped start sets no ``resslab_login``
 cookie. So the next verify says ``invalid_or_expired`` where a real start
-gives ``invalid_code``. See docs/review/findings/01-sign-in.md.
+gives ``invalid_code``. See docs/archive/review/findings/01-sign-in.md.
 """
 
 import pytest

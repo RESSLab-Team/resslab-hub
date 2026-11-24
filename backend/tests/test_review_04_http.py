@@ -4,7 +4,7 @@ No database and no network: the requests go straight into the ASGI app, with
 the machine credential where a caller is needed (``require_service`` compares
 it with no database). The validator's database checks fail softly.
 Each test states what the code should do and is ``xfail(strict=True)`` until
-the finding is fixed. Findings: docs/review/findings/04-pipeline-input.md
+the finding is fixed. Findings: docs/archive/review/findings/04-pipeline-input.md
 """
 
 import asyncio

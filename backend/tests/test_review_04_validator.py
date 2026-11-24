@@ -3,7 +3,7 @@
 ``validate_all`` runs without Postgres: its database checks answer "nothing
 found" when the database is not reachable. Each test states what the code
 should do and is ``xfail(strict=True)`` until the finding is fixed.
-Findings: docs/review/findings/04-pipeline-input.md
+Findings: docs/archive/review/findings/04-pipeline-input.md
 """
 
 from pathlib import Path

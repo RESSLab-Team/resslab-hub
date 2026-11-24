@@ -9,18 +9,15 @@ sheets stacked in cascade layers, and you almost never need `!important`.
 
 ## Where the design comes from
 
-Two Claude Design projects, in Pierre's claude.ai account:
+Two Claude Design projects of the team:
 
 - **"EPFL Design System"** (0.1.0, June 2026) is the heritage: the official
   EPFL web charter (`epfl-si/elements`) turned into tokens, Suisse Int'l and
   a web UI kit. The four handoff screens for the hub (dashboard, tool pages,
   specimen drawer, chart library) were drawn on it. That bundle is not in
-  git. It sits, untracked, in the sibling checkout `../resslab-hub-redesign/`:
-  `design_handoff_resslab_hub/README.md` (the spec and the softer-contrast
-  pass), `screens/screenshots/*.png`, `screens/_ds/.../colors_and_type.css`
-  (what `epfl-tokens.css` was first copied from), and
-  `handoff_tool_layout/LAYOUT-SPEC.md` (the rail + stage system behind
-  `tool-pages.css`).
+  git. Its `colors_and_type.css` is what `epfl-tokens.css` was first copied
+  from, and its layout spec is the rail + stage system behind
+  `tool-pages.css`.
 - **"RESSLab Hub - Design System"** (1.0.0, 2026-08-24) goes the other way:
   it was extracted from this code, from the `stage` branch. It carries the
   same tokens and title roles, the ECharts theme, the `rl` icons, the marks,
@@ -30,8 +27,7 @@ Two Claude Design projects, in Pierre's claude.ai account:
   on purpose.
 
 The code is the source. When a token changes here, re-sync the RESSLab Hub
-project (the `DesignSync` tool in Claude Code reads and writes it), or the
-next mock will be drawn with stale values.
+project in Claude Design, or the next mock will be drawn with stale values.
 
 Where the app departs from the EPFL heritage, all on purpose:
 

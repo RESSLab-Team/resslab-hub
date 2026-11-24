@@ -10,7 +10,7 @@ fixed and the tests cannot flake.
 - 01-5: parallel wrong codes are all compared, so more than five codes are
   tried on one challenge.
 
-See docs/review/findings/01-sign-in.md.
+See docs/archive/review/findings/01-sign-in.md.
 """
 
 import asyncio

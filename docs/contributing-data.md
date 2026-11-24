@@ -5,8 +5,10 @@ database. The app side of it, from the editor to the pull request. The data
 repository's own rules (folder layout, headers, units) are in the README of
 each database folder there, shown in the editor as well.
 
+This page is the developer reference. For the steps of each reader (submit,
+review, run), start at [How data gets into the Hub](data-pipeline/index.md).
 Sign-in, roles and the account page are in [auth.md](auth.md). Test batches
-to try all this with: [sample-data/README.md](../sample-data/README.md).
+to try all this with: [sample-data/README.md](https://github.com/RESSLab-Team/resslab-hub/blob/dev/sample-data/README.md).
 
 ## What a contributor sees
 
@@ -106,11 +108,12 @@ nothing else (the Metadata read every App has covers the list of admins). The cu
 
 | Key | What it is |
 |---|---|
-| `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_APP_INSTALLATION_ID` | The App that opens the pull requests. All three or the feature is off: `POST /contributions` and the curation endpoints answer `503`, the queue says `configured: false`. Not the OAuth pair of [auth.md](auth.md), which is for sign-in. |
-| `CONTRIBUTIONS_ENABLED` | `true` by default. `false` switches the whole pipeline off: submit and edit, curation, sign-in and account. The backend answers `404` on those endpoints and the frontend hides every link to them (the routes go to `/`). `GET /auth/me` keeps answering `{"user": null}`, and `/validate` and `/upload` do not change. Read at startup, so restart the pods after a change. `GET /features` tells the frontend the value it acts on: this setting and the GitHub App above. How prod uses it: [releasing.md](releasing.md). |
-| `DATA_REPO` | `RESSLab-Team/resslab-hub-data` by default, what dev, stage and prod use. Local setups use the test fork `EPFL-ENAC/resslab-hub-data-test` instead, with the App's EPFL-ENAC `GITHUB_APP_INSTALLATION_ID` (the installation id is per org). `scripts/wt-setup.sh` seeds both into a new worktree's `secrets/.env`. See [Trying it locally](#trying-it-locally). |
-| `DATA_REPO_REVIEWERS` | Who is asked to review each pull request the Hub opens (#266). `admins` by default, what dev, stage and prod use: every account with admin on the data repo, read from GitHub at each pull request. `none` asks nobody: new worktrees get it, so a test submit on the fork does not email its admins. A comma list of GitHub logins asks exactly those. |
-| `DATA_REPO_BASE_BRANCH` | `main` by default, the only branch the data repo has. Submissions from dev and test land there; close those, never merge them. |
+| `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_APP_INSTALLATION_ID` | The App that opens the pull requests. All three or the feature is off: `POST /contributions`, the detail routes of curation and the verification routes answer `503`. The queue and the `GET /verification` list answer `configured: false` instead. Not the OAuth pair of [auth.md](auth.md), which is for sign-in. |
+| `CONTRIBUTIONS_ENABLED` | `true` by default. `false` switches the whole pipeline off: submit and edit, curation, verification, sign-in and account. The backend answers `404` on those endpoints and the frontend hides every link to them (the routes go to `/`). `GET /auth/me` keeps answering `{"user": null}`, and `/validate` and `/upload` do not change. Read at startup, so restart the pods after a change. `GET /features` tells the frontend the value it acts on: this setting and the GitHub App above. How to switch it in one environment: [releasing.md](releasing.md#switching-the-contribution-pipeline-off). |
+| `DATA_REPO` | `RESSLab-Team/resslab-hub-data` by default, what stage and prod use. Dev and local setups use the test fork `EPFL-ENAC/resslab-hub-data-test` instead, with the `GITHUB_APP_INSTALLATION_ID` of the App on EPFL-ENAC (the installation id is per org). See [Trying it locally](#trying-it-locally). |
+| `DATA_REPO_REVIEWERS` | Who is asked to review each pull request the Hub opens (#266). `admins` by default, what dev, stage and prod use: every account with admin on the data repo, read from GitHub at each pull request. `none` asks nobody: local setups use it, so a test submit on the fork does not email its admins. A comma list of GitHub logins asks exactly those. |
+| `DATA_REPO_BASE_BRANCH` | `main` by default, the only long-lived branch of the data repo. Submissions from stage (the test site) land there too: close those, never merge them. |
+| `MAX_OPEN_CONTRIBUTIONS` | `25` by default. When that many `contrib/` pull requests are open, `POST /contributions` answers `503` ("The review queue is full"). The rate limit is per client and per process, so this is the cap that holds across many accounts. |
 
 Defaults in `backend/resslab_hub/config.py`.
 
@@ -170,9 +173,10 @@ Two things in `contributions/github.py`:
 - one `httpx.AsyncClient` per process, kept open, instead of a new TCP and
   TLS handshake for each of the dozens of calls a commit makes (this was most
   of a 30 s submit),
-- `commit_files` gets the blob shas already at the parent commit and skips
-  any file whose content hashes to the same sha, so an edit that changes one
-  row uploads one file.
+- on an edit, `commit_on_branch` gets the blob shas already at the head of
+  the branch and skips any file whose content hashes to the same sha, so an
+  edit that changes one row uploads one file. A first submit uploads every
+  file.
 
 ## After the pull request
 
@@ -181,10 +185,10 @@ Two things in `contributions/github.py`:
 - The data repository's CI (`data-validation.yml`) sends the files the pull
   request adds or changes to `/validate` of the **prod** deployment, with the
   machine credential. It does not turn on the duplicate check: a main CSV
-  always holds rows that are already uploaded. Until 2.0 is released, prod
-  runs the old validator, so the checks added in 2.0 (the review status
-  values, for example) do not run in CI yet. The Hub runs them on a
-  submission before it opens the pull request.
+  always holds rows that are already uploaded. Since the CI calls prod, a
+  check added to the validator runs in CI only once it is released. The Hub
+  runs the checks of its own version on a submission before it opens the pull
+  request.
 - The Hub asks every admin of the data repo to review it (#266), so GitHub
   sends each one a "review requested" email and a notification. The person
   who submitted is left out, since nobody reviews their own pull request.
@@ -200,32 +204,31 @@ Two things in `contributions/github.py`:
   request ([curation.md](curation.md#verification)).
 - The data reaches the deployments when the pull request is merged: the data
   repo sends the changed files to `/upload` of each hub, and dev also rebuilds
-  its data each night ([backend/README.md](../backend/README.md#upload-data-to-a-deployed-environment-dev-stage-prod)).
-  The backend caches responses for an hour per process, so restart the pods if
-  it must show at once.
+  its data each night ([Run the pipeline](data-pipeline/run-the-pipeline.md)).
+  `/upload` expires the response cache of the backend at once, but a browser
+  keeps its copy for up to an hour (`CACHE_MAX_AGE`). The nightly rebuild
+  cannot expire the cache: restart the backend if its data must show at once.
 
 ## Trying it locally
 
 A local setup opens its pull requests on the test fork
 `EPFL-ENAC/resslab-hub-data-test`, not on the real data repo. Two lines in
-`secrets/.env` do it (a new worktree gets them from `scripts/wt-setup.sh`):
+`secrets/.env` do it:
 
 ```bash
 DATA_REPO=EPFL-ENAC/resslab-hub-data-test
-GITHUB_APP_INSTALLATION_ID=170990591   # the App's install on EPFL-ENAC
+GITHUB_APP_INSTALLATION_ID=<the id of the App on EPFL-ENAC>
 ```
 
 Without them, a laptop opens real pull requests on
 `RESSLab-Team/resslab-hub-data`, and someone has to close them by hand.
 
-`scripts/wt-setup.sh` also seeds `DATA_REPO_REVIEWERS=none`, so a test submit
-does not ask the fork's admins for a review. To test the review request, put
-your own GitHub login there (`DATA_REPO_REVIEWERS=your-login`) and restart the
-backend. An older worktree has no such line, so it asks every fork admin: add
-it by hand.
+Also set `DATA_REPO_REVIEWERS=none`, so a test submit does not ask the
+fork's admins for a review. To test the review request, put your own GitHub
+login there (`DATA_REPO_REVIEWERS=your-login`) and restart the backend.
 
-On the fork you can merge, close or leave pull requests as you like. Its
-Actions are off, so no validation runs there. Its `main` is a copy of the real
+On the fork you can merge, close or leave pull requests as you like. A merge
+on its `main` goes to the dev hub, through the `upload.yml` of the fork. Its `main` is a copy of the real
 `main` that drifts: it misses the real merges and keeps your test merges. So a
 submission that passes locally can still collide with ids on the real repo.
 `make data-fork-reset` puts the fork's `main` back on the real one and lists

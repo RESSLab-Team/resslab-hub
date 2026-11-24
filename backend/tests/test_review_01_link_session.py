@@ -3,7 +3,7 @@ Review 01, 01-6: the link callbacks never read the session.
 
 ``GET /auth/{github,orcid}/start?link=true`` stores the signed-in user in the
 state row. The callback attaches the identity to that user, even when the
-browser signed out in between. See docs/review/findings/01-sign-in.md.
+browser signed out in between. See docs/archive/review/findings/01-sign-in.md.
 """
 
 from urllib.parse import parse_qs, urlsplit

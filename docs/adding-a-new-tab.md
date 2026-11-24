@@ -6,12 +6,12 @@ RESSLab-Hub exposes a fixed set of structural steel component types (braces, col
 
 The EBF (Eccentric Braced Frames / "EBF Links") tab was added most recently (GitHub issue #215, PR #224) with a round of post-draft refinements (issue #225, 15 follow-up commits). That closed iteration is the most reliable template. This file captures every touchpoint so the next tab can be added quickly and without missing steps that were only discovered during EBF review.
 
-**Intended outcome:** a single reference the dev (and future Claude sessions) can follow top-to-bottom to scaffold a new component tab, plus a "gotchas" section prebuilt from the EBF feedback so we don't relearn those lessons.
+**Intended outcome:** a single reference a developer can follow top-to-bottom to scaffold a new component tab, plus a "gotchas" section prebuilt from the EBF feedback so we don't relearn those lessons.
 
 References consulted:
 
-- Code repo: `/mnt/data/Documents/Code/resslab-hub`
-- Data repo: `/home/pierre/dev/resslab-hub-data` (sibling of `../../resslab-hub-data` from the backend)
+- Code repo: this repository
+- Data repo: `resslab-hub-data`, checked out next to this repository (`../../resslab-hub-data` from the backend)
 - Issue #215 (initial request) — https://github.com/RESSLab-Team/resslab-hub/issues/215
 - PR #224 (initial merge, 34 files changed) — https://github.com/RESSLab-Team/resslab-hub/pull/224
 - Issue #225 (post-draft feedback, 15 fix commits) — https://github.com/RESSLab-Team/resslab-hub/issues/225
@@ -209,7 +209,7 @@ Once the dictionary is stable on a branch:
 
 1. In the **code repo**, make sure `../../resslab-hub-data` points at that branch (or a local checkout with the same contents).
 2. Run `make generate-model` (code repo, backend) — this is Step 2 below.
-3. Only after the backend compiles cleanly, squash-merge the data-repo PR to `main`. Every environment uploads from `main`: the data repo sends the changed files to each hub when the PR lands. A hub that doesn't run the new backend yet has no table for them. Once it does, run its upload CronJob from ArgoCD (dev also rebuilds each night). See [backend/README.md](../backend/README.md#upload-data-to-a-deployed-environment-dev-stage-prod).
+3. Only after the backend compiles cleanly, squash-merge the data-repo PR to `main`. Every environment uploads from `main`: the data repo sends the changed files to each hub when the PR lands. A hub that doesn't run the new backend yet has no table for them. Once it does, run its upload CronJob by hand (dev also rebuilds each night). See [Run the pipeline](data-pipeline/run-the-pipeline.md#the-nightly-rebuild).
 
 ---
 
@@ -617,7 +617,7 @@ Then walk the whole pipeline once with the sample batch: [contributing-data.md](
 10. **Carousel / detail content.** Don't ship a detail view with only raw fields — group them ("Loading and Geometric Parameters", "Steel Material Designation (flange / web)") and label units. EBF got two rounds of detail-content rework (`bdec4f8`, `50ba7f7`, `e70b30d`).
 11. **Data-repo validation workflow filter.** `.github/workflows/data-validation.yml` has a hardcoded `filters:` list. EBF was never added to it, so no EBF PR has ever been validated by CI. Add your filter line _before_ opening the first data-repo PR; otherwise silent pass-through is indistinguishable from a real green check.
 12. **Data-dictionary file name.** The suffix must be `_data_dictionary.csv` (not `_dictionnary.csv` — that typo actually shipped in EBF's first commit and had to be renamed). The backend `generate_model.py` invocation in `backend/Makefile` spells out the exact filename; mismatches produce an unhelpful "file not found" error.
-13. **Squash-merge is mandatory on the data repo.** The validation CI only diffs `HEAD~1..HEAD` on `main` after merge, so any non-squashed merge makes the validation log useless. Configure the PR to "Squash and merge" before clicking.
+13. **Squash-merge is mandatory on the data repo.** The ruleset of `main` allows no other merge method, and one commit per pull request keeps the provenance trailers readable on `main` ([Run the pipeline](data-pipeline/run-the-pipeline.md#branches-and-commit-order)).
 14. **Router file naming — singular, not plural.** New routers should be `backend/resslab_hub/routers/new_thing.py`. HSS's `routers/hss_columns.py` is an older plural convention; don't copy it. The ORM class is singular (`NewThing`), the Pydantic model is singular (`NewThingModel`), and the uploader `Type` enum members are singular (`NEW_THING`), so the router file name should match.
 15. **Acronym casing is free.** Use the widely-recognised form of the acronym in class/type names: HSS stays all-caps (`HSSColumn`, `HSSColumnModel`, `getHSSColumnImage`), while EBF uses TitleCase in helpers (`getEbfImage`, `ebfApi`). For URL slugs, component folders, and display names, use the short form in its natural case (`/hss-columns`, `components/hss/`, `"HSS Columns"`; `/ebf-links`, `components/ebf/`, `"EBF Links"`). Backend Python module paths and data-repo folders always use full snake_case (`hss_column.py`, `eccentric_braced_frame.py`, `eccentric_braced_frames/`).
 16. **Prefer id-as-filename for time-series.** Two of three existing tabs (Braces, HSS) use id-as-filename — it's the majority idiom and simpler to debug. EBF's integer-alias scheme (`id{N}.csv` + `data_ind` column) is the exception, justified only when specimen ids contain filesystem-unfriendly characters. Don't copy EBF's pattern reflexively.

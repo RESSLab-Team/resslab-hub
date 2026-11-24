@@ -9,7 +9,7 @@ The categories are the ones the RESSLab researchers defined on
 [resslab-hub#245](https://github.com/RESSLab-Team/resslab-hub/issues/245), and their
 home is the `group` column of each `*_data_dictionary.csv`
 ([resslab-hub-data#46](https://github.com/RESSLab-Team/resslab-hub-data/pull/46)).
-Connections, ductile fracture and residual stresses are @andskia's own grouping; the
+Connections, ductile fracture and residual stresses follow the grouping that a researcher of the lab made for them; the
 other six follow the same conventions.
 
 ## How a column gets its category

@@ -1,32 +1,52 @@
-# Docs
+# RESSLab Hub docs
 
-One line per guide. Start with the root [README](../README.md) to run the app.
+The [RESSLab Hub](https://resslab-hub.epfl.ch) is a database of tests on
+structural steel components (braces, columns, connections, materials,
+residual stresses, HSS columns, EBF links). These docs explain how data gets
+into it, and how the app works for the people who maintain it.
 
-## Run it
+The source is in [RESSLab-Team/resslab-hub][repo]. The data is in
+[RESSLab-Team/resslab-hub-data][data-repo]. These pages are built from the
+`docs/` folder of the source repository.
 
-- [Root README](../README.md): prerequisites, dev servers, populate the database, deploy targets
-- [backend/README.md](../backend/README.md): migrations, model generation, uploads (local and in-cluster)
-- [frontend/README.md](../frontend/README.md): scripts, layout of `src/`, env files
-- [worktree-dev-environment.md](worktree-dev-environment.md): one branch, its own servers, database and Claude session
-- [releasing.md](releasing.md): dev -> stage -> main, Release Please, the token, the prod checklist
+## Data pipeline
 
-## How it works
+Start with [How data gets into the Hub](data-pipeline/index.md), then read
+the page for your role:
 
-- [whats-new-in-2.0.md](whats-new-in-2.0.md): the refactor, section by section, versus the old app on `main`
-- [auth.md](auth.md): sign-in by email code or GitHub, sessions, roles, the settings a deployment needs
-- [contributing-data.md](contributing-data.md): from a dropped folder to a pull request on the data repo, and editing it
-- [curation.md](curation.md): the review queue, the review page and the verification of live rows
-- [dashboard-architecture.md](dashboard-architecture.md): the client-side dashboard engine, and the backend cache behind it
-- [design-system.md](design-system.md): the tokens, options versus decisions, the cascade layers, a few use cases
-- [variable-categories.md](variable-categories.md): the scientific category of every column, per database
-- [sem-images.md](sem-images.md): the SEM fracture images, from the TIFs in the data repo to the CDN and the dialog
+- [Submit data](data-pipeline/submit-data.md): for researchers who share their
+  experiments.
+- [Review data](data-pipeline/review-data.md): for the members of the lab who
+  review and verify the submissions.
+- [Run the pipeline](data-pipeline/run-the-pipeline.md): for the maintainers
+  of the data repository and of the deployments.
+- [Contribution internals](contributing-data.md) and
+  [Curation internals](curation.md): the code behind the submit and the
+  review.
+- [Variable categories](variable-categories.md): the scientific category of
+  each column, for each database.
 
-## Maintain it
+## For maintainers
 
-- [adding-a-new-tab.md](adding-a-new-tab.md): the end-to-end playbook for a new component database
-- [modernization-followups.md](modernization-followups.md): toolchain upgrades done and still open, upload perf notes
-- [design/](design/): the brand exploration and the sign-in mail brief and handoff
-- [review/](review/README.md): the review of sign-in, roles and contributions before the workshop: plan, agent briefs, test guide, go-live checklist
+- [What's new in 2.0](whats-new-in-2.0.md): the rewrite, versus the old app.
+- [Releasing](releasing.md): `dev` to `stage` to `main`, Release Please, the
+  prod checklist.
+- [Sign-in and accounts](auth.md): email code, GitHub and ORCID sign-in,
+  roles, and the settings of a deployment.
+- [Dashboard architecture](dashboard-architecture.md): the dashboard engine in
+  the browser, and the backend cache behind it.
+- [Design system](design-system.md): the tokens, the cascade layers, and how
+  to style a new page.
+- [SEM images](sem-images.md): the fracture images, from the TIFs in the data
+  repository to the CDN.
+- [Adding a new tab](adding-a-new-tab.md): the steps for a new component
+  database.
 
-`CLAUDE.md` at the root is the map of the repo for coding agents. It repeats
-the facts above in short form and is kept in step with them.
+To run the app on your machine, read the [README][readme] of the source
+repository, then the READMEs of [backend][backend] and [frontend][frontend].
+
+[repo]: https://github.com/RESSLab-Team/resslab-hub
+[data-repo]: https://github.com/RESSLab-Team/resslab-hub-data
+[readme]: https://github.com/RESSLab-Team/resslab-hub/blob/dev/README.md
+[backend]: https://github.com/RESSLab-Team/resslab-hub/blob/dev/backend/README.md
+[frontend]: https://github.com/RESSLab-Team/resslab-hub/blob/dev/frontend/README.md
