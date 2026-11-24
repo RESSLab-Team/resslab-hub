@@ -102,7 +102,8 @@ vi.mock('maplibre-gl', () => ({
   Map: fake.FakeMap,
   Marker: fake.FakeMarker,
   LngLatBounds: fake.FakeBounds,
-  AttributionControl: class {}
+  AttributionControl: class {},
+  setWorkerUrl: vi.fn()
 }))
 
 const getMapSites = vi.fn()
