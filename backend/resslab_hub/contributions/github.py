@@ -16,14 +16,17 @@ client is kept open between calls: see `_SharedGitHub` below.
 """
 
 import asyncio
-import hashlib
 import inspect
 import logging
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from functools import cached_property
 from typing import AsyncGenerator, Dict, List, Optional
 
 import httpx
+from enacit4r_contrib.github import GitHubRepo
+from enacit4r_contrib.github import blob_sha as library_blob_sha
+from enacit4r_contrib.repo import CommentInfo, PullInfo
 from githubkit import AppInstallationAuthStrategy, GitHub
 from githubkit.exception import RequestFailed, RequestTimeout
 
@@ -113,15 +116,12 @@ class NewFile:
 
 
 def blob_sha(content: str) -> str:
-    """The git object id of a blob holding `content`.
+    """The git object id of a blob holding `content` (`git hash-object`).
 
-    Same rule as `git hash-object`: sha1 over "blob <bytes>\\0" + the data.
     Lets us compare a file we are about to send with what GitHub already has,
     and skip the upload when they match.
     """
-    data = content.encode("utf-8")
-    header = f"blob {len(data)}\0".encode()
-    return hashlib.sha1(header + data).hexdigest()  # nosec B324 - git object id
+    return library_blob_sha(content.encode("utf-8"))
 
 
 class _SharedGitHub(GitHub):
@@ -191,6 +191,17 @@ async def aclose_github() -> None:
         await client.aclose()
 
 
+# The exact repository role, as the base level the roles code reads.
+_BASE_LEVEL = {
+    "admin": "admin",
+    "maintain": "write",
+    "write": "write",
+    "triage": "read",
+    "read": "read",
+    "none": "none",
+}
+
+
 class DataRepoClient:
     """Git Data API operations on the configured data repository."""
 
@@ -199,114 +210,89 @@ class DataRepoClient:
         self.base_branch: str = str(settings.data_repo_base_branch)
         self._gh = _github()
 
+    @cached_property
+    def _repo(self) -> GitHubRepo:
+        # Lazy, so a client built with `__new__` and its own `_gh` works too.
+        return GitHubRepo(f"{self.owner}/{self.repo}", github=self._gh)
+
     @staticmethod
-    def _pull_dict(pull) -> dict:
+    def _pull_dict(pull: PullInfo) -> dict:
         return {
             "number": pull.number,
-            "html_url": pull.html_url,
-            "author": pull.user.login if pull.user else "",
-            "author_type": pull.user.type if pull.user else "",
+            "html_url": pull.url,
+            "author": pull.author,
+            "author_type": pull.author_type,
             "title": pull.title,
             "state": pull.state,
-            "draft": bool(pull.draft),
-            "head_ref": pull.head.ref,
-            "head_sha": pull.head.sha,
-            "head_repo": pull.head.repo.full_name if pull.head.repo else "",
-            "base_ref": pull.base.ref,
-            "created_at": str(pull.created_at),
-            "updated_at": str(pull.updated_at),
-            "body": pull.body or "",
+            "draft": pull.draft,
+            "head_ref": pull.head_ref,
+            "head_sha": pull.head_sha,
+            "head_repo": pull.head_repo,
+            "base_ref": pull.base_ref,
+            "created_at": pull.created_at,
+            "updated_at": pull.updated_at,
+            "body": pull.body,
         }
 
     async def list_open_pulls(self) -> List[dict]:
-        """Open PRs into the base branch, newest first (one page, 100 max)."""
-        response = await self._gh.rest.pulls.async_list(
-            self.owner,
-            self.repo,
-            state="open",
-            base=self.base_branch,
-            sort="created",
-            direction="desc",
-            per_page=100,
-        )
-        return [self._pull_dict(pull) for pull in response.parsed_data]
+        """Open PRs into the base branch, newest first (100 max)."""
+        pulls = await self._repo.open_pulls(self.base_branch, limit=100)
+        return [self._pull_dict(pull) for pull in pulls]
 
     async def get_pull(self, number: int) -> dict:
         """One PR by number (any state)."""
-        response = await self._gh.rest.pulls.async_get(self.owner, self.repo, number)
-        return self._pull_dict(response.parsed_data)
+        return self._pull_dict(await self._repo.get_pull(number))
 
     async def list_pull_files(self, number: int) -> List[dict]:
         """Changed files of a PR: path, status and blob sha at the head.
 
-        Paginated up to 300 files. The sha is the head version's git object
+        Paginated up to 3000 files. The sha is the head version's git object
         id, which `commit_on_branch` uses to skip re-uploading files that did
         not change.
         """
-        files: List[dict] = []
-        for page in range(1, 4):
-            response = await self._gh.rest.pulls.async_list_files(
-                self.owner, self.repo, number, per_page=100, page=page
-            )
-            batch = response.parsed_data
-            files.extend(
-                {"path": file.filename, "status": file.status, "sha": file.sha}
-                for file in batch
-            )
-            if len(batch) < 100:
-                break
-        return files
+        return [
+            {"path": file.path, "status": file.status, "sha": file.sha}
+            for file in await self._repo.pull_files(number)
+        ]
 
     async def list_pull_commits(self, number: int) -> List[dict]:
-        """Commits of a PR, oldest first (one page, 100 max).
+        """Commits of a PR, oldest first (GitHub lists at most 250).
 
         The message carries the submission's provenance trailers, so this is
         what the curation screen and the ownership check read.
         """
-        response = await self._gh.rest.pulls.async_list_commits(
-            self.owner, self.repo, number, per_page=100
-        )
-        commits = []
-        for item in response.parsed_data:
-            author = item.commit.author
-            commits.append(
-                {
-                    "sha": item.sha,
-                    "message": item.commit.message or "",
-                    "author_name": getattr(author, "name", "") or "",
-                    "author_email": getattr(author, "email", "") or "",
-                    "author_date": str(getattr(author, "date", "") or ""),
-                }
-            )
-        return commits
+        return [
+            {
+                "sha": commit.sha,
+                "message": commit.message,
+                "author_name": commit.author_name,
+                "author_email": commit.author_email,
+                "author_date": commit.author_date,
+            }
+            for commit in await self._repo.pull_commits(number)
+        ]
 
     @staticmethod
-    def _comment_dict(comment) -> dict:
-        # `IssueComment.body` is `Missing[str] | None` — githubkit answers its
-        # UNSET sentinel for a comment posted with no body, which is neither a
-        # str nor None, so guard on the type rather than on falsiness.
-        body = comment.body if isinstance(comment.body, str) else ""
+    def _comment_dict(comment: CommentInfo) -> dict:
         return {
             "id": comment.id,
-            "author": comment.user.login if comment.user else "",
-            "author_type": comment.user.type if comment.user else "",
-            "body": body,
-            "html_url": comment.html_url,
-            "created_at": str(comment.created_at),
-            "updated_at": str(comment.updated_at),
+            "author": comment.author,
+            "author_type": comment.author_type,
+            "body": comment.body,
+            "html_url": comment.url,
+            "created_at": comment.created_at,
+            "updated_at": comment.updated_at,
         }
 
     async def list_issue_comments(self, number: int) -> List[dict]:
-        """Conversation comments on a PR, oldest first (one page, 100 max).
+        """Conversation comments on a PR, oldest first (1000 max).
 
         Review comments (inline, anchored to a diff hunk) are a different
         resource and are deliberately left out: this feeds the review screen's
         discussion panel, and line-anchored remarks only read next to the diff.
         """
-        response = await self._gh.rest.issues.async_list_comments(
-            self.owner, self.repo, number, per_page=100
-        )
-        return [self._comment_dict(comment) for comment in response.parsed_data]
+        comments = await self._repo.pull_comments(number)
+        return [self._comment_dict(comment) for comment in comments]
 
     async def get_file_text(self, path: str, ref: Optional[str] = None) -> str:
         """Text content of a repo file at `ref` (default: the base branch)."""
@@ -325,18 +311,7 @@ class DataRepoClient:
         GitHub lists up to 1000 entries this way; the largest curve folder of
         the data repo has about 350.
         """
-        try:
-            response = await self._gh.rest.repos.async_get_content(
-                self.owner, self.repo, path=path, ref=ref or self.base_branch
-            )
-        except RequestFailed as exc:
-            if exc.response.status_code == 404:
-                return []
-            raise
-        entries = response.parsed_data
-        if not isinstance(entries, list):
-            return []
-        return [entry.name for entry in entries if entry.type == "file"]
+        return await self._repo.list_dir(path, ref or self.base_branch)
 
     async def get_permission(self, login: str) -> str:
         """What a GitHub account may do on the data repo (#248).
@@ -345,16 +320,8 @@ class DataRepoClient:
         ``read`` or ``none``. An unknown login is a 404, which means ``none``
         here. Needs only the Metadata permission, which every App has.
         """
-        repos = self._gh.rest.repos
-        try:
-            response = await repos.async_get_collaborator_permission_level(
-                self.owner, self.repo, login
-            )
-        except RequestFailed as exc:
-            if exc.response.status_code == 404:
-                return "none"
-            raise
-        return str(response.parsed_data.permission or "none")
+        role = await self._repo.permission(login)
+        return _BASE_LEVEL.get(role, role or "none")
 
     async def list_admin_logins(self) -> List[str]:
         """Logins with admin on the data repo (one page, 100 max).
@@ -368,11 +335,7 @@ class DataRepoClient:
 
     async def request_reviewers(self, number: int, logins: List[str]) -> None:
         """Ask `logins` to review a pull request. GitHub notifies each one."""
-        if not logins:
-            return
-        await self._gh.rest.pulls.async_request_reviewers(
-            self.owner, self.repo, number, data={"reviewers": logins}
-        )
+        await self._repo.request_reviewers(number, logins)
 
     async def get_base_sha(self) -> str:
         """Commit sha of the base branch head."""
@@ -393,58 +356,24 @@ class DataRepoClient:
     ) -> str:
         """One commit on top of `parent_sha`, without moving any ref.
 
-        The contributor is the author, the App's bot the committer. A tree
-        entry with a null sha is how the Git Data API spells "delete".
+        The contributor is the author, the App's bot the committer. Deletions
+        go in the tree after the uploads.
 
         `existing` maps a repo path to the blob sha already at `parent_sha`.
         A file whose content hashes to the same sha needs no upload and no
-        tree entry: it is already in `base_tree`. An edit that only touches
-        one row of the CSV then sends one blob instead of the whole batch.
+        tree entry: it is already in the parent's tree. An edit that only
+        touches one row of the CSV then sends one blob instead of the whole
+        batch. With nothing to write, the answer is `parent_sha` and the
+        callers leave the ref where it is.
         """
-        git = self._gh.rest.git
-        at_parent = existing or {}
-        changed = [
-            file for file in files if at_parent.get(file.path) != blob_sha(file.content)
-        ]
-
-        limit = asyncio.Semaphore(MAX_PARALLEL_CALLS)
-
-        async def upload(file: NewFile) -> dict:
-            async with limit:
-                blob = await git.async_create_blob(
-                    self.owner, self.repo, content=file.content, encoding="utf-8"
-                )
-            return {
-                "path": file.path,
-                "mode": "100644",
-                "type": "blob",
-                "sha": blob.parsed_data.sha,
-            }
-
-        tree_entries: List[dict] = list(
-            await asyncio.gather(*(upload(file) for file in changed))
+        return await self._repo.commit_tree(
+            parent_sha,
+            {file.path: file.content.encode("utf-8") for file in files},
+            message,
+            deletions=deletions,
+            author=(author_name, author_email),
+            known=existing,
         )
-        for rel in deletions:
-            tree_entries.append(
-                {"path": rel, "mode": "100644", "type": "blob", "sha": None}
-            )
-        if not tree_entries:
-            # Nothing to write. GitHub rejects an empty tree, and an empty
-            # commit is not worth making: answer the parent, and the callers
-            # leave the ref where it is.
-            return parent_sha
-        tree = await git.async_create_tree(
-            self.owner, self.repo, base_tree=parent_sha, tree=tree_entries
-        )
-        commit = await git.async_create_commit(
-            self.owner,
-            self.repo,
-            message=message,
-            tree=tree.parsed_data.sha,
-            parents=[parent_sha],
-            author={"name": author_name, "email": author_email},
-        )
-        return commit.parsed_data.sha
 
     async def commit_files(
         self,
@@ -480,52 +409,30 @@ class DataRepoClient:
     ) -> str:
         """Add one commit on top of `head_sha` on `branch`; returns its sha.
 
-        Not forced: GitHub refuses the ref update when the branch moved since
-        `head_sha` was read, which is the wanted answer. `existing` is the
+        Not forced: when the branch moved since `head_sha` was read, GitHub
+        refuses the ref update and the library raises `BranchMoved`. `existing` is the
         path -> blob sha map of the branch head, so unchanged files are not
         uploaded again.
         """
-        commit_sha = await self._create_commit(
+        return await self._repo.commit_on_branch(
+            branch,
             head_sha,
-            files,
-            deletions,
+            {file.path: file.content.encode("utf-8") for file in files},
             message,
-            author_name,
-            author_email,
-            existing=existing,
+            deletions=deletions,
+            author=(author_name, author_email),
+            known=existing,
         )
-        if commit_sha == head_sha:  # nothing changed: leave the branch alone
-            return head_sha
-        await self._gh.rest.git.async_update_ref(
-            self.owner,
-            self.repo,
-            ref=f"heads/{branch}",
-            data={"sha": commit_sha, "force": False},
-        )
-        return commit_sha
 
     async def create_pull_request(self, branch: str, title: str, body: str) -> dict:
         """Open a PR from `branch` into the base branch."""
-        response = await self._gh.rest.pulls.async_create(
-            self.owner,
-            self.repo,
-            title=title,
-            head=branch,
-            base=self.base_branch,
-            body=body,
-        )
-        pull = response.parsed_data
-        return {"url": pull.html_url, "number": pull.number}
+        pull = await self._repo.open_pull(branch, self.base_branch, title, body)
+        return {"url": pull.url, "number": pull.number}
 
     async def update_pull_body(self, number: int, body: str) -> None:
         """Rewrite a pull request's description."""
-        await self._gh.rest.pulls.async_update(self.owner, self.repo, number, body=body)
+        await self._repo.update_pull_body(number, body)
 
     async def delete_branch(self, branch: str) -> None:
         """Best-effort cleanup of a branch whose PR could not be opened."""
-        try:
-            await self._gh.rest.git.async_delete_ref(
-                self.owner, self.repo, ref=f"heads/{branch}"
-            )
-        except Exception:
-            pass
+        await self._repo.delete_branch(branch)

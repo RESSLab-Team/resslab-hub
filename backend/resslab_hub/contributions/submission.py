@@ -23,11 +23,21 @@ import logging
 import re
 import secrets
 from dataclasses import dataclass
-from decimal import Decimal, InvalidOperation
 from fnmatch import fnmatch
 from os import path, walk
 from time import monotonic
 from typing import Dict, Iterable, List, Optional, Set, Tuple
+
+from enacit4r_contrib.tables import (
+    DuplicateIds,
+    Table,
+    TableError,
+    duplicate_id_issues,
+    merge_rows,
+    read_table,
+    table_ids,
+)
+from enacit4r_contrib.tables import escape_formula as escape_formula
 
 from resslab_hub.config import settings
 from resslab_hub.contributions.github import (
@@ -60,10 +70,6 @@ from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import ValidationResult, validate_all
 
 logger = logging.getLogger(__name__)
-
-#: Cells starting with these can execute as formulas when the CSV is opened in
-#: a spreadsheet. Numbers are exempt: "-1.5" is data, not a formula.
-FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
 
 
 @dataclass
@@ -114,20 +120,17 @@ def check_paths(tmpdir: str, input_type: Type) -> _Layout:
     return layout
 
 
-def escape_formula(cell: str) -> str:
-    """Prefix-escape a cell that a spreadsheet would evaluate as a formula."""
-    if not cell.startswith(FORMULA_PREFIXES):
-        return cell
+def _read_table(text: str) -> Table:
+    """The CSV without its BOM and blank rows, and its own line ending."""
     try:
-        Decimal(cell)
-        return cell
-    except (InvalidOperation, ValueError):
-        return f"'{cell}"
+        return read_table(text.encode("utf-8"))
+    except TableError:
+        raise SubmissionError(400, "The primary CSV is empty.")
 
 
 def _read_csv(text: str) -> tuple[List[str], List[List[str]]]:
-    # Excel-exported repo CSVs may carry a UTF-8 BOM; never let it glue itself
-    # onto the first header name.
+    # Not read_table: that skips blank rows above the header and strips one
+    # BOM only, and verification and curation read the repo CSV with this.
     rows = list(csv.reader(io.StringIO(text.lstrip("\ufeff"))))
     if not rows:
         raise SubmissionError(400, "The primary CSV is empty.")
@@ -330,9 +333,12 @@ async def repo_ids(
         return cached[1]
     layout = _layout_for(input_type)
     client = client or DataRepoClient()
-    header, rows = _read_csv(await client.get_file_text(layout.primary_csv))
-    id_index = header.index("id")
-    ids = {row[id_index].strip() for row in rows if id_index < len(row)}
+    text = await client.get_file_text(layout.primary_csv)
+    try:
+        ids = table_ids(text.encode("utf-8"))
+    except TableError:
+        _read_table(text)  # An empty file is the 400 it always was.
+        raise
     _repo_ids_cache[input_type] = (monotonic(), ids)
     return ids
 
@@ -362,27 +368,30 @@ async def flag_repo_duplicates(
     )
     if primary is None:
         return
+    # Text mode, as the validator reads it: the same newlines, so the same rows.
     with open(path.join(tmpdir, layout.primary_csv), encoding="utf-8") as file:
-        # csv.reader, not _read_csv: the validator numbers data rows from 1
-        # including blank ones, and the errors have to land on the same rows.
-        rows = list(csv.reader(io.StringIO(file.read().lstrip("\ufeff"))))
-    if not rows or "id" not in rows[0]:
-        return
-    id_index = rows[0].index("id")
+        data = file.read().lstrip("\ufeff").encode("utf-8")
     flagged = {
         error.row for error in primary.errors if error.column == "id" and error.row
     }
     existing = await repo_ids(input_type, client)
-    for row_num, row in enumerate(rows[1:], start=1):
-        value = row[id_index].strip() if id_index < len(row) else ""
-        if value and value in existing and row_num not in flagged:
-            primary.add_error(
-                row_num,
-                "id",
-                value,
-                f"Specimen id '{value}' already exists in the data repository "
-                f"(merged, awaiting ingestion) — ids must be unique.",
-            )
+    try:
+        # Blank rows count here: the validator numbers data rows from 1
+        # including blank ones, and the errors have to land on the same rows.
+        issues = duplicate_id_issues(
+            data,
+            existing,
+            file=layout.primary_csv,
+            message="Specimen id '{id}' already exists in the data repository "
+            "(merged, awaiting ingestion) — ids must be unique.",
+        )
+    except TableError:  # No id column: the validator reports it.
+        return
+    for issue in issues:
+        # The library counts the header as row 1, the validator does not.
+        row_num = issue.row - 1
+        if row_num not in flagged:
+            primary.add_error(row_num, "id", issue.value, issue.message)
 
 
 def validate_archive(tmpdir: str, input_type: Type) -> _Layout:
@@ -421,11 +430,14 @@ def reject_clashes(ids: List[str], existing: Set[str]) -> None:
     """Refuse a batch whose ids are already in the data repository."""
     clashes = [value for value in ids if value in existing]
     if clashes:
-        raise SubmissionError(
-            409,
-            "These specimen ids already exist in the data repository: "
-            + ", ".join(clashes),
-        )
+        raise _clash(clashes)
+
+
+def _clash(ids: List[str]) -> SubmissionError:
+    return SubmissionError(
+        409,
+        "These specimen ids already exist in the data repository: " + ", ".join(ids),
+    )
 
 
 def _line_terminator(text: str) -> str:
@@ -463,23 +475,18 @@ def build_primary_csv(
             "changed. Please contact the maintainers.",
         )
 
-    batch_index = {name: position for position, name in enumerate(header)}
-
-    def repo_ordered(row: List[str]) -> List[str]:
-        cells = []
-        for name in repo_header:
-            if name == STATUS_COLUMN:
-                cells.append(UNVERIFIED)
-                continue
-            position = batch_index.get(name)
-            in_batch = position is not None and position < len(row)
-            value = row[position] if in_batch else ""
-            cells.append(escape_formula(value.strip() or "NR"))
-        return cells
-
-    return _write_csv(
-        repo_header, kept_rows + [repo_ordered(row) for row in rows], terminator
-    )
+    try:
+        merged = merge_rows(
+            _write_csv(repo_header, kept_rows, terminator).encode("utf-8"),
+            _write_csv(header, rows).encode("utf-8"),
+            fill="NR",
+            fixed={STATUS_COLUMN: UNVERIFIED},
+        )
+    except DuplicateIds as exc:
+        raise _clash(exc.ids)
+    except TableError as exc:
+        raise SubmissionError(400, str(exc))
+    return merged.decode("utf-8")
 
 
 def collect_curve_files(tmpdir: str, layout: _Layout) -> List[NewFile]:
@@ -518,15 +525,10 @@ async def submit_contribution(
 
     client = client or DataRepoClient()
     repo_text = await client.get_file_text(layout.primary_csv)
-    repo_header, repo_rows = _read_csv(repo_text)
+    repo = _read_table(repo_text)
 
-    id_index = repo_header.index("id")
-    reject_clashes(
-        ids, {row[id_index].strip() for row in repo_rows if id_index < len(row)}
-    )
-    merged_csv = build_primary_csv(
-        repo_header, _line_terminator(repo_text), repo_rows, header, rows
-    )
+    reject_clashes(ids, table_ids(repo_text.encode("utf-8")))
+    merged_csv = build_primary_csv(repo.header, repo.newline, repo.rows, header, rows)
 
     files = [NewFile(layout.primary_csv, merged_csv)]
     files.extend(collect_curve_files(tmpdir, layout))
@@ -669,19 +671,16 @@ async def update_contribution(
         client.get_file_text(layout.primary_csv, ref=head_sha),
         client.get_file_text(layout.primary_csv),
     )
-    head_header, head_rows = _read_csv(head_text)
-    base_header, base_rows = _read_csv(base_text)
-    if "id" not in head_header or "id" not in base_header:
+    head = _read_table(head_text)
+    base_header, _ = _read_csv(base_text)
+    if "id" not in head.header or "id" not in base_header:
         raise SubmissionError(502, "The data repository's CSV has no 'id' column.")
-    base_id = base_header.index("id")
-    base_ids = {row[base_id].strip() for row in base_rows if base_id < len(row)}
+    base_ids = table_ids(base_text.encode("utf-8"))
 
     # Rows this submission never owned stay; its own are what the editor sends.
-    kept, _ = split_batch(head_header, head_rows, base_ids)
+    kept, _ = split_batch(head.header, head.rows, base_ids)
     reject_clashes(ids, base_ids)
-    merged_csv = build_primary_csv(
-        head_header, _line_terminator(head_text), kept, header, rows
-    )
+    merged_csv = build_primary_csv(head.header, head.newline, kept, header, rows)
 
     files = [NewFile(layout.primary_csv, merged_csv)]
     files.extend(collect_curve_files(tmpdir, layout))
