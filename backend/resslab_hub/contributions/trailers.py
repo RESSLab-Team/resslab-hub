@@ -15,9 +15,11 @@ record instead. ``provenance_from_record`` reads those, so an open pull request
 made by the old code keeps working.
 """
 
-import re
 from dataclasses import dataclass, field
 from typing import Dict, Iterable, List, Optional, Union
+
+from enacit4r_contrib.trailers import address, format_trailers, split_address
+from enacit4r_contrib.trailers import parse_trailers as library_parse_trailers
 
 #: Who submitted, and the address ownership is checked against.
 SUBMITTED_BY = "Submitted-by"
@@ -28,10 +30,6 @@ GITHUB = "GitHub"
 DISMISSED_WARNING = "Dismissed-Warning"
 #: The curator who checked the rows of a verification pull request (#253).
 VERIFIED_BY = "Verified-by"
-
-#: A trailer line: a key of letters, digits and hyphens, then ": ", then the
-#: value. Git's own rule, applied to the last paragraph only.
-_TRAILER_LINE = re.compile(r"^([A-Za-z0-9-]+):[ \t]*(.*)$")
 
 
 @dataclass
@@ -53,11 +51,6 @@ def _one_line(value: str) -> str:
     return " ".join(str(value or "").split())
 
 
-def _clean_name(value: str) -> str:
-    """A name that cannot break out of ``Name <address>``."""
-    return _one_line(value).replace("<", "").replace(">", "").strip()
-
-
 def build_commit_message(
     title: str,
     name: str,
@@ -72,25 +65,25 @@ def build_commit_message(
     Empty fields are left out rather than written empty, so the message says
     only what is known.
     """
-    lines = [f"{SUBMITTED_BY}: {_clean_name(name)} <{_one_line(email)}>"]
-    if _one_line(institution):
-        lines.append(f"{INSTITUTION}: {_one_line(institution)}")
-    if _one_line(orcid):
-        lines.append(f"{ORCID}: {_one_line(orcid)}")
-    if _one_line(github_login):
-        lines.append(f"{GITHUB}: @{_one_line(github_login).lstrip('@')}")
-    for warning in dismissed_warnings or []:
-        if _one_line(warning):
-            lines.append(f"{DISMISSED_WARNING}: {_one_line(warning)}")
-    return f"{_one_line(title)}\n\n" + "\n".join(lines)
+    login = _one_line(github_login)
+    return format_trailers(
+        _one_line(title),
+        [
+            (SUBMITTED_BY, address(_one_line(name), _one_line(email))),
+            (INSTITUTION, _one_line(institution)),
+            (ORCID, _one_line(orcid)),
+            (GITHUB, f"@{login.lstrip('@')}" if login else ""),
+            *((DISMISSED_WARNING, _one_line(w)) for w in dismissed_warnings or []),
+        ],
+    )
 
 
 def build_verification_message(title: str, name: str, email: str) -> str:
     """The commit message of a verification pull request: title, blank line,
     who checked the data. It has no ``Submitted-by``, so nothing reads it as a
     submission."""
-    return (
-        f"{_one_line(title)}\n\n{VERIFIED_BY}: {_clean_name(name)} <{_one_line(email)}>"
+    return format_trailers(
+        _one_line(title), [(VERIFIED_BY, address(_one_line(name), _one_line(email)))]
     )
 
 
@@ -101,25 +94,7 @@ def parse_trailers(message: str) -> Dict[str, List[str]]:
     trailer: that is how git tells a trailer block from a prose paragraph that
     happens to contain a colon.
     """
-    paragraphs = [p for p in (message or "").split("\n\n") if p.strip()]
-    if not paragraphs:
-        return {}
-    lines = [line for line in paragraphs[-1].splitlines() if line.strip()]
-    parsed: Dict[str, List[str]] = {}
-    for line in lines:
-        match = _TRAILER_LINE.match(line.strip())
-        if match is None:
-            return {}
-        parsed.setdefault(match.group(1), []).append(match.group(2).strip())
-    return parsed
-
-
-def _split_address(value: str) -> tuple:
-    """``Ada Lovelace <ada@example.edu>`` -> ("Ada Lovelace", "ada@example.edu")."""
-    match = re.match(r"^(.*?)\s*<([^>]*)>\s*$", value.strip())
-    if match is None:
-        return value.strip(), ""
-    return match.group(1).strip(), match.group(2).strip()
+    return library_parse_trailers(message or "")
 
 
 def _first(trailers: Dict[str, List[str]], key: str) -> str:
@@ -148,7 +123,7 @@ def provenance_from_commits(commits: List[dict]) -> Optional[Provenance]:
 
     first_commit, first = hub_commits[0]
     _, last = hub_commits[-1]
-    name, email = _split_address(_first(first, SUBMITTED_BY))
+    name, email = split_address(_first(first, SUBMITTED_BY))
     return Provenance(
         name=name,
         email=email,
