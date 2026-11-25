@@ -20,6 +20,7 @@ import inspect
 import logging
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from functools import cached_property
 from typing import AsyncGenerator, Dict, List, Optional
 
 import httpx
@@ -189,6 +190,17 @@ async def aclose_github() -> None:
         await client.aclose()
 
 
+# The exact repository role, as the base level the roles code reads.
+_BASE_LEVEL = {
+    "admin": "admin",
+    "maintain": "write",
+    "write": "write",
+    "triage": "read",
+    "read": "read",
+    "none": "none",
+}
+
+
 class DataRepoClient:
     """Git Data API operations on the configured data repository."""
 
@@ -196,6 +208,11 @@ class DataRepoClient:
         self.owner, self.repo = str(settings.data_repo).split("/", 1)
         self.base_branch: str = str(settings.data_repo_base_branch)
         self._gh = _github()
+
+    @cached_property
+    def _repo(self) -> GitHubRepo:
+        # Lazy, so a client built with `__new__` and its own `_gh` works too.
+        return GitHubRepo(f"{self.owner}/{self.repo}", github=self._gh)
 
     @staticmethod
     def _pull_dict(pull) -> dict:
@@ -237,23 +254,14 @@ class DataRepoClient:
     async def list_pull_files(self, number: int) -> List[dict]:
         """Changed files of a PR: path, status and blob sha at the head.
 
-        Paginated up to 300 files. The sha is the head version's git object
+        Paginated up to 3000 files. The sha is the head version's git object
         id, which `commit_on_branch` uses to skip re-uploading files that did
         not change.
         """
-        files: List[dict] = []
-        for page in range(1, 4):
-            response = await self._gh.rest.pulls.async_list_files(
-                self.owner, self.repo, number, per_page=100, page=page
-            )
-            batch = response.parsed_data
-            files.extend(
-                {"path": file.filename, "status": file.status, "sha": file.sha}
-                for file in batch
-            )
-            if len(batch) < 100:
-                break
-        return files
+        return [
+            {"path": file.path, "status": file.status, "sha": file.sha}
+            for file in await self._repo.pull_files(number)
+        ]
 
     async def list_pull_commits(self, number: int) -> List[dict]:
         """Commits of a PR, oldest first (one page, 100 max).
@@ -343,16 +351,8 @@ class DataRepoClient:
         ``read`` or ``none``. An unknown login is a 404, which means ``none``
         here. Needs only the Metadata permission, which every App has.
         """
-        repos = self._gh.rest.repos
-        try:
-            response = await repos.async_get_collaborator_permission_level(
-                self.owner, self.repo, login
-            )
-        except RequestFailed as exc:
-            if exc.response.status_code == 404:
-                return "none"
-            raise
-        return str(response.parsed_data.permission or "none")
+        role = await self._repo.permission(login)
+        return _BASE_LEVEL.get(role, role or "none")
 
     async def list_admin_logins(self) -> List[str]:
         """Logins with admin on the data repo (one page, 100 max).
@@ -366,11 +366,7 @@ class DataRepoClient:
 
     async def request_reviewers(self, number: int, logins: List[str]) -> None:
         """Ask `logins` to review a pull request. GitHub notifies each one."""
-        if not logins:
-            return
-        await self._gh.rest.pulls.async_request_reviewers(
-            self.owner, self.repo, number, data={"reviewers": logins}
-        )
+        await self._repo.request_reviewers(number, logins)
 
     async def get_base_sha(self) -> str:
         """Commit sha of the base branch head."""
@@ -401,8 +397,7 @@ class DataRepoClient:
         batch. With nothing to write, the answer is `parent_sha` and the
         callers leave the ref where it is.
         """
-        repo = GitHubRepo(f"{self.owner}/{self.repo}", github=self._gh)
-        return await repo.commit_tree(
+        return await self._repo.commit_tree(
             parent_sha,
             {file.path: file.content.encode("utf-8") for file in files},
             message,
@@ -471,26 +466,13 @@ class DataRepoClient:
 
     async def create_pull_request(self, branch: str, title: str, body: str) -> dict:
         """Open a PR from `branch` into the base branch."""
-        response = await self._gh.rest.pulls.async_create(
-            self.owner,
-            self.repo,
-            title=title,
-            head=branch,
-            base=self.base_branch,
-            body=body,
-        )
-        pull = response.parsed_data
-        return {"url": pull.html_url, "number": pull.number}
+        pull = await self._repo.open_pull(branch, self.base_branch, title, body)
+        return {"url": pull.url, "number": pull.number}
 
     async def update_pull_body(self, number: int, body: str) -> None:
         """Rewrite a pull request's description."""
-        await self._gh.rest.pulls.async_update(self.owner, self.repo, number, body=body)
+        await self._repo.update_pull_body(number, body)
 
     async def delete_branch(self, branch: str) -> None:
         """Best-effort cleanup of a branch whose PR could not be opened."""
-        try:
-            await self._gh.rest.git.async_delete_ref(
-                self.owner, self.repo, ref=f"heads/{branch}"
-            )
-        except Exception:
-            pass
+        await self._repo.delete_branch(branch)
