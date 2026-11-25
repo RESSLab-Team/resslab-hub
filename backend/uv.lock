@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.12, <3.14"
 
 [[package]]
@@ -535,6 +535,21 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c0/4d/f5e9d9de19f4b8f9e33d802fe3efb0ef96e88d4d6d45d604f335bef2f1ef/email_validator-2.4.0.tar.gz", hash = "sha256:be487bc50bc3bd832a98515a55a15649d9bec06d954fa178663190714b6c4ee1", size = 55168, upload-time = "2026-11-14T20:21:28.125Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b8/8b/99e715c59560afa0bf68f21ed16eec794d94293945f57934b70c5255d741/email_validator-2.4.0-py3-none-any.whl", hash = "sha256:4454e41c4e1c6b6caee34a1dc71d5e736791562be8fd179b02e298f796522684", size = 36810, upload-time = "2026-11-14T20:21:27.14Z" },
+]
+
+[[package]]
+name = "enacit4r-contrib"
+version = "0.5.0"
+source = { git = "https://github.com/EPFL-ENAC/enacit4r-contrib?rev=e305c7f2086f4543dff7de60e9b50e483026076e#e305c7f2086f4543dff7de60e9b50e483026076e" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "pydantic" },
+    { name = "python-multipart" },
+]
+
+[package.optional-dependencies]
+github = [
+    { name = "githubkit", extra = ["auth-app"] },
 ]
 
 [[package]]
@@ -1611,6 +1626,7 @@ dependencies = [
     { name = "chardet" },
     { name = "dynaconf" },
     { name = "email-validator" },
+    { name = "enacit4r-contrib", extra = ["github"] },
     { name = "fastapi" },
     { name = "fastapi-pagination" },
     { name = "githubkit", extra = ["auth-app"] },
@@ -1655,6 +1671,7 @@ requires-dist = [
     { name = "chardet", specifier = ">=5.2.0,<6" },
     { name = "dynaconf", specifier = ">=3.1.7,<4" },
     { name = "email-validator", specifier = ">=2,<3" },
+    { name = "enacit4r-contrib", extras = ["github"], git = "https://github.com/EPFL-ENAC/enacit4r-contrib?rev=e305c7f2086f4543dff7de60e9b50e483026076e" },
     { name = "fastapi", specifier = ">=0.162,<1" },
     { name = "fastapi-pagination", specifier = ">=0.16,<1" },
     { name = "githubkit", extras = ["auth-app"], specifier = ">=0.12,<0.18" },

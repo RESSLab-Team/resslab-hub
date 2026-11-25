@@ -16,7 +16,6 @@ client is kept open between calls: see `_SharedGitHub` below.
 """
 
 import asyncio
-import hashlib
 import inspect
 import logging
 from contextlib import asynccontextmanager
@@ -24,6 +23,8 @@ from dataclasses import dataclass
 from typing import AsyncGenerator, Dict, List, Optional
 
 import httpx
+from enacit4r_contrib.github import GitHubRepo
+from enacit4r_contrib.github import blob_sha as library_blob_sha
 from githubkit import AppInstallationAuthStrategy, GitHub
 from githubkit.exception import RequestFailed, RequestTimeout
 
@@ -113,15 +114,12 @@ class NewFile:
 
 
 def blob_sha(content: str) -> str:
-    """The git object id of a blob holding `content`.
+    """The git object id of a blob holding `content` (`git hash-object`).
 
-    Same rule as `git hash-object`: sha1 over "blob <bytes>\\0" + the data.
     Lets us compare a file we are about to send with what GitHub already has,
     and skip the upload when they match.
     """
-    data = content.encode("utf-8")
-    header = f"blob {len(data)}\0".encode()
-    return hashlib.sha1(header + data).hexdigest()  # nosec B324 - git object id
+    return library_blob_sha(content.encode("utf-8"))
 
 
 class _SharedGitHub(GitHub):
@@ -393,58 +391,25 @@ class DataRepoClient:
     ) -> str:
         """One commit on top of `parent_sha`, without moving any ref.
 
-        The contributor is the author, the App's bot the committer. A tree
-        entry with a null sha is how the Git Data API spells "delete".
+        The contributor is the author, the App's bot the committer. Deletions
+        go in the tree after the uploads.
 
         `existing` maps a repo path to the blob sha already at `parent_sha`.
         A file whose content hashes to the same sha needs no upload and no
-        tree entry: it is already in `base_tree`. An edit that only touches
-        one row of the CSV then sends one blob instead of the whole batch.
+        tree entry: it is already in the parent's tree. An edit that only
+        touches one row of the CSV then sends one blob instead of the whole
+        batch. With nothing to write, the answer is `parent_sha` and the
+        callers leave the ref where it is.
         """
-        git = self._gh.rest.git
-        at_parent = existing or {}
-        changed = [
-            file for file in files if at_parent.get(file.path) != blob_sha(file.content)
-        ]
-
-        limit = asyncio.Semaphore(MAX_PARALLEL_CALLS)
-
-        async def upload(file: NewFile) -> dict:
-            async with limit:
-                blob = await git.async_create_blob(
-                    self.owner, self.repo, content=file.content, encoding="utf-8"
-                )
-            return {
-                "path": file.path,
-                "mode": "100644",
-                "type": "blob",
-                "sha": blob.parsed_data.sha,
-            }
-
-        tree_entries: List[dict] = list(
-            await asyncio.gather(*(upload(file) for file in changed))
+        repo = GitHubRepo(f"{self.owner}/{self.repo}", github=self._gh)
+        return await repo.commit_tree(
+            parent_sha,
+            {file.path: file.content.encode("utf-8") for file in files},
+            message,
+            deletions=deletions,
+            author=(author_name, author_email),
+            known=existing,
         )
-        for rel in deletions:
-            tree_entries.append(
-                {"path": rel, "mode": "100644", "type": "blob", "sha": None}
-            )
-        if not tree_entries:
-            # Nothing to write. GitHub rejects an empty tree, and an empty
-            # commit is not worth making: answer the parent, and the callers
-            # leave the ref where it is.
-            return parent_sha
-        tree = await git.async_create_tree(
-            self.owner, self.repo, base_tree=parent_sha, tree=tree_entries
-        )
-        commit = await git.async_create_commit(
-            self.owner,
-            self.repo,
-            message=message,
-            tree=tree.parsed_data.sha,
-            parents=[parent_sha],
-            author={"name": author_name, "email": author_email},
-        )
-        return commit.parsed_data.sha
 
     async def commit_files(
         self,
