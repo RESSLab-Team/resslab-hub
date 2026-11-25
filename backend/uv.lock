@@ -539,8 +539,8 @@ wheels = [
 
 [[package]]
 name = "enacit4r-contrib"
-version = "0.5.0"
-source = { git = "https://github.com/EPFL-ENAC/enacit4r-contrib?rev=98498d33631e52a69c134b728f9251dacf41ec0b#98498d33631e52a69c134b728f9251dacf41ec0b" }
+version = "0.6.0"
+source = { git = "https://github.com/EPFL-ENAC/enacit4r-contrib?tag=0.6.0#cac9bf286e6d0090338e8f55dd412449bf9687a4" }
 dependencies = [
     { name = "fastapi" },
     { name = "pydantic" },
@@ -1671,7 +1671,7 @@ requires-dist = [
     { name = "chardet", specifier = ">=5.2.0,<6" },
     { name = "dynaconf", specifier = ">=3.1.7,<4" },
     { name = "email-validator", specifier = ">=2,<3" },
-    { name = "enacit4r-contrib", extras = ["github"], git = "https://github.com/EPFL-ENAC/enacit4r-contrib?rev=98498d33631e52a69c134b728f9251dacf41ec0b" },
+    { name = "enacit4r-contrib", extras = ["github"], git = "https://github.com/EPFL-ENAC/enacit4r-contrib?tag=0.6.0" },
     { name = "fastapi", specifier = ">=0.162,<1" },
     { name = "fastapi-pagination", specifier = ">=0.16,<1" },
     { name = "githubkit", extras = ["auth-app"], specifier = ">=0.12,<0.18" },
