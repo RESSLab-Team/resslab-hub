@@ -32,11 +32,11 @@ importers:
         specifier: ^1.4.7
         version: 1.4.7
       echarts:
-        specifier: ^5.4.1
-        version: 5.6.0
+        specifier: ^6.1.0
+        version: 6.1.0
       echarts-gl:
         specifier: ^2.0.9
-        version: 2.1.0(echarts@5.6.0)
+        version: 2.1.0(echarts@6.1.0)
       hex-rgb:
         specifier: ^5.0.0
         version: 5.0.0
@@ -62,8 +62,8 @@ importers:
         specifier: ^3.5.46
         version: 3.5.46(typescript@5.9.3)
       vue-echarts:
-        specifier: ^6.5.4
-        version: 6.7.3(@vue/runtime-core@3.5.46)(echarts@5.6.0)(vue@3.5.46(typescript@5.9.3))
+        specifier: ^8.3.2
+        version: 8.3.2(echarts@6.1.0)(vue@3.5.46(typescript@5.9.3))
       vue-gtag:
         specifier: ^2.0.1
         version: 2.1.2(vue@3.5.46(typescript@5.9.3))
@@ -79,7 +79,7 @@ importers:
     devDependencies:
       '@intlify/unplugin-vue-i18n':
         specifier: ^11.2.8
-        version: 11.2.8(@vue/compiler-dom@3.5.46)(rollup@4.62.0)(supports-color@10.2.2)(typescript@5.9.3)(vite@6.4.6(@types/node@20.19.43)(sass@1.108.2)(yaml@2.9.1))(vue-i18n@11.4.23(vue@3.5.46(typescript@5.9.3)))(vue@3.5.46(typescript@5.9.3))
+        version: 11.2.8(rollup@4.62.0)(supports-color@10.2.2)(typescript@5.9.3)(vite@6.4.6(@types/node@20.19.43)(sass@1.108.2)(yaml@2.9.1))(vue-i18n@11.4.23(vue@3.5.46(typescript@5.9.3)))(vue@3.5.46(typescript@5.9.3))
       '@mdi/js':
         specifier: ^7.1.96
         version: 7.4.47
@@ -2242,8 +2242,8 @@ packages:
     peerDependencies:
       echarts: ^5.1.2 || ^6.0.0
 
-  echarts@5.6.0:
-    resolution: {integrity: sha512-oTbVTsXfKuEhxftHqL5xprgLoc0k7uScAwtryCgWF6hPYFLRwOUHiFmHGCBKP5NPFNkDVopOieyUqYGH8Fa3kA==}
+  echarts@6.1.0:
+    resolution: {integrity: sha512-q0yaFPggC9FUdsWH4blavRWFmxdrIodbkoKNAjJudAI6CA9gNPxHtV2RcZNEepZVlk4yvBYkOkbk6HIVpIyHZA==}
 
   editorconfig@3.0.2:
     resolution: {integrity: sha512-T0ix8GhtxyKVfUFEcvdNDt3YGqlwkFHbD4/5bgFUDgFmxhI/cSRAeJ87/Sz//Cq8Eam6JX/e23RkoFO71P7aAA==}
@@ -3321,9 +3321,6 @@ packages:
   requires-port@1.0.0:
     resolution: {integrity: sha512-KigOCHcocU3XODJxsu8i/j8T9tzT4adHiecwORRQ0ZZFcp7ahwXuRU1m+yuO90C5ZUyGeGfocHDI14M3L3yDAQ==}
 
-  resize-detector@0.3.0:
-    resolution: {integrity: sha512-R/tCuvuOHQ8o2boRP6vgx8hXCCy87H1eY9V5imBYeVNyNVpuL9ciReSccLj2gDcax9+2weXy3bc8Vv+NRXeEvQ==}
-
   resolve-from@4.0.0:
     resolution: {integrity: sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==}
     engines: {node: '>=4'}
@@ -3823,17 +3820,6 @@ packages:
   vue-component-type-helpers@3.3.5:
     resolution: {integrity: sha512-Fe1jyPJoUGpJOYKOri44jduR7My4yYINOMJISuMAbmrs+L5LbIDUc8NTWZYY3EJLK0yPLuCmcd5zoCsE4k2/KA==}
 
-  vue-demi@0.13.11:
-    resolution: {integrity: sha512-IR8HoEEGM65YY3ZJYAjMlKygDQn25D5ajNFNoKh9RSDMQtlzCxtfQjdQgv9jjK+m3377SsJXY8ysq8kLCZL25A==}
-    engines: {node: '>=12'}
-    hasBin: true
-    peerDependencies:
-      '@vue/composition-api': ^1.0.0-rc.1
-      vue: ^3.0.0-0 || ^2.6.0
-    peerDependenciesMeta:
-      '@vue/composition-api':
-        optional: true
-
   vue-demi@0.14.10:
     resolution: {integrity: sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg==}
     engines: {node: '>=12'}
@@ -3845,18 +3831,11 @@ packages:
       '@vue/composition-api':
         optional: true
 
-  vue-echarts@6.7.3:
-    resolution: {integrity: sha512-vXLKpALFjbPphW9IfQPOVfb1KjGZ/f8qa/FZHi9lZIWzAnQC1DgnmEK3pJgEkyo6EP7UnX6Bv/V3Ke7p+qCNXA==}
+  vue-echarts@8.3.2:
+    resolution: {integrity: sha512-FbJD49OZZZv1I8aclHQ+gcQxU+Y9nNWQMuod1sewE7/YjGQUJAaeVcf6WrSfQDBRPke+WoVsUtdRFIqPOsRrnw==}
     peerDependencies:
-      '@vue/composition-api': ^1.0.5
-      '@vue/runtime-core': ^3.0.0
-      echarts: ^5.4.1
-      vue: ^2.6.12 || ^3.1.1
-    peerDependenciesMeta:
-      '@vue/composition-api':
-        optional: true
-      '@vue/runtime-core':
-        optional: true
+      echarts: ^6.0.0
+      vue: ^3.3.0
 
   vue-eslint-parser@9.4.3:
     resolution: {integrity: sha512-2rYRLWlIpaiN8xbPiDyXZXRgLGOtWxERV7ND5fFAv5qo1D2N9Fu9MNajBNc6o13lZ+24DAWCkQCvj4klgmcITg==}
@@ -4033,6 +4012,9 @@ packages:
 
   zrender@5.6.1:
     resolution: {integrity: sha512-OFXkDJKcrlx5su2XbzJvj/34Q3m6PvyCZkVPHGYpcCJ52ek4U/ymZyfuV1nKE23AyBJ51E/6Yr0mhZ7xGTO4ag==}
+
+  zrender@6.1.0:
+    resolution: {integrity: sha512-oEGMDB6pOP2S6OwRR4PdVv610zrjnA3Bh+JnSG12fYJlBKjtNAoEb5fSUoCOOINlH96I2fU38/A2UpRKs67xYQ==}
 
   zustand@5.1.0:
     resolution: {integrity: sha512-ciJZlP48M1PTQbVQq81CGVFxHTLpZNrFjKqwjtCU34AWuXTZT/jrF3p9+fI84Cf1eSCMLapxqBy/SNTfwOBuqA==}
@@ -4256,11 +4238,11 @@ snapshots:
 
   '@intlify/shared@11.4.23': {}
 
-  '@intlify/unplugin-vue-i18n@11.2.8(@vue/compiler-dom@3.5.46)(rollup@4.62.0)(supports-color@10.2.2)(typescript@5.9.3)(vite@6.4.6(@types/node@20.19.43)(sass@1.108.2)(yaml@2.9.1))(vue-i18n@11.4.23(vue@3.5.46(typescript@5.9.3)))(vue@3.5.46(typescript@5.9.3))':
+  '@intlify/unplugin-vue-i18n@11.2.8(rollup@4.62.0)(supports-color@10.2.2)(typescript@5.9.3)(vite@6.4.6(@types/node@20.19.43)(sass@1.108.2)(yaml@2.9.1))(vue-i18n@11.4.23(vue@3.5.46(typescript@5.9.3)))(vue@3.5.46(typescript@5.9.3))':
     dependencies:
       '@intlify/bundle-utils': 11.2.8(vue-i18n@11.4.23(vue@3.5.46(typescript@5.9.3)))
       '@intlify/shared': 11.4.23
-      '@intlify/vue-i18n-extensions': 9.1.0(@intlify/shared@11.4.23)(@vue/compiler-dom@3.5.46)(vue-i18n@11.4.23(vue@3.5.46(typescript@5.9.3)))(vue@3.5.46(typescript@5.9.3))
+      '@intlify/vue-i18n-extensions': 9.1.0(@intlify/shared@11.4.23)(vue-i18n@11.4.23(vue@3.5.46(typescript@5.9.3)))(vue@3.5.46(typescript@5.9.3))
       '@rollup/pluginutils': 5.4.0(rollup@4.62.0)
       '@typescript-eslint/scope-manager': 8.74.0
       '@typescript-eslint/typescript-estree': 8.74.0(supports-color@10.2.2)(typescript@5.9.3)
@@ -4275,17 +4257,16 @@ snapshots:
       vue-i18n: 11.4.23(vue@3.5.46(typescript@5.9.3))
     transitivePeerDependencies:
       - '@typescript/native'
-      - '@vue/compiler-dom'
       - rollup
       - supports-color
       - typescript
 
-  '@intlify/vue-i18n-extensions@9.1.0(@intlify/shared@11.4.23)(@vue/compiler-dom@3.5.46)(vue-i18n@11.4.23(vue@3.5.46(typescript@5.9.3)))(vue@3.5.46(typescript@5.9.3))':
+  '@intlify/vue-i18n-extensions@9.1.0(@intlify/shared@11.4.23)(vue-i18n@11.4.23(vue@3.5.46(typescript@5.9.3)))(vue@3.5.46(typescript@5.9.3))':
     dependencies:
       '@babel/parser': 7.29.15
+      '@vue/compiler-dom': 3.5.46
     optionalDependencies:
       '@intlify/shared': 11.4.23
-      '@vue/compiler-dom': 3.5.46
       vue: 3.5.46(typescript@5.9.3)
       vue-i18n: 11.4.23(vue@3.5.46(typescript@5.9.3))
 
@@ -6184,16 +6165,16 @@ snapshots:
     optionalDependencies:
       wcwidth: 1.0.1
 
-  echarts-gl@2.1.0(echarts@5.6.0):
+  echarts-gl@2.1.0(echarts@6.1.0):
     dependencies:
       claygl: 1.3.0
-      echarts: 5.6.0
+      echarts: 6.1.0
       zrender: 5.6.1
 
-  echarts@5.6.0:
+  echarts@6.1.0:
     dependencies:
       tslib: 2.3.0
-      zrender: 5.6.1
+      zrender: 6.1.0
 
   editorconfig@3.0.2:
     dependencies:
@@ -7411,8 +7392,6 @@ snapshots:
 
   requires-port@1.0.0: {}
 
-  resize-detector@0.3.0: {}
-
   resolve-from@4.0.0: {}
 
   resolve@1.22.12:
@@ -7914,22 +7893,14 @@ snapshots:
 
   vue-component-type-helpers@3.3.5: {}
 
-  vue-demi@0.13.11(vue@3.5.46(typescript@5.9.3)):
-    dependencies:
-      vue: 3.5.46(typescript@5.9.3)
-
   vue-demi@0.14.10(vue@3.5.46(typescript@5.9.3)):
     dependencies:
       vue: 3.5.46(typescript@5.9.3)
 
-  vue-echarts@6.7.3(@vue/runtime-core@3.5.46)(echarts@5.6.0)(vue@3.5.46(typescript@5.9.3)):
+  vue-echarts@8.3.2(echarts@6.1.0)(vue@3.5.46(typescript@5.9.3)):
     dependencies:
-      echarts: 5.6.0
-      resize-detector: 0.3.0
+      echarts: 6.1.0
       vue: 3.5.46(typescript@5.9.3)
-      vue-demi: 0.13.11(vue@3.5.46(typescript@5.9.3))
-    optionalDependencies:
-      '@vue/runtime-core': 3.5.46
 
   vue-eslint-parser@9.4.3(eslint@8.57.1(supports-color@10.2.2))(supports-color@10.2.2):
     dependencies:
@@ -8114,6 +8085,10 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   zrender@5.6.1:
+    dependencies:
+      tslib: 2.3.0
+
+  zrender@6.1.0:
     dependencies:
       tslib: 2.3.0
 

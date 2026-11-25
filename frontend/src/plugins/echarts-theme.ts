@@ -1,7 +1,7 @@
 /* ============================================================
    RESSLab Hub — brutalist ECharts theme (EPFL design handoff)
-   Applied globally via vue-echarts THEME_KEY (see main.ts), so every
-   <v-chart> picks it up without per-component wiring.
+   Passed to each <v-chart> as `:theme` (vue-echarts 8 keeps its inject key
+   private), and to `init()` in composables/useEChart.ts.
 
    Design language (from the handoff's charts-lib.js):
      · hairline axes  (#C1C1C1)
@@ -90,6 +90,12 @@ export const echartsTheme = {
   title: {
     textStyle: { color: INK, fontFamily: SANS, fontWeight: 'normal' as const }
   },
+
+  // ECharts 6 shrinks the grid so axis names and labels stay inside the canvas
+  // ('all' by default). ECharts 5 did not. Keep the v5 layout: the thumbnails
+  // of the connection fragility page rely on it (their axis name sits outside
+  // the canvas on purpose).
+  grid: { outerBoundsMode: 'none' as const },
 
   // Category axis: keep the baseline, drop the perpendicular gridlines.
   categoryAxis: {
