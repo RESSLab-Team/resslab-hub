@@ -56,7 +56,6 @@ async def test_a_pull_request_that_exists_is_not_closed_by_the_cleanup(
     assert client.deleted_branches == []
 
 
-@pytest.mark.xfail(strict=True, reason="review 05: 05-7")
 async def test_a_failed_branch_cleanup_is_logged(caplog):
     class RefusingGit(FakeGit):
         async def async_delete_ref(self, owner, repo, ref):
