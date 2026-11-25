@@ -26,6 +26,7 @@ from typing import AsyncGenerator, Dict, List, Optional
 import httpx
 from enacit4r_contrib.github import GitHubRepo
 from enacit4r_contrib.github import blob_sha as library_blob_sha
+from enacit4r_contrib.repo import CommentInfo, PullInfo
 from githubkit import AppInstallationAuthStrategy, GitHub
 from githubkit.exception import RequestFailed, RequestTimeout
 
@@ -215,41 +216,32 @@ class DataRepoClient:
         return GitHubRepo(f"{self.owner}/{self.repo}", github=self._gh)
 
     @staticmethod
-    def _pull_dict(pull) -> dict:
+    def _pull_dict(pull: PullInfo) -> dict:
         return {
             "number": pull.number,
-            "html_url": pull.html_url,
-            "author": pull.user.login if pull.user else "",
-            "author_type": pull.user.type if pull.user else "",
+            "html_url": pull.url,
+            "author": pull.author,
+            "author_type": pull.author_type,
             "title": pull.title,
             "state": pull.state,
-            "draft": bool(pull.draft),
-            "head_ref": pull.head.ref,
-            "head_sha": pull.head.sha,
-            "head_repo": pull.head.repo.full_name if pull.head.repo else "",
-            "base_ref": pull.base.ref,
-            "created_at": str(pull.created_at),
-            "updated_at": str(pull.updated_at),
-            "body": pull.body or "",
+            "draft": pull.draft,
+            "head_ref": pull.head_ref,
+            "head_sha": pull.head_sha,
+            "head_repo": pull.head_repo,
+            "base_ref": pull.base_ref,
+            "created_at": pull.created_at,
+            "updated_at": pull.updated_at,
+            "body": pull.body,
         }
 
     async def list_open_pulls(self) -> List[dict]:
-        """Open PRs into the base branch, newest first (one page, 100 max)."""
-        response = await self._gh.rest.pulls.async_list(
-            self.owner,
-            self.repo,
-            state="open",
-            base=self.base_branch,
-            sort="created",
-            direction="desc",
-            per_page=100,
-        )
-        return [self._pull_dict(pull) for pull in response.parsed_data]
+        """Open PRs into the base branch, newest first (100 max)."""
+        pulls = await self._repo.open_pulls(self.base_branch, limit=100)
+        return [self._pull_dict(pull) for pull in pulls]
 
     async def get_pull(self, number: int) -> dict:
         """One PR by number (any state)."""
-        response = await self._gh.rest.pulls.async_get(self.owner, self.repo, number)
-        return self._pull_dict(response.parsed_data)
+        return self._pull_dict(await self._repo.get_pull(number))
 
     async def list_pull_files(self, number: int) -> List[dict]:
         """Changed files of a PR: path, status and blob sha at the head.
@@ -264,55 +256,43 @@ class DataRepoClient:
         ]
 
     async def list_pull_commits(self, number: int) -> List[dict]:
-        """Commits of a PR, oldest first (one page, 100 max).
+        """Commits of a PR, oldest first (GitHub lists at most 250).
 
         The message carries the submission's provenance trailers, so this is
         what the curation screen and the ownership check read.
         """
-        response = await self._gh.rest.pulls.async_list_commits(
-            self.owner, self.repo, number, per_page=100
-        )
-        commits = []
-        for item in response.parsed_data:
-            author = item.commit.author
-            commits.append(
-                {
-                    "sha": item.sha,
-                    "message": item.commit.message or "",
-                    "author_name": getattr(author, "name", "") or "",
-                    "author_email": getattr(author, "email", "") or "",
-                    "author_date": str(getattr(author, "date", "") or ""),
-                }
-            )
-        return commits
+        return [
+            {
+                "sha": commit.sha,
+                "message": commit.message,
+                "author_name": commit.author_name,
+                "author_email": commit.author_email,
+                "author_date": commit.author_date,
+            }
+            for commit in await self._repo.pull_commits(number)
+        ]
 
     @staticmethod
-    def _comment_dict(comment) -> dict:
-        # `IssueComment.body` is `Missing[str] | None` — githubkit answers its
-        # UNSET sentinel for a comment posted with no body, which is neither a
-        # str nor None, so guard on the type rather than on falsiness.
-        body = comment.body if isinstance(comment.body, str) else ""
+    def _comment_dict(comment: CommentInfo) -> dict:
         return {
             "id": comment.id,
-            "author": comment.user.login if comment.user else "",
-            "author_type": comment.user.type if comment.user else "",
-            "body": body,
-            "html_url": comment.html_url,
-            "created_at": str(comment.created_at),
-            "updated_at": str(comment.updated_at),
+            "author": comment.author,
+            "author_type": comment.author_type,
+            "body": comment.body,
+            "html_url": comment.url,
+            "created_at": comment.created_at,
+            "updated_at": comment.updated_at,
         }
 
     async def list_issue_comments(self, number: int) -> List[dict]:
-        """Conversation comments on a PR, oldest first (one page, 100 max).
+        """Conversation comments on a PR, oldest first (1000 max).
 
         Review comments (inline, anchored to a diff hunk) are a different
         resource and are deliberately left out: this feeds the review screen's
         discussion panel, and line-anchored remarks only read next to the diff.
         """
-        response = await self._gh.rest.issues.async_list_comments(
-            self.owner, self.repo, number, per_page=100
-        )
-        return [self._comment_dict(comment) for comment in response.parsed_data]
+        comments = await self._repo.pull_comments(number)
+        return [self._comment_dict(comment) for comment in comments]
 
     async def get_file_text(self, path: str, ref: Optional[str] = None) -> str:
         """Text content of a repo file at `ref` (default: the base branch)."""
@@ -331,18 +311,7 @@ class DataRepoClient:
         GitHub lists up to 1000 entries this way; the largest curve folder of
         the data repo has about 350.
         """
-        try:
-            response = await self._gh.rest.repos.async_get_content(
-                self.owner, self.repo, path=path, ref=ref or self.base_branch
-            )
-        except RequestFailed as exc:
-            if exc.response.status_code == 404:
-                return []
-            raise
-        entries = response.parsed_data
-        if not isinstance(entries, list):
-            return []
-        return [entry.name for entry in entries if entry.type == "file"]
+        return await self._repo.list_dir(path, ref or self.base_branch)
 
     async def get_permission(self, login: str) -> str:
         """What a GitHub account may do on the data repo (#248).
