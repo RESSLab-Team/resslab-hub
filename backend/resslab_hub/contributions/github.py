@@ -440,29 +440,20 @@ class DataRepoClient:
     ) -> str:
         """Add one commit on top of `head_sha` on `branch`; returns its sha.
 
-        Not forced: GitHub refuses the ref update when the branch moved since
-        `head_sha` was read, which is the wanted answer. `existing` is the
+        Not forced: when the branch moved since `head_sha` was read, GitHub
+        refuses the ref update and the library raises `BranchMoved`. `existing` is the
         path -> blob sha map of the branch head, so unchanged files are not
         uploaded again.
         """
-        commit_sha = await self._create_commit(
+        return await self._repo.commit_on_branch(
+            branch,
             head_sha,
-            files,
-            deletions,
+            {file.path: file.content.encode("utf-8") for file in files},
             message,
-            author_name,
-            author_email,
-            existing=existing,
+            deletions=deletions,
+            author=(author_name, author_email),
+            known=existing,
         )
-        if commit_sha == head_sha:  # nothing changed: leave the branch alone
-            return head_sha
-        await self._gh.rest.git.async_update_ref(
-            self.owner,
-            self.repo,
-            ref=f"heads/{branch}",
-            data={"sha": commit_sha, "force": False},
-        )
-        return commit_sha
 
     async def create_pull_request(self, branch: str, title: str, body: str) -> dict:
         """Open a PR from `branch` into the base branch."""
