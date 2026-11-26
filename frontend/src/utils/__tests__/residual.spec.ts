@@ -1,5 +1,6 @@
 import type { ResidualStressModel } from '@/backend'
 import {
+  QP_FIT_NAME,
   createLineSeries,
   createResidualModels,
   validateResidualModelParams
@@ -147,7 +148,38 @@ describe('residual.createLineSeries keeps the hot-rolled curves', () => {
       copy(fixture.w1),
       copy(fixture.f2)
     )
-    const old = (series: LineSeriesOption[]) => series.filter((s) => s.name !== 'QP fit')
+    const old = (series: LineSeriesOption[]) => series.filter((s) => s.name !== QP_FIT_NAME)
     expect({ flange: old(flangeSeries), web: old(webSeries) }).toMatchSnapshot()
+  })
+})
+
+describe('residual.createLineSeries adds the saved QP fit', () => {
+  it('draws c1 + c2 (x - b/2)^2 and c3 + c4 (y - h/2)^2', () => {
+    const { flangeSeries, webSeries } = createLineSeries(
+      KETTER.record as unknown as ResidualStressModel,
+      KETTER.qp.map((row) => [...row]),
+      KETTER.f1.map((row) => [...row]),
+      KETTER.w1.map((row) => [...row]),
+      []
+    )
+    const flange = flangeSeries.find((s) => s.name === QP_FIT_NAME)!.data as number[][]
+    const web = webSeries.find((s) => s.name === QP_FIT_NAME)!.data as number[][]
+    const [c1, c2, c3, c4] = KETTER.qp.map(([value]) => value)
+    // x is centred on mid-width in the chart, y is the height.
+    flange.forEach(([x, stress]) => expect(stress).toBeCloseTo(c1 + c2 * x ** 2, 9))
+    web.forEach(([stress, y]) => expect(stress).toBeCloseTo(c3 + c4 * (y - 106 / 2) ** 2, 9))
+    expect(flangeSeries.at(-1)!.name).toBe(QP_FIT_NAME)
+  })
+
+  it('has no QP fit without four coefficients', () => {
+    const { flangeSeries, webSeries } = createLineSeries(
+      KETTER.record as unknown as ResidualStressModel,
+      [],
+      KETTER.f1.map((row) => [...row]),
+      KETTER.w1.map((row) => [...row]),
+      []
+    )
+    expect(flangeSeries.some((s) => s.name === QP_FIT_NAME)).toBe(false)
+    expect(webSeries.some((s) => s.name === QP_FIT_NAME)).toBe(false)
   })
 })
