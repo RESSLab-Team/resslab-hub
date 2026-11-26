@@ -4375,7 +4375,7 @@ exports[`residual.createLineSeries keeps the hot-rolled curves > Sousa_and_Ligno
       "showSymbol": true,
     },
     {
-      "color": "#787496",
+      "color": "palette[7]",
       "data": [
         [
           -79.2166666666667,
