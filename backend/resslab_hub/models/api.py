@@ -670,7 +670,7 @@ class ResidualStressModel(ApiModel):
     profile_type: str
     profile: str
     spec_var: Optional[str]
-    steel: str
+    steel: Optional[str]
     fy_n: Optional[float]
     fy_e: Optional[float]
     fy_mf: Optional[float]
@@ -681,9 +681,32 @@ class ResidualStressModel(ApiModel):
     tf: Optional[float]
     r: Optional[float]
     A: Optional[float]
-    sigma_0_f: float
-    sigma_0_w: float
+    sigma_0_f: Optional[float]
+    sigma_0_w: Optional[float]
     flange_nr_data: int
+    steel_web: Optional[str]
+    fy_nw: Optional[float]
+    fy_ew: Optional[float]
+    b2: Optional[float]
+    tf2: Optional[float]
+    plt_cut_f: Optional[str]
+    plt_cut_w: Optional[str]
+    mea_met: Optional[str]
+    weld_type: Optional[str]
+    fillet_size: Optional[float]
+    weld_cur: Optional[str]
+    weld_vol: Optional[str]
+    weld_vel: Optional[str]
+    preheat_c: Optional[str]
+    interpass_c: Optional[str]
+    holding_c: Optional[str]
+    holding_t: Optional[str]
+    n_weld_pass: Optional[int]
+    heat_inp: Optional[str]
+    region: Optional[str]
+    webdata: Optional[int]
+    sym: str
+    sigma_0_b_f: Optional[float]
     plot_sf: float
     reference: str
     link: Optional[str]

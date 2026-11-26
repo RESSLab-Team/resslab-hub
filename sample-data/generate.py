@@ -66,6 +66,11 @@ from sqlalchemy.orm import Session
 
 from resslab_hub.data.columns import contributed_columns
 from resslab_hub.data.common import SAFE_ID_PATTERN
+from resslab_hub.data.residual_stress_qp import (
+    BUILT_UP_QP_COLUMNS,
+    OPTIONAL_TIP_STRESS,
+    QP_COEFFICIENT_COLUMN,
+)
 from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import (
     MISSING_MARKERS,
@@ -311,7 +316,7 @@ def usable(model, row: dict) -> bool:
         if model is DuctileFracture and is_list_column(column.key):
             if not is_missing(value) and not is_number_list(str(value).strip()):
                 return False
-    if model is ResidualStress and row.get("flange_nr_data") not in (1, 2):
+    if model is ResidualStress and row.get("flange_nr_data") not in (0, 1, 2):
         return False
     return True
 
@@ -635,9 +640,7 @@ def int_column(b: Invalid, r: int):
     return b.free(
         r,
         lambda c: (
-            plain_int(c)
-            and not yearish(c.key)
-            and whole(b.cell(r, c.key)) is not None
+            plain_int(c) and not yearish(c.key) and whole(b.cell(r, c.key)) is not None
         ),
         lambda c: plain_int(c) and whole(b.cell(r, c.key)) is not None,
     )
@@ -830,9 +833,11 @@ def seed_flange_count(b: Invalid, r: int) -> Optional[Seeded]:
     if {"id", "flange_nr_data"} & b.used[r - 1]:
         return None
     declared = b.cell(r, "flange_nr_data")
-    if declared not in ("1", "2"):
+    if declared not in ("0", "1", "2"):
         return None
-    flipped = "1" if declared == "2" else "2"
+    # A record gets an F2 file only with 2, so 0 or 1 becomes 2 (no F2 file),
+    # and 2 becomes 3 (not a count). An F2 file with 1 is allowed (#228).
+    flipped = "3" if declared == "2" else "2"
     b.set(r, "flange_nr_data", flipped)
     b.used[r - 1].add("id")  # the rule finds the F2 file by the id
     # The expectation comes from `flange_expects`, which also covers the rows
@@ -899,7 +904,7 @@ def flange_expects(
     rows: list[dict[str, str]], f2_ids: set[str], skip: Optional[int]
 ) -> list[Expect]:
     """`ResidualStressTableValidator._validate_row`, replayed: flange_nr_data
-    must agree with the Distributions_F2 file found by the row's id."""
+    is 0, 1 or 2, and 2 needs the Distributions_F2 file found by the row's id."""
     expects = []
     for r, row in enumerate(rows, 1):
         declared = (row.get("flange_nr_data") or "").strip()
@@ -908,12 +913,10 @@ def flange_expects(
             continue
         if declared.upper() in MISSING_MARKERS:
             continue
-        if declared not in ("1", "2"):
-            message = "Expected 1 or 2"
+        if declared not in ("0", "1", "2"):
+            message = "Expected 0, 1 or 2"
         elif declared == "2" and specimen not in f2_ids:
             message = "Two flange distributions are declared"
-        elif declared == "1" and specimen in f2_ids:
-            message = "One flange distribution is declared"
         else:
             continue
         expects.append(Expect(r, "flange_nr_data", "warning", message))
@@ -1000,6 +1003,11 @@ class Series:
     required: bool = False  # the submission form asks for it (timeseries.ts)
     prefix: str = ""  # of the file name, before the id
     scaled: bool = True  # y follows the row factor (a load, a stress...)
+    # Only for a hot-rolled (False) or a built-up (True) residual stress record:
+    # the two formats of a QP file (backend/resslab_hub/data/residual_stress_qp.py).
+    built_up: Optional[bool] = None
+    min_rows: int = 2  # a real file with fewer usable rows is not copied
+    missing_ok: tuple[str, ...] = ()  # columns where NA is a valid cell
 
     @property
     def is_second_flange(self) -> bool:
@@ -1125,6 +1133,15 @@ def coefficients(s: Series, scale: float) -> list[list[float]]:
     return [[s.y_peak * scale * value] for value in (1.0, -0.55, 0.32, -0.18)[: s.rows]]
 
 
+def built_up_coefficients(s: Series, scale: float) -> list[list[float]]:
+    """One row of a built-up fit, in BUILT_UP_QP_COLUMNS order: a 300 mm wide
+    flange and a 400 mm deep web, no flame-cut tip zone."""
+    peak = s.y_peak * scale
+    flange = [60.0, 120.0, 0.0, peak, -0.3 * peak, 0.0]
+    web = [320.0, 40.0, 40.0, -0.25 * peak, peak, peak]
+    return [flange + web + flange]
+
+
 SHAPES = {
     # Stable plastic loops, mild strength loss: beams, strong-axis columns, HSS.
     "hysteresis": lambda s, scale: bilinear(s, scale, degrade=0.12),
@@ -1145,6 +1162,7 @@ SHAPES = {
     "distribution_flange_tilted": lambda s, scale: distribution(s, scale, tilt=0.8),
     "distribution_web": lambda s, scale: distribution(s, scale, flip=True),
     "coefficients": coefficients,
+    "built_up_coefficients": built_up_coefficients,
     # Coupons and notched bars pulled once to fracture.
     "tension": lambda s, scale: monotonic(s, scale, tension),
     # Radial contraction of the neck: the same pull, x running negative.
@@ -1374,7 +1392,6 @@ TIME_SERIES: dict[str, list[Series]] = {
             x_peak=297,
             y_peak=35,
             rows=13,
-            required=True,
         ),
         # Written only for a record whose flange_nr_data is 2.
         Series(
@@ -1392,23 +1409,40 @@ TIME_SERIES: dict[str, list[Series]] = {
             x_peak=210,
             y_peak=45,
             rows=13,
-            required=True,
         ),
         Series(
             "residual_stresses/QP_Coefficients",
-            ["qp_coefficient"],
+            [QP_COEFFICIENT_COLUMN],
             "coefficients",
             x_peak=0,
             y_peak=80,
             rows=4,
+            built_up=False,
+        ),
+        # The same folder, one row of named zone widths and stresses.
+        Series(
+            "residual_stresses/QP_Coefficients",
+            list(BUILT_UP_QP_COLUMNS),
+            "built_up_coefficients",
+            x_peak=0,
+            y_peak=200,
+            rows=1,
+            scaled=False,
+            built_up=True,
+            min_rows=1,
+            missing_ok=tuple(OPTIONAL_TIP_STRESS),
         ),
     ],
 }
 
 
-def wanted(series: Series, flange_nr_data) -> bool:
-    if series.is_second_flange:
-        return str(flange_nr_data).strip() == "2"
+def wanted(series: Series, values: dict) -> bool:
+    """Whether a record with these values gets this series."""
+    if series.is_second_flange and str(values.get("flange_nr_data")).strip() != "2":
+        return False
+    if series.built_up is not None:
+        built_up = "built-up" in str(values.get("profile_type") or "").lower()
+        return series.built_up == built_up
     return True
 
 
@@ -1441,7 +1475,7 @@ class CurveSource:
         found = [
             (series.required, self.path(series, str(row["id"])) is not None)
             for series in TIME_SERIES.get(name, [])
-            if wanted(series, row.get("flange_nr_data"))
+            if wanted(series, row)
         ]
         return (
             sum(1 for required, real in found if required and real),
@@ -1485,12 +1519,17 @@ def real_curve(
         indexes = [header.index(name) for name in series.columns]
     except ValueError:
         return None
+    optional = {header.index(name) for name in series.missing_ok}
     rows = [
         cells
         for cells in csv.reader(lines[1:])
-        if all(i < len(cells) and number(cells[i]) is not None for i in indexes)
+        if all(
+            i < len(cells)
+            and (number(cells[i]) is not None or (i in optional and cells[i] == "NA"))
+            for i in indexes
+        )
     ]
-    if len(rows) < 2:
+    if len(rows) < series.min_rows:
         return None
     y = indexes[1] if len(indexes) > 1 and series.scaled else None
     out = io.StringIO()
@@ -1538,11 +1577,7 @@ def write_curves(
     counts: dict[str, CurveCount] = {}
     second_flange: set[str] = set()
     for record in records:
-        series_list = [
-            s
-            for s in TIME_SERIES.get(name, [])
-            if wanted(s, record.values.get("flange_nr_data"))
-        ]
+        series_list = [s for s in TIME_SERIES.get(name, []) if wanted(s, record.values)]
         sources = [curves.path(s, record.source_id) for s in series_list]
         any_real = any(sources)
         for series, source in zip(series_list, sources):

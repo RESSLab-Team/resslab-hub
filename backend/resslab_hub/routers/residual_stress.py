@@ -2,11 +2,12 @@
 Handle /residual-stress requests
 """
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends, Path, Query
 from fastapi.responses import StreamingResponse
 from fastapi_pagination.default import Page
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from resslab_hub.models.api import (
@@ -48,6 +49,8 @@ component = Component(
     },  # type: ignore
 )
 
+# The four coefficients of a hot-rolled fit have no name. The named values of
+# a built-up fit are served by /qp-parameters (data/residual_stress_qp.py).
 qp_coefficient_component = component.get_sub(
     "qp_coefficient",
     ResidualStressQPCoefficient.residual_stress_id,
@@ -55,6 +58,7 @@ qp_coefficient_component = component.get_sub(
     {
         ResidualStressQPCoefficient.qp_coefficient: "QP Coefficient",
     },
+    where=ResidualStressQPCoefficient.name.is_(None),
 )
 
 distribution_f1_component = component.get_sub(
@@ -262,3 +266,27 @@ async def get_residual_stresses_qp_coefficient_csv(
     Get qp-coefficient csv
     """
     return await qp_coefficient_component.get_csv(session, ResidualStress_id)
+
+
+@router.get("/{ResidualStress_id}/qp-parameters", response_model=Dict[str, float])
+async def get_residual_stresses_qp_parameters(
+    session: AsyncSession = Depends(get_session),
+    ResidualStress_id: str = Path(...),
+) -> Dict[str, float]:
+    """
+    Get the named QP fit values of a built-up section (zone widths in mm and
+    stresses in MPa), empty when the record has none. A flame-cut tip stress
+    is left out when the flange has no tip zone.
+    """
+    rows = await session.execute(
+        select(
+            ResidualStressQPCoefficient.name,
+            ResidualStressQPCoefficient.qp_coefficient,
+        )
+        .where(
+            ResidualStressQPCoefficient.residual_stress_id == ResidualStress_id,
+            ResidualStressQPCoefficient.name.is_not(None),
+        )
+        .order_by(ResidualStressQPCoefficient.id)
+    )
+    return {name: float(value) for name, value in rows}

@@ -41,6 +41,12 @@ from resslab_hub.data.not_reported import (
     is_not_reported,
     not_reported_columns,
 )
+from resslab_hub.data.residual_stress_qp import (
+    BUILT_UP_QP_COLUMNS,
+    QP_COEFFICIENT_COLUMN,
+    built_up_values,
+    has_built_up_columns,
+)
 from resslab_hub.models.database.brace import Brace, BraceDisplacement
 from resslab_hub.models.database.column import (
     ColumnAxialShortening,
@@ -462,6 +468,45 @@ def _copy_encode(value: Any) -> str:
     )
 
 
+def as_list(mappings: dict[str, Any] | List[dict[str, Any]]) -> List[dict[str, Any]]:
+    return mappings if isinstance(mappings, list) else [mappings]
+
+
+def qp_coefficient_rows(id: str, index: int, value: dict[str, str]) -> List[dict]:
+    """
+    The table rows of one row of a QP coefficient file, in its two formats
+    (``data/residual_stress_qp.py``): a hot-rolled row is one coefficient,
+    with no name. A built-up row holds 18 named values and gives one table
+    row per value, named after its column; a missing value (``NA``) gives none.
+    """
+    if QP_COEFFICIENT_COLUMN in value:
+        return [
+            dict(
+                residual_stress_id=id,
+                id=index,
+                qp_coefficient=value.get(QP_COEFFICIENT_COLUMN),
+                name=None,
+            )
+        ]
+    if not has_built_up_columns(name for name in value if name is not None):
+        raise ValueError(
+            f"unexpected QP coefficient headers: {list(value)}, expected "
+            f"{QP_COEFFICIENT_COLUMN} or {','.join(BUILT_UP_QP_COLUMNS)}"
+        )
+    values = built_up_values(value)
+    return [
+        dict(
+            residual_stress_id=id,
+            # One id per named value, unique over the rows of the file.
+            id=index * len(BUILT_UP_QP_COLUMNS) + position,
+            qp_coefficient=values[name],
+            name=name,
+        )
+        for position, name in enumerate(BUILT_UP_QP_COLUMNS)
+        if name in values
+    ]
+
+
 # Handles measurement data that belongs to parent records
 class CsvFileUploader(Uploader):
     """
@@ -478,7 +523,9 @@ class CsvFileUploader(Uploader):
         self,
         base_model: Any,
         get_delete: Callable[[str], delete],
-        get_instance: Callable[[str, int, dict[str, str]], dict[str, Any]],
+        get_instance: Callable[
+            [str, int, dict[str, str]], dict[str, Any] | List[dict[str, Any]]
+        ],
         filename_prefix="",
         filename_suffix="",
     ) -> None:
@@ -486,7 +533,9 @@ class CsvFileUploader(Uploader):
         Initialize uploader for measurement data
         - base_model: SQLAlchemy model defining the measurement table schema
         - get_delete: Function to remove existing measurements
-        - get_instance: Function returning a column->value mapping for one row
+        - get_instance: Function returning a column->value mapping for one row,
+          or a list of them when one CSV row gives several table rows (the
+          built-up QP coefficients, one table row per named value)
         - filename_prefix/suffix: For extracting parent ID from filename
         """
         self.base_model = base_model
@@ -522,8 +571,9 @@ class CsvFileUploader(Uploader):
             # mappings (no ORM objects) and stream them in with a single
             # COPY -- far cheaper than batched INSERTs.
             mappings = [
-                self.get_instance(id, index, value)
+                mapping
                 for index, value in enumerate(reader)
+                for mapping in as_list(self.get_instance(id, index, value))
             ]
             try:
                 if mappings:
@@ -920,11 +970,7 @@ def upload_checked(input_type: Type, filename: str) -> Tuple[str, bool]:
                     lambda id: delete(ResidualStressQPCoefficient).where(
                         ResidualStressQPCoefficient.residual_stress_id == id
                     ),
-                    lambda id, index, value: dict(
-                        residual_stress_id=id,
-                        id=index,
-                        qp_coefficient=value.get("qp_coefficient"),
-                    ),
+                    qp_coefficient_rows,
                 )
             case Type.HSS_COLUMN_MOMENT_ROTATION:
                 uploader = CsvFileUploader(
