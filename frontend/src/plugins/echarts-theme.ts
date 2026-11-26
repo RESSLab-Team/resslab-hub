@@ -41,7 +41,7 @@ export const RED = '#e30713'
 // The submission itself is RED (--data-submitted).
 export const EXISTING = '#8e8e8e'
 
-// Categorical series palette: the designer's Option 1 from #388. The single
+// Categorical series palette: Option F from #388 (IBM Carbon). The single
 // definition lives in utils/palette.ts. EPFL red stays reserved for
 // selection/emphasis and is never a series color.
 const SERIES = colorPalette
