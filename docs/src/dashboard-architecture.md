@@ -96,20 +96,22 @@ because a tooltip is raw DOM outside the app's CSS.
 ### Category colours
 
 Colours for categorical fields come from `utils/categoryColors.ts` through
-`useDataset(...).colorFor(field)`: the slots of the designer's palette (#388,
-Option 1) handed out once per field, by frequency in the unfiltered dataset (ties alphabetical), so a value
+`useDataset(...).colorFor(field)`: the slots of Option F of #388 (IBM Carbon)
+handed out once per field, by frequency in the unfiltered dataset (ties alphabetical), so a value
 keeps its colour when a filter reshuffles the ranking and the treemap, the
 stacked histogram and the brush agree. Past eight values the palette repeats
 muted toward grey. `CATEGORY_COLOR_OVERRIDES` (keyed `'<dataset key>:<field>'`)
 pins a value whose colour people have learnt.
 
-The palette is less safe for colour-blind readers than the Okabe-Ito one it
-replaced: for red-blind eyes the blue, lavender, violet and slate slots come
-close. Handing the slots out by frequency keeps that cost low, because the
-closest pairs involve slot 7, which only rare values reach. The treemap
-labels stay white, as in the mockup, even though most slots are pale: on
-amber, mint and lavender white is near 1.5:1. That is a choice made on #388
-(per-tile black text and outlined white text were tried and dropped).
+Carbon made these colours for white text, so the white treemap labels of the
+mockup read at 5.0:1 or more on every slot (`palette.spec.ts` checks 4.5:1).
+The weak point is colour blindness: for red-blind and green-blind readers the
+navy (slot 2) and the violet (slot 8) come close. Handing the slots out by
+frequency keeps that cost low, because slot 8 only goes to the 8th most common
+value of a field. On the dark theme the darkest slots (navy, wine, dark teal,
+violet) are about 2.5:1 on the background; the white seams between treemap
+tiles keep them apart. If Option F does not work out, Option B of #388 is the
+fallback.
 
 ## The table
 
