@@ -17,6 +17,14 @@ When a data dictionary changes in the data repo:
 2. `make database-revision name="what changed"` creates the Alembic revision.
    Check it, then `make database-upgrade` applies it.
 
+Several backends can start at the same time (more replicas, or `make run`
+with 7). The upgrade takes a PostgreSQL advisory lock first
+(`migration_lock` in `resslab_hub/utils/database.py`), so one process
+migrates and the others wait, then find nothing to do. Their log says
+"Another process runs the migrations, waiting for the lock". The lock covers
+`make database-upgrade` too. `DATABASE_UPGRADE=false` skips the upgrade, and
+the lock with it.
+
 The generator is `data/generate_model.py`, driven by `RESSLAB_DATA_DIR`
 (default `../../resslab-hub-data`, a sibling of the repo).
 
