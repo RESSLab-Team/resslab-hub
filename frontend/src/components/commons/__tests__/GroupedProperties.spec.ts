@@ -19,7 +19,9 @@ const columns: DictColumn[] = [
   column('tw', 'Web thickness', 'mm', 'DecimalFloat'),
   column('flange_nr_data', 'Number of measurement points in flange', 'None', 'SmallInteger'),
   column('fy_mw', 'Measured yield strength (web)', 'MPa', 'DecimalFloat'),
-  column('plot_sf', '-', 'None', 'Numeric')
+  column('plot_sf', '-', 'None', 'Numeric'),
+  column('sigma_0_w', 'Residual stress at web center', 'MPa', 'Numeric'),
+  column('eps', 'Measured strain', '-', 'DecimalFloat')
 ]
 
 const record = {
@@ -28,6 +30,8 @@ const record = {
   flange_nr_data: 12,
   fy_mw: null,
   plot_sf: 1.25,
+  sigma_0_w: -88.33910079,
+  eps: 0.00394,
   not_reported: ['fy_mw']
 }
 
@@ -76,10 +80,13 @@ describe('GroupedProperties (#454)', () => {
     expect(Object.keys(await rows())).toContain('Plot sf')
   })
 
-  it('gives latitude one decimal and keeps the other values as stored', async () => {
+  it('gives every float one decimal, like the top of the drawer', async () => {
     const shown = await rows()
     expect(shown['Latitude of testing location']).toBe('40.6')
-    expect(shown['Web thickness']).toBe('6.35')
+    expect(shown['Web thickness']).toBe('6.3')
+    expect(shown['Plot sf']).toBe('1.3')
+    expect(shown['Residual stress at web center']).toBe('-88.3')
+    expect(shown['Measured strain']).toBe('0.0039')
     expect(shown['Number of measurement points in flange']).toBe('12')
   })
 

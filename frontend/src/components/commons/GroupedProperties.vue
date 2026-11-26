@@ -19,7 +19,7 @@ import {
 import { fieldDisplay } from '@/utils/contribution'
 import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
 import type { DatabaseId } from '@/utils/navigation'
-import { formatFloat, missingLabel } from '@/utils/formatter'
+import { formatFloat, isIntegerType, missingLabel } from '@/utils/formatter'
 import { formatValue } from '@/utils/queryEngine'
 import { mdiChevronRight } from '@mdi/js'
 import { computed, ref } from 'vue'
@@ -43,15 +43,13 @@ interface PropertyRow {
   value: string
 }
 
-/** Columns shown with one decimal here (#454). Every other value shows as
- *  stored: this section is the reference. One decimal is about 11 km. */
-const ONE_DECIMAL = new Set(['latitude', 'longitude'])
-
 // An empty cell says why it is empty: not reported or not applicable (#427).
-function valueText(field: string): string {
-  const value = cells.value[field]
-  if (value === null || value === undefined) return missingLabel(props.record, field)
-  if (ONE_DECIMAL.has(field) && typeof value === 'number') return formatFloat(value, 1)
+// A float gets the same rule as the top of the drawer (#454); an integer
+// column stays an integer.
+function valueText(column: DictColumn): string {
+  const value = cells.value[column.name]
+  if (value === null || value === undefined) return missingLabel(props.record, column.name)
+  if (typeof value === 'number' && !isIntegerType(column.type)) return formatFloat(value)
   return formatValue(value)
 }
 
@@ -75,7 +73,7 @@ const groups = computed(() => {
       column,
       ...labelFor(column),
       unit: displayUnit(column),
-      value: valueText(column.name)
+      value: valueText(column)
     }))
   return groupBy(props.database, rows, (row) => row.column).map((group) => ({
     id: group.id,
