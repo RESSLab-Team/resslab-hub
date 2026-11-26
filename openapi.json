@@ -5275,6 +5275,53 @@
         }
       }
     },
+    "/residual-stress/{ResidualStress_id}/qp-parameters": {
+      "get": {
+        "tags": [
+          "residual-stress"
+        ],
+        "summary": "Get Residual Stresses Qp Parameters",
+        "description": "Get the named QP fit values of a built-up section (zone widths in mm and\nstresses in MPa), empty when the record has none. A flame-cut tip stress\nis left out when the flange has no tip zone.",
+        "operationId": "get_residual_stresses_qp_parameters",
+        "parameters": [
+          {
+            "name": "ResidualStress_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Residualstress Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "number"
+                  },
+                  "title": "Response Get Residual Stresses Qp Parameters"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/hss-column": {
       "get": {
         "tags": [
@@ -17968,6 +18015,29 @@
           "sigma_0_f",
           "sigma_0_w",
           "flange_nr_data",
+          "steel_web",
+          "fy_nw",
+          "fy_ew",
+          "b2",
+          "tf2",
+          "plt_cut_f",
+          "plt_cut_w",
+          "mea_met",
+          "weld_type",
+          "fillet_size",
+          "weld_cur",
+          "weld_vol",
+          "weld_vel",
+          "preheat_c",
+          "interpass_c",
+          "holding_c",
+          "holding_t",
+          "n_weld_pass",
+          "heat_inp",
+          "region",
+          "webdata",
+          "sym",
+          "sigma_0_b_f",
           "plot_sf",
           "reference",
           "link",
@@ -18017,7 +18087,14 @@
             "title": "Spec Var"
           },
           "steel": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Steel"
           },
           "fy_n": {
@@ -18131,16 +18208,276 @@
             "title": "A"
           },
           "sigma_0_f": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Sigma 0 F"
           },
           "sigma_0_w": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Sigma 0 W"
           },
           "flange_nr_data": {
             "type": "integer",
             "title": "Flange Nr Data"
+          },
+          "steel_web": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Steel Web"
+          },
+          "fy_nw": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fy Nw"
+          },
+          "fy_ew": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fy Ew"
+          },
+          "b2": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "B2"
+          },
+          "tf2": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tf2"
+          },
+          "plt_cut_f": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plt Cut F"
+          },
+          "plt_cut_w": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plt Cut W"
+          },
+          "mea_met": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mea Met"
+          },
+          "weld_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weld Type"
+          },
+          "fillet_size": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fillet Size"
+          },
+          "weld_cur": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weld Cur"
+          },
+          "weld_vol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weld Vol"
+          },
+          "weld_vel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weld Vel"
+          },
+          "preheat_c": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preheat C"
+          },
+          "interpass_c": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interpass C"
+          },
+          "holding_c": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holding C"
+          },
+          "holding_t": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holding T"
+          },
+          "n_weld_pass": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "N Weld Pass"
+          },
+          "heat_inp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heat Inp"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "webdata": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webdata"
+          },
+          "sym": {
+            "type": "string",
+            "title": "Sym"
+          },
+          "sigma_0_b_f": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sigma 0 B F"
           },
           "plot_sf": {
             "type": "number",
@@ -18237,6 +18574,29 @@
           "sigma_0_f",
           "sigma_0_w",
           "flange_nr_data",
+          "steel_web",
+          "fy_nw",
+          "fy_ew",
+          "b2",
+          "tf2",
+          "plt_cut_f",
+          "plt_cut_w",
+          "mea_met",
+          "weld_type",
+          "fillet_size",
+          "weld_cur",
+          "weld_vol",
+          "weld_vel",
+          "preheat_c",
+          "interpass_c",
+          "holding_c",
+          "holding_t",
+          "n_weld_pass",
+          "heat_inp",
+          "region",
+          "webdata",
+          "sym",
+          "sigma_0_b_f",
           "plot_sf",
           "reference",
           "link",
@@ -18269,6 +18629,14 @@
           "sigma_0_f",
           "sigma_0_w",
           "flange_nr_data",
+          "fy_nw",
+          "fy_ew",
+          "b2",
+          "tf2",
+          "fillet_size",
+          "n_weld_pass",
+          "webdata",
+          "sigma_0_b_f",
           "plot_sf",
           "latitude",
           "longitude",
