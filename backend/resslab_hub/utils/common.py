@@ -49,12 +49,22 @@ class SubComponent:
         parent_id_column: Column[str],
         id_column: Column[int],
         columns: Dict[Column[Numeric], str],
+        where: Optional[ColumnElement[bool]] = None,
     ) -> None:
         self.name = name
         self.parent_id_column = parent_id_column
         self.id_column = id_column
         self.columns = list(columns.keys())
         self.column_names = list(columns.values())
+        # An extra filter on the rows, when one table holds several series
+        # (the residual stress QP table, #228).
+        self.where = where
+
+    def _select(self, parent_id: str) -> Select:
+        statement = select(*self.columns).where(self.parent_id_column == parent_id)
+        if self.where is not None:
+            statement = statement.where(self.where)
+        return statement.order_by(self.id_column)
 
     async def get_series(
         self,
@@ -64,9 +74,7 @@ class SubComponent:
     ) -> List[List[float]]:
         return await Component.get_series(
             session,
-            select(*self.columns)
-            .where(self.parent_id_column == parent_id)
-            .order_by(self.id_column),
+            self._select(parent_id),
             self.id_column,
             size,
         )
@@ -79,9 +87,7 @@ class SubComponent:
         filename = f"{self.name}-{parent_id}.csv"
         return Component.get_csv_response(
             session,
-            select(*self.columns)
-            .where(self.parent_id_column == parent_id)
-            .order_by(self.id_column),
+            self._select(parent_id),
             self.column_names,
             filename,
         )
@@ -270,12 +276,14 @@ class Component(ABC, Generic[D, M]):
         parent_id_column: Column[str],
         id_column: Column[int],
         columns: Dict[Column[Numeric], str],
+        where: Optional[ColumnElement[bool]] = None,
     ) -> SubComponent:
         return SubComponent(
             f"{self.name}-{name}",
             parent_id_column,
             id_column,
             columns,
+            where,
         )
 
     @staticmethod

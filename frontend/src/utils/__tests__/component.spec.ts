@@ -7,7 +7,8 @@ import {
   getDuctileFractureSpecimenImage,
   getEbfImage,
   getHSSColumnImage,
-  getResidualStressImage
+  getResidualStressImage,
+  getResidualStressSchematic
 } from '@/utils/component'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -115,5 +116,28 @@ describe('component.getEbfImage', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     expect(getEbfImage('nope')).toBe('')
     expect(warn).toHaveBeenCalled()
+  })
+})
+
+describe('component.getResidualStressSchematic', () => {
+  it('keeps the hot-rolled sketch for a hot-rolled record', () => {
+    expect(
+      getResidualStressSchematic({ profile_type: 'Hot-rolled wide flange', sym: 'doubly' })
+    ).toMatch(/img\/residuals\/detail\.png$/)
+  })
+
+  it.each([
+    ['doubly', 'Flame-cut', 'built-up-doubly-flame.svg'],
+    ['doubly', 'Shear-cut', 'built-up-doubly-no-flame.svg'],
+    ['mono', 'Flame-cut', 'built-up-mono-flame.svg'],
+    ['mono', 'Wire-cut', 'built-up-mono-no-flame.svg'],
+    ['doubly', 'Not reported', 'built-up-doubly-no-flame.svg']
+  ])('picks the %s / %s sketch of a built-up record', (sym, cut, file) => {
+    const image = getResidualStressSchematic({
+      profile_type: 'Built-up wide flange',
+      sym,
+      plt_cut_f: cut
+    })
+    expect(image.endsWith(`img/residuals/${file}`)).toBe(true)
   })
 })

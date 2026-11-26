@@ -90,7 +90,7 @@ function buildPreview(file: CurationFile, text: string): Preview | null {
   const headers = parsed[0].map((header) => header.trim())
   const kind = kindForFile(props.database, file)
   // Prefer the kind's declared columns; fall back to the first two.
-  const wanted = kind?.columns.length ? requiredColumns(kind) : headers.slice(0, 2)
+  const wanted = kind?.columns.length ? requiredColumns(kind, headers) : headers.slice(0, 2)
   const xIndex = Math.max(headers.indexOf(wanted[0]), 0)
   const yIndex = wanted.length > 1 ? Math.max(headers.indexOf(wanted[1]), 1) : 1
   const data: number[][] = []

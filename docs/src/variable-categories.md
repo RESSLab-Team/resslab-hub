@@ -160,13 +160,17 @@ it, and `fieldGroups.spec.ts` fails on a column with none.
 | Measured quantities at fracture | 9 | `disp_fract`, `exc_at_fract`, `step_fract`, `fract_loc`, `triax_at_fr`, `triax_avg_till_fr`, `lode_at_fr`, `lode_avg_till_fr`, `peeq_at_fr` |
 | Fracture model parameters | 13 | `cvgm_etamono`, `cvgm_lambda`, `swdfm_alpha_pos`, `swdfm_alpha_neg`, `swdfm_kappa`, `swdfm_C`, `swdfm_beta`, `kk_alpha_1`, `kk_alpha_2`, `kk_beta_1`, `kk_beta_2`, `kk_d_cr`, `l_star` |
 
-## Residual stresses, 26 columns in 6 groups
+## Residual stresses, 49 columns in 7 groups
 
 | Group | n | Columns |
 |---|---:|---|
-| Experimental program details | 9 | `id`, `experimental_program`, `date`, `spec_var`, `reference`, `link`, `latitude`, `longitude`, `data_curation_status` |
+| Experimental program details | 10 | `id`, `experimental_program`, `date`, `spec_var`, `region`, `reference`, `link`, `latitude`, `longitude`, `data_curation_status` |
 | Steel profile | 2 | `profile_type`, `profile` |
-| Material properties | 5 | `steel`, `fy_n`, `fy_e`, `fy_mf`, `fy_mw` |
-| Section properties | 6 | `h`, `b`, `tw`, `tf`, `r`, `A` |
-| Measured residual stresses | 3 | `sigma_0_f`, `sigma_0_w`, `flange_nr_data` |
+| Material properties | 8 | `steel`, `fy_n`, `fy_e`, `fy_mf`, `fy_mw`, `steel_web`, `fy_nw`, `fy_ew` |
+| Section properties | 9 | `h`, `b`, `tw`, `tf`, `r`, `A`, `b2`, `tf2`, `sym` |
+| Fabrication details | 13 | `plt_cut_f`, `plt_cut_w`, `weld_type`, `fillet_size`, `weld_cur`, `weld_vol`, `weld_vel`, `preheat_c`, `interpass_c`, `holding_c`, `holding_t`, `n_weld_pass`, `heat_inp` |
+| Measured residual stresses | 6 | `sigma_0_f`, `sigma_0_w`, `flange_nr_data`, `mea_met`, `webdata`, `sigma_0_b_f` |
 | Plot properties | 1 | `plot_sf` |
+
+"Fabrication details" only applies to built-up (welded) sections. The specimen
+drawer hides it on a hot-rolled record, where all its cells are empty.

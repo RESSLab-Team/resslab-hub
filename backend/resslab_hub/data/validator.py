@@ -44,6 +44,13 @@ from resslab_hub.data.common import (
 from resslab_hub.data.count_flags import COUNT_FLAGS
 from resslab_hub.data.curation_status import ALLOWED, STATUS_COLUMN, VERIFIED
 from resslab_hub.data.not_reported import NOT_REPORTED_COLUMN
+from resslab_hub.data.residual_stress_qp import (
+    BUILT_UP_QP_COLUMNS,
+    HOT_ROLLED_QP_ROWS,
+    OPTIONAL_TIP_STRESS,
+    QP_COEFFICIENT_COLUMN,
+    has_built_up_columns,
+)
 from resslab_hub.data.uploader import (
     Type,
     get_args_all,
@@ -762,6 +769,27 @@ class CsvFileValidator(Validator):
             error(f"Error checking the database: {str(e)}")
             return False
 
+    def _required_columns(self, headers: List[str]) -> List[str]:
+        """The columns this file must carry. A file kind with several
+        formats (the residual stress QP files) picks one from the headers."""
+        return self.required_columns
+
+    def _missing_columns_message(self, missing: set) -> str:
+        return f"Missing required columns: {', '.join(missing)}"
+
+    def _accepts_missing(self, column: str, value: Optional[str], row: dict) -> bool:
+        """A cell that may stay empty or ``NA`` on this row. None by default."""
+        return False
+
+    def _check_file(
+        self,
+        result: ValidationResult,
+        required: List[str],
+        row_count: int,
+        first_row: Optional[dict],
+    ) -> None:
+        """Rules over the whole file, after the row checks. None by default."""
+
     def validate_one(self, file_path: str) -> ValidationResult:
         relative_path = file_path
         try:
@@ -785,13 +813,14 @@ class CsvFileValidator(Validator):
                     return result
 
                 # Validate headers
-                missing_columns = set(self.required_columns) - set(headers)
+                required = self._required_columns(headers)
+                missing_columns = set(required) - set(headers)
                 if missing_columns:
                     result.add_error(
                         0,
                         "headers",
                         headers,
-                        f"Missing required columns: {', '.join(missing_columns)}",
+                        self._missing_columns_message(missing_columns),
                     )
                     return result
 
@@ -826,15 +855,22 @@ class CsvFileValidator(Validator):
                     "is missing."
                 )
                 groups: dict = {}
+                row_count = 0
+                first_row = None
                 for row_num, row in enumerate(csv_reader, start=1):
                     if not any((value or "").strip() for value in row.values()):
                         collect_row_issue(groups, "row", empty_row_message, row_num)
                         continue
-                    for col_name in self.required_columns:
+                    row_count += 1
+                    if first_row is None:
+                        first_row = row
+                    for col_name in required:
                         # we don't validate against model definition because
                         # it may contain additional columns that are not required
                         # and it's always of type Numeric
                         value = row.get(col_name)
+                        if self._accepts_missing(col_name, value, row):
+                            continue
                         if value is None or value.strip() == "":
                             collect_row_issue(
                                 groups, col_name, "required field is empty.", row_num
@@ -850,6 +886,7 @@ class CsvFileValidator(Validator):
                             collect_row_issue(groups, col_name, message, row_num)
 
                 report_row_issues(result, groups, warnings={nan_message})
+                self._check_file(result, required, row_count, first_row)
         except Exception as e:
             result = ValidationResult(path.basename(str(relative_path)), file_path)
             result.add_error(
@@ -859,10 +896,86 @@ class CsvFileValidator(Validator):
         return result
 
 
+class QpCoefficientValidator(CsvFileValidator):
+    """
+    Residual stress QP coefficient files, in their two formats
+    (``data/residual_stress_qp.py``): four rows under ``qp_coefficient`` for a
+    hot-rolled fit, or one row of 18 named zone widths and stresses for a
+    built-up fit. A flame-cut tip stress may be ``NA`` when its zone has no
+    width, and no width is negative.
+    """
+
+    FORMATS = (
+        f"either one column {QP_COEFFICIENT_COLUMN} with {HOT_ROLLED_QP_ROWS} "
+        f"rows (hot-rolled), or the {len(BUILT_UP_QP_COLUMNS)} columns "
+        f"{', '.join(BUILT_UP_QP_COLUMNS)} with one row (built-up)"
+    )
+
+    def __init__(self, primary_csv_path: str = None) -> None:
+        super().__init__(
+            ResidualStress, [QP_COEFFICIENT_COLUMN], "id", primary_csv_path
+        )
+
+    def _required_columns(self, headers: List[str]) -> List[str]:
+        names = {header.strip() for header in headers}
+        if QP_COEFFICIENT_COLUMN not in names and names & set(BUILT_UP_QP_COLUMNS):
+            return list(BUILT_UP_QP_COLUMNS)
+        return [QP_COEFFICIENT_COLUMN]
+
+    def _missing_columns_message(self, missing: set) -> str:
+        names = ", ".join(sorted(missing))
+        return f"Missing required columns: {names}. A QP file has {self.FORMATS}."
+
+    def _accepts_missing(self, column: str, value: Optional[str], row: dict) -> bool:
+        width = OPTIONAL_TIP_STRESS.get(column)
+        if width is None or (value or "").strip().upper() not in ("NA", ""):
+            return False
+        parsed, message = parse_number(row.get(width) or "")
+        return not message and parsed == 0
+
+    def _check_file(
+        self,
+        result: ValidationResult,
+        required: List[str],
+        row_count: int,
+        first_row: Optional[dict],
+    ) -> None:
+        built_up = has_built_up_columns(required)
+        expected = 1 if built_up else HOT_ROLLED_QP_ROWS
+        if row_count != expected:
+            kind = "built-up" if built_up else "hot-rolled"
+            result.add_error(
+                0,
+                "rows",
+                row_count,
+                f"A {kind} QP file has {expected} data row(s), found {row_count}. "
+                f"A QP file has {self.FORMATS}.",
+            )
+        if not built_up or first_row is None:
+            return
+        for name in BUILT_UP_QP_COLUMNS:
+            if not name.startswith("d"):
+                continue
+            value, message = parse_number(first_row.get(name) or "")
+            if not message and value < 0:
+                result.add_error(1, name, value, "A zone width cannot be negative.")
+            if name in OPTIONAL_TIP_STRESS.values() and not message and value > 0:
+                stress = next(s for s, w in OPTIONAL_TIP_STRESS.items() if w == name)
+                cell = (first_row.get(stress) or "").strip().upper()
+                if cell in ("NA", ""):
+                    result.add_error(
+                        1,
+                        stress,
+                        cell,
+                        f"{name} is {value}: the tip zone exists, give its stress.",
+                    )
+
+
 class ResidualStressTableValidator(TableValidator):
-    """Residual stresses: ``flange_nr_data`` says how many flange
-    distributions the record carries, so it must agree with the presence of a
-    ``Distributions_F2`` file (README of ``residual_stresses/``)."""
+    """Residual stresses: ``flange_nr_data`` counts the independently measured
+    flange distributions (0, 1 or 2), so 2 needs a ``Distributions_F2`` file
+    (README of ``residual_stresses/``). With 1, an F2 file is allowed: it may
+    repeat the measured flange for the fit (#228)."""
 
     F2_DIRECTORY = path.join("Distributions", "Distributions_F2")
 
@@ -873,12 +986,13 @@ class ResidualStressTableValidator(TableValidator):
             return
         if declared.upper() in MISSING_MARKERS:
             return
-        if declared not in ("1", "2"):
+        if declared not in ("0", "1", "2"):
             result.add_warning(
                 row,
                 "flange_nr_data",
                 declared,
-                "Expected 1 or 2: the number of flange distributions provided.",
+                "Expected 0, 1 or 2: the number of independently measured "
+                "flange distributions.",
             )
             return
         has_file = path.isfile(
@@ -891,14 +1005,6 @@ class ResidualStressTableValidator(TableValidator):
                 declared,
                 "Two flange distributions are declared, but no "
                 "Distributions_F2 file was attached for this record.",
-            )
-        elif declared == "1" and has_file:
-            result.add_warning(
-                row,
-                "flange_nr_data",
-                declared,
-                "One flange distribution is declared, but a Distributions_F2 "
-                "file was attached for this record. Write 2.",
             )
 
 
@@ -1087,11 +1193,7 @@ def validate_one_file(input_type: Type, filename: str) -> Validator:
                 "id",
             )
         case Type.RESIDUAL_STRESS_QP_COEFFICIENT:
-            validator = CsvFileValidator(
-                ResidualStress,
-                ["qp_coefficient"],
-                "id",
-            )
+            validator = QpCoefficientValidator()
         case Type.HSS_COLUMN_MOMENT_ROTATION:
             validator = CsvFileValidator(
                 HSSColumn,

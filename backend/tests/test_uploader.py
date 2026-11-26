@@ -19,6 +19,7 @@ from sqlalchemy.exc import OperationalError
 from resslab_hub.data.count_flags import recompute_count_flags
 from resslab_hub.data.curation_status import STATUS_COLUMN
 from resslab_hub.data.not_reported import NOT_REPORTED_COLUMN, not_reported_columns
+from resslab_hub.data.residual_stress_qp import BUILT_UP_QP_COLUMNS
 from resslab_hub.data.uploader import (
     CsvFileUploader,
     TableUploader,
@@ -26,12 +27,17 @@ from resslab_hub.data.uploader import (
     Uploader,
     cap_series,
     main,
+    qp_coefficient_rows,
     status_value,
     upload_all,
     upload_one,
 )
 from resslab_hub.models.database.brace import Brace, BraceDisplacement
 from resslab_hub.models.database.column import ColumnEntity
+from resslab_hub.models.database.residual_stress import (
+    ResidualStress,
+    ResidualStressQPCoefficient,
+)
 from tests.conftest import write_main_csv, write_measurement_csv
 
 # The conversion routine is a name-mangled private static method; bind it once.
@@ -278,6 +284,60 @@ def test_csv_file_uploader_replaces_not_appends(tmp_path, db_session):
         .all()
     )
     assert len(rows) == 1
+
+
+# ---------------------------------------------------------------------------
+# Residual stress QP coefficients: two formats in one table (#228)
+# ---------------------------------------------------------------------------
+BUILT_UP_QP_ROW = {
+    name: str(index) for index, name in enumerate(BUILT_UP_QP_COLUMNS, start=1)
+}
+
+
+def test_a_hot_rolled_qp_row_is_one_unnamed_coefficient():
+    assert qp_coefficient_rows("R1", 2, {"qp_coefficient": "26.8"}) == [
+        dict(residual_stress_id="R1", id=2, qp_coefficient="26.8", name=None)
+    ]
+
+
+def test_a_built_up_qp_row_gives_one_named_row_per_value():
+    rows = qp_coefficient_rows("R1", 0, BUILT_UP_QP_ROW)
+
+    assert [row["name"] for row in rows] == list(BUILT_UP_QP_COLUMNS)
+    assert [row["id"] for row in rows] == list(range(len(BUILT_UP_QP_COLUMNS)))
+    assert rows[3]["qp_coefficient"] == "4"
+
+
+def test_a_built_up_qp_row_leaves_the_na_values_out():
+    row = {**BUILT_UP_QP_ROW, "sigma_ffe_top": "NA", "sigma_ffe_bot": "NA"}
+    names = [r["name"] for r in qp_coefficient_rows("R1", 0, row)]
+
+    assert "sigma_ffe_top" not in names and "sigma_ffe_bot" not in names
+    assert len(names) == len(BUILT_UP_QP_COLUMNS) - 2
+
+
+def test_a_qp_row_with_other_headers_is_refused():
+    with pytest.raises(ValueError, match="unexpected QP coefficient headers"):
+        qp_coefficient_rows("R1", 0, {"coefficient": "1"})
+
+
+def test_built_up_qp_file_roundtrip(tmp_path, db_session):
+    write_main_csv(tmp_path / "residual_stresses.csv", ResidualStress, [{"id": "R1"}])
+    upload_one(Type.RESIDUAL_STRESS, str(tmp_path / "residual_stresses.csv"))
+    names = list(BUILT_UP_QP_COLUMNS)
+    row = {**BUILT_UP_QP_ROW, "sigma_ffe_top": "NA"}
+    write_measurement_csv(tmp_path / "R1.csv", names, [[row[n] for n in names]])
+    upload_one(Type.RESIDUAL_STRESS_QP_COEFFICIENT, str(tmp_path / "R1.csv"))
+
+    stored = {
+        r.name: float(r.qp_coefficient)
+        for r in db_session.query(ResidualStressQPCoefficient).filter(
+            ResidualStressQPCoefficient.residual_stress_id == "R1"
+        )
+    }
+    assert len(stored) == len(names) - 1
+    assert stored["dwc"] == float(BUILT_UP_QP_ROW["dwc"])
+    assert "sigma_ffe_top" not in stored
 
 
 def test_uploader_classes_share_interface():

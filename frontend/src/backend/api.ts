@@ -2493,6 +2493,29 @@ export const ResidualStressField = {
     Sigma0F: 'sigma_0_f',
     Sigma0W: 'sigma_0_w',
     FlangeNrData: 'flange_nr_data',
+    SteelWeb: 'steel_web',
+    FyNw: 'fy_nw',
+    FyEw: 'fy_ew',
+    B2: 'b2',
+    Tf2: 'tf2',
+    PltCutF: 'plt_cut_f',
+    PltCutW: 'plt_cut_w',
+    MeaMet: 'mea_met',
+    WeldType: 'weld_type',
+    FilletSize: 'fillet_size',
+    WeldCur: 'weld_cur',
+    WeldVol: 'weld_vol',
+    WeldVel: 'weld_vel',
+    PreheatC: 'preheat_c',
+    InterpassC: 'interpass_c',
+    HoldingC: 'holding_c',
+    HoldingT: 'holding_t',
+    NWeldPass: 'n_weld_pass',
+    HeatInp: 'heat_inp',
+    Region: 'region',
+    Webdata: 'webdata',
+    Sym: 'sym',
+    Sigma0BF: 'sigma_0_b_f',
     PlotSf: 'plot_sf',
     Reference: 'reference',
     Link: 'link',
@@ -2517,7 +2540,7 @@ export interface ResidualStressModel {
     'profile_type': string;
     'profile': string;
     'spec_var': string | null;
-    'steel': string;
+    'steel': string | null;
     'fy_n': number | null;
     'fy_e': number | null;
     'fy_mf': number | null;
@@ -2528,9 +2551,32 @@ export interface ResidualStressModel {
     'tf': number | null;
     'r': number | null;
     'A': number | null;
-    'sigma_0_f': number;
-    'sigma_0_w': number;
+    'sigma_0_f': number | null;
+    'sigma_0_w': number | null;
     'flange_nr_data': number;
+    'steel_web': string | null;
+    'fy_nw': number | null;
+    'fy_ew': number | null;
+    'b2': number | null;
+    'tf2': number | null;
+    'plt_cut_f': string | null;
+    'plt_cut_w': string | null;
+    'mea_met': string | null;
+    'weld_type': string | null;
+    'fillet_size': number | null;
+    'weld_cur': string | null;
+    'weld_vol': string | null;
+    'weld_vel': string | null;
+    'preheat_c': string | null;
+    'interpass_c': string | null;
+    'holding_c': string | null;
+    'holding_t': string | null;
+    'n_weld_pass': number | null;
+    'heat_inp': string | null;
+    'region': string | null;
+    'webdata': number | null;
+    'sym': string;
+    'sigma_0_b_f': number | null;
     'plot_sf': number;
     'reference': string;
     'link': string | null;
@@ -2560,6 +2606,14 @@ export const ResidualStressNumberField = {
     Sigma0F: 'sigma_0_f',
     Sigma0W: 'sigma_0_w',
     FlangeNrData: 'flange_nr_data',
+    FyNw: 'fy_nw',
+    FyEw: 'fy_ew',
+    B2: 'b2',
+    Tf2: 'tf2',
+    FilletSize: 'fillet_size',
+    NWeldPass: 'n_weld_pass',
+    Webdata: 'webdata',
+    Sigma0BF: 'sigma_0_b_f',
     PlotSf: 'plot_sf',
     Latitude: 'latitude',
     Longitude: 'longitude',
@@ -13779,6 +13833,40 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
             };
         },
         /**
+         * Get the named QP fit values of a built-up section (zone widths in mm and stresses in MPa), empty when the record has none. A flame-cut tip stress is left out when the flange has no tip zone.
+         * @summary Get Residual Stresses Qp Parameters
+         * @param {string} residualStressId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesQpParameters: async (residualStressId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'residualStressId' is not null or undefined
+            assertParamExists('getResidualStressesQpParameters', 'residualStressId', residualStressId)
+            const localVarPath = `/residual-stress/{ResidualStress_id}/qp-parameters`
+                .replace('{ResidualStress_id}', encodeURIComponent(String(residualStressId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get range of field
          * @summary Get Residual Stresses Range
          * @param {ResidualStressNumberField} field 
@@ -14017,6 +14105,19 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Get the named QP fit values of a built-up section (zone widths in mm and stresses in MPa), empty when the record has none. A flame-cut tip stress is left out when the flange has no tip zone.
+         * @summary Get Residual Stresses Qp Parameters
+         * @param {string} residualStressId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getResidualStressesQpParameters(residualStressId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<{ [key: string]: number; }>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesQpParameters(residualStressId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ResidualStressApi.getResidualStressesQpParameters']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Get range of field
          * @summary Get Residual Stresses Range
          * @param {ResidualStressNumberField} field 
@@ -14187,6 +14288,16 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
          */
         getResidualStressesQpCoefficientCsv(residualStressId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getResidualStressesQpCoefficientCsv(residualStressId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get the named QP fit values of a built-up section (zone widths in mm and stresses in MPa), empty when the record has none. A flame-cut tip stress is left out when the flange has no tip zone.
+         * @summary Get Residual Stresses Qp Parameters
+         * @param {string} residualStressId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesQpParameters(residualStressId: string, options?: RawAxiosRequestConfig): AxiosPromise<{ [key: string]: number; }> {
+            return localVarFp.getResidualStressesQpParameters(residualStressId, options).then((request) => request(axios, basePath));
         },
         /**
          * Get range of field
@@ -14367,6 +14478,17 @@ export class ResidualStressApi extends BaseAPI {
      */
     public getResidualStressesQpCoefficientCsv(residualStressId: string, options?: RawAxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStressesQpCoefficientCsv(residualStressId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get the named QP fit values of a built-up section (zone widths in mm and stresses in MPa), empty when the record has none. A flame-cut tip stress is left out when the flange has no tip zone.
+     * @summary Get Residual Stresses Qp Parameters
+     * @param {string} residualStressId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getResidualStressesQpParameters(residualStressId: string, options?: RawAxiosRequestConfig) {
+        return ResidualStressApiFp(this.configuration).getResidualStressesQpParameters(residualStressId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

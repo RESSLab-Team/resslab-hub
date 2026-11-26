@@ -24,12 +24,18 @@ import { formatValue } from '@/utils/queryEngine'
 import { mdiChevronRight } from '@mdi/js'
 import { computed, ref } from 'vue'
 
-const props = defineProps<{
-  database: DatabaseId
-  /** The specimen model. Typed loosely: the generated API interfaces carry no
-   *  index signature, and this reads them by dictionary column name. */
-  record: object
-}>()
+const props = withDefaults(
+  defineProps<{
+    database: DatabaseId
+    /** The specimen model. Typed loosely: the generated API interfaces carry no
+     *  index signature, and this reads them by dictionary column name. */
+    record: object
+    /** Groups that do not apply to this record, left out (the fabrication of a
+     *  built-up section on a hot-rolled one, #228). */
+    hiddenGroups?: FieldGroupId[]
+  }>(),
+  { hiddenGroups: () => [] }
+)
 
 const cells = computed(() => props.record as Record<string, unknown>)
 
@@ -75,10 +81,12 @@ const groups = computed(() => {
       unit: displayUnit(column),
       value: valueText(column)
     }))
-  return groupBy(props.database, rows, (row) => row.column).map((group) => ({
-    id: group.id,
-    rows: group.items
-  }))
+  return groupBy(props.database, rows, (row) => row.column)
+    .filter((group) => !props.hiddenGroups.includes(group.id))
+    .map((group) => ({
+      id: group.id,
+      rows: group.items
+    }))
 })
 
 const open = ref<Set<FieldGroupId>>(new Set())

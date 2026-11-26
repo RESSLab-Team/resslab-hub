@@ -3,6 +3,23 @@ import { publicPath } from '@/utils/common'
 export function getResidualStressImage() {
   return publicPath + 'img/residuals/detail.png'
 }
+
+/**
+ * The section sketch of a residual stress record: the hot-rolled one, or for a
+ * built-up section one of four, by symmetry and flange cutting (#228).
+ */
+export function getResidualStressSchematic(record: {
+  profile_type?: string | null
+  sym?: string | null
+  plt_cut_f?: string | null
+}) {
+  if (!(record.profile_type ?? '').toLowerCase().includes('built-up')) {
+    return getResidualStressImage()
+  }
+  const symmetry = (record.sym ?? '').trim().toLowerCase() === 'mono' ? 'mono' : 'doubly'
+  const flame = (record.plt_cut_f ?? '').trim().toLowerCase() === 'flame-cut'
+  return publicPath + `img/residuals/built-up-${symmetry}-${flame ? 'flame' : 'no-flame'}.svg`
+}
 export function getConnectionSpecimenImage(specimen_type: string) {
   switch (specimen_type) {
     case 'Exterior - Beam Loaded - Subassembly':

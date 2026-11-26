@@ -95,13 +95,14 @@ describe('fieldGroups: group sizes', () => {
     })
   })
 
-  it('splits the 25 columns of residual stresses into six groups', () => {
+  it('splits the 48 columns of residual stresses into seven groups', () => {
     expect(tally('residuals')).toEqual({
-      experimental_program_details: 8,
+      experimental_program_details: 9,
       steel_profile: 2,
-      material_properties: 5,
-      section_properties: 6,
-      measured_residual_stresses: 3,
+      material_properties: 8,
+      section_properties: 9,
+      fabrication_details: 13,
+      measured_residual_stresses: 6,
       plot_properties: 1
     })
   })

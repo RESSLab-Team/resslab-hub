@@ -14,9 +14,11 @@ import tarfile
 
 import pytest
 
+from resslab_hub.data.residual_stress_qp import BUILT_UP_QP_COLUMNS
 from resslab_hub.data.uploader import Type, upload_one
 from resslab_hub.models.database.brace import Brace
 from resslab_hub.models.database.material import Material
+from resslab_hub.models.database.residual_stress import ResidualStress
 from tests.conftest import SERVICE_AUTH, write_main_csv, write_measurement_csv
 
 
@@ -196,6 +198,52 @@ async def test_braces_displacement_series(client, tmp_path):
         [1.0, 12.0],
         [2.0, 24.0],
     ]
+
+
+# ---------------------------------------------------------------------------
+# Residual stresses: the two QP formats share one table (#228)
+# ---------------------------------------------------------------------------
+def _seed_residual_stresses(tmp_path):
+    main = tmp_path / "residual_stresses.csv"
+    write_main_csv(main, ResidualStress, [{"id": "HR1"}, {"id": "BU1"}])
+    upload_one(Type.RESIDUAL_STRESS, str(main))
+    hot_rolled = tmp_path / "HR1.csv"
+    write_measurement_csv(
+        hot_rolled, ["qp_coefficient"], [["30.9"], ["-0.05"], ["26.8"], ["0.002"]]
+    )
+    upload_one(Type.RESIDUAL_STRESS_QP_COEFFICIENT, str(hot_rolled))
+    built_up = tmp_path / "BU1.csv"
+    names = list(BUILT_UP_QP_COLUMNS)
+    values = [str(i) for i in range(1, len(names) + 1)]
+    values[names.index("sigma_ffe_top")] = "NA"
+    write_measurement_csv(built_up, names, [values])
+    upload_one(Type.RESIDUAL_STRESS_QP_COEFFICIENT, str(built_up))
+
+
+async def test_residual_qp_coefficient_serves_the_hot_rolled_rows_only(
+    client, tmp_path
+):
+    _seed_residual_stresses(tmp_path)
+
+    hot_rolled = await client.get("/residual-stress/HR1/qp-coefficient")
+    built_up = await client.get("/residual-stress/BU1/qp-coefficient")
+
+    assert [float(c) for [c] in hot_rolled.json()] == [30.9, -0.05, 26.8, 0.002]
+    assert built_up.json() == []
+
+
+async def test_residual_qp_parameters_serves_the_named_values(client, tmp_path):
+    _seed_residual_stresses(tmp_path)
+
+    built_up = await client.get("/residual-stress/BU1/qp-parameters")
+    hot_rolled = await client.get("/residual-stress/HR1/qp-parameters")
+
+    assert built_up.status_code == 200
+    parameters = built_up.json()
+    assert parameters["dfc_top"] == 1.0
+    assert parameters["sigma_ffe_bot"] == 18.0
+    assert "sigma_ffe_top" not in parameters
+    assert hot_rolled.json() == {}
 
 
 # ---------------------------------------------------------------------------

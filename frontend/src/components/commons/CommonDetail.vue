@@ -8,6 +8,7 @@ import { useNotificationStore } from '@/stores/notification'
 import { isHttpUrl, shareCurrentUrl, specimenKey } from '@/utils/common'
 import { isUnverified } from '@/utils/curationStatus'
 import { DETAIL_DATABASE_KEY } from '@/utils/detail'
+import type { FieldGroupId } from '@/utils/fieldGroups'
 import type { DatabaseId } from '@/utils/navigation'
 import { mdiClose, mdiOpenInNew, mdiShare } from '@mdi/js'
 import type { AxiosResponse } from 'axios'
@@ -46,6 +47,8 @@ export interface Props {
    */
   databaseId?: DatabaseId
   record?: object
+  /** Groups of that section that do not apply to this record. */
+  hiddenGroups?: FieldGroupId[]
 }
 const props = withDefaults(defineProps<Props>(), {
   eyebrow: undefined,
@@ -54,7 +57,8 @@ const props = withDefaults(defineProps<Props>(), {
   carouselHeight: 300,
   aspectRatio: 1.5,
   databaseId: undefined,
-  record: undefined
+  record: undefined,
+  hiddenGroups: () => []
 })
 const emit = defineEmits<{
   (e: 'close'): void
@@ -235,7 +239,12 @@ function nextPage(): void {
         <slot name="designation" />
       </template>
 
-      <grouped-properties v-if="databaseId && record" :database="databaseId" :record="record" />
+      <grouped-properties
+        v-if="databaseId && record"
+        :database="databaseId"
+        :record="record"
+        :hidden-groups="hiddenGroups"
+      />
     </div>
   </div>
 </template>
