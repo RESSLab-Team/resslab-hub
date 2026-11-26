@@ -1,5 +1,43 @@
 # Changelog
 
+## [2.6.0](https://github.com/RESSLab-Team/resslab-hub/compare/v2.5.0...v2.6.0) (2026-11-26)
+
+
+### Features
+
+* **charts:** use Option F for the chart colours ([21f618e](https://github.com/RESSLab-Team/resslab-hub/commit/21f618e7ea0b34c4ff03ee55be4516de41339698)), closes [#388](https://github.com/RESSLab-Team/resslab-hub/issues/388)
+* **charts:** use Option F for the chart colours ([#481](https://github.com/RESSLab-Team/resslab-hub/issues/481)) ([8f0033e](https://github.com/RESSLab-Team/resslab-hub/commit/8f0033ecceadb721f3a73c5c46b2f62a35e045e4))
+* **contribute:** accept the built-up QP file ([e5ebb83](https://github.com/RESSLab-Team/resslab-hub/commit/e5ebb839ed76b6848d1e30cb1dd8663c6a90c9fc))
+* **data:** import a residual stress delivery of the lab ([77da19d](https://github.com/RESSLab-Team/resslab-hub/commit/77da19d6c0e19057a744d9c9fecb73e7366e78ff))
+* **residual-stress:** add the built-up sections of the lab ([#483](https://github.com/RESSLab-Team/resslab-hub/issues/483)) ([966a232](https://github.com/RESSLab-Team/resslab-hub/commit/966a2329ac5a90a7865879f025a1c94db85bc70f))
+* **residual-stress:** built-up sections in the backend ([ae32673](https://github.com/RESSLab-Team/resslab-hub/commit/ae326732a2c4fe8e01677ed7caad278644c7f367))
+* **residual:** draw the QP fit on hot-rolled records ([1811f7f](https://github.com/RESSLab-Team/resslab-hub/commit/1811f7f2950eb65106d1cee4b4d4ab7d7c60c8fe))
+* **residual:** show built-up sections in the drawer ([decfe6a](https://github.com/RESSLab-Team/resslab-hub/commit/decfe6a09757ee260b7dd8e5918feba61d57d450))
+
+
+### Bug Fixes
+
+* **charts:** keep the brush bars in their slots with echarts 6 ([5dfe0ab](https://github.com/RESSLab-Team/resslab-hub/commit/5dfe0abbaf8df02f986682c8aaa5c71c999f6994))
+* **charts:** keep the echarts 5 grid layout in the theme ([313e3a1](https://github.com/RESSLab-Team/resslab-hub/commit/313e3a1acba54b2f58e98e3c8217af1fa159f10a))
+* **charts:** pass the echarts theme as a prop to v-chart ([0dbd12c](https://github.com/RESSLab-Team/resslab-hub/commit/0dbd12c626043610c448ade16bbe25ee5043d4af))
+* **contributions:** make the shared GitHub client work with githubkit 0.17 ([17a4962](https://github.com/RESSLab-Team/resslab-hub/commit/17a496295f4bb9925561614bdcaddd2b4bfa944e))
+* **contributions:** make the shared GitHub client work with githubkit 0.17 ([#475](https://github.com/RESSLab-Team/resslab-hub/issues/475)) ([a15914c](https://github.com/RESSLab-Team/resslab-hub/commit/a15914cec2439b52759ef6c51034ddcbbb9a789d))
+* **deps:** bump axios, vite, vue and others for security alerts ([#459](https://github.com/RESSLab-Team/resslab-hub/issues/459)) ([b24bc8d](https://github.com/RESSLab-Team/resslab-hub/commit/b24bc8df8c6fa4021d6651701a9ef338c8c74cd2))
+* **deps:** bump Pillow to 13 and aiosmtplib to 5 ([#462](https://github.com/RESSLab-Team/resslab-hub/issues/462)) ([7de9bb1](https://github.com/RESSLab-Team/resslab-hub/commit/7de9bb1b73c890b0d87b9aa7ad6abad7952264b2))
+* **deps:** bump the npm-minor-patch group across 1 directory with 10 updates ([eaa6f36](https://github.com/RESSLab-Team/resslab-hub/commit/eaa6f361daf1ffccfdf3a8d7e30c21ffa8bc8ab4))
+* **deps:** bump the python-minor-patch group across 1 directory with 12 updates ([46decd5](https://github.com/RESSLab-Team/resslab-hub/commit/46decd5e24d6c1bad5c4b78f0b938f68801821df))
+* **deps:** move echarts to 6 and vue-echarts to 8 ([a730110](https://github.com/RESSLab-Team/resslab-hub/commit/a73011055f5a2dc168411f6d95ef453f339300c9))
+* **deps:** move echarts to 6 and vue-echarts to 8 ([#477](https://github.com/RESSLab-Team/resslab-hub/issues/477)) ([1a4a383](https://github.com/RESSLab-Team/resslab-hub/commit/1a4a38342aff49469d1175fd33eb9a142069b235))
+* **deps:** move maplibre-gl to 6 ([#460](https://github.com/RESSLab-Team/resslab-hub/issues/460)) ([e261e30](https://github.com/RESSLab-Team/resslab-hub/commit/e261e309a3215e4601f8f8a3f63b749978d62138))
+* **deps:** move vue-i18n to 11 ([#461](https://github.com/RESSLab-Team/resslab-hub/issues/461)) ([378ef10](https://github.com/RESSLab-Team/resslab-hub/commit/378ef1040b60b3995b2593c17953e1af3a1540be))
+* **deps:** move vue-i18n to 11 ([#465](https://github.com/RESSLab-Team/resslab-hub/issues/465)) ([8d442ca](https://github.com/RESSLab-Team/resslab-hub/commit/8d442caf270ce69b34bea2b18f79c9d66ac7b524))
+* **deps:** update githubkit[auth-app] requirement from &lt;0.13,&gt;=0.12 to &gt;=0.12,&lt;0.18 in /backend ([#469](https://github.com/RESSLab-Team/resslab-hub/issues/469)) ([8c937a7](https://github.com/RESSLab-Team/resslab-hub/commit/8c937a706d2a7ca84a375e4abe8288a43d5f2785))
+* **deps:** update githubkit[auth-app] requirement in /backend ([53c943b](https://github.com/RESSLab-Team/resslab-hub/commit/53c943bd18c53269ca125687dd34579e6cf238f1))
+* **drawer:** one decimal on floats, descriptions as labels ([#454](https://github.com/RESSLab-Team/resslab-hub/issues/454)) ([2bcb2b4](https://github.com/RESSLab-Team/resslab-hub/commit/2bcb2b4cca984f9b4d7379c1bfdfb54644f8b92b))
+* **drawer:** one decimal on floats, descriptions as labels ([#482](https://github.com/RESSLab-Team/resslab-hub/issues/482)) ([0846f8e](https://github.com/RESSLab-Team/resslab-hub/commit/0846f8e091c686b761752889e14dae47be943f5a)), closes [#454](https://github.com/RESSLab-Team/resslab-hub/issues/454)
+* **drawer:** same float rule in all recorded properties ([#454](https://github.com/RESSLab-Team/resslab-hub/issues/454)) ([c4dfdb4](https://github.com/RESSLab-Team/resslab-hub/commit/c4dfdb41b9f053c79ae2c40404faaac05c382462))
+* **residual:** no fillet radius row for a built-up section ([78c4fca](https://github.com/RESSLab-Team/resslab-hub/commit/78c4fcaed888379d71c702eeb198c9d152319ab4))
+
 ## [2.5.0](https://github.com/RESSLab-Team/resslab-hub/compare/v2.4.0...v2.5.0) (2026-11-24)
 
 
