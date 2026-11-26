@@ -65,9 +65,10 @@ def check_service_credentials(
     expected_password: str = str(settings.api_password or "")
     if not expected_password:
         return False
-    return compare_digest(credentials.username, expected_user) and compare_digest(
-        credentials.password, expected_password
-    )
+    # Bytes, not str: compare_digest raises on a non-ASCII str (#265).
+    return compare_digest(
+        credentials.username.encode(), expected_user.encode()
+    ) and compare_digest(credentials.password.encode(), expected_password.encode())
 
 
 def require_service(

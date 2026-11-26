@@ -683,3 +683,22 @@ def test_the_card_is_not_capped_at_600px():
     assert "max-width:600px" not in html
     # The Outlook-only wrapper that forced 600px is gone with it.
     assert "[if mso]><table" not in html
+
+
+def test_service_credentials_accept_any_text(monkeypatch):
+    # compare_digest on str raises TypeError on non-ASCII text, which was a 500
+    # on every Basic call (#265). Compared as bytes, it is a plain yes or no.
+    from fastapi.security import HTTPBasicCredentials
+
+    from resslab_hub.auth import deps
+
+    monkeypatch.setattr(deps.settings, "api_username", "user")
+    monkeypatch.setattr(deps.settings, "api_password", "mot-de-passe-très-long")
+
+    def check(username, password):
+        credentials = HTTPBasicCredentials(username=username, password=password)
+        return deps.check_service_credentials(credentials)
+
+    assert check("user", "mot-de-passe-très-long")
+    assert not check("user", "mot-de-passe-tres-long")
+    assert not check("usér", "wrong")
