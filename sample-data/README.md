@@ -49,7 +49,7 @@ Each row copies its record (its "template"), then changes it:
 - The fields that say who did the test are replaced: `id` (`DEMO-<prefix>-001`), investigator, reference, link and url, and the specimen name (`DEMO-SPEC-01`).
 - EBF ids must be whole numbers, so EBF rows get the next free ids after the largest one in the table.
 - Ductile fracture `has_sem` is `NR`, because the hub sets it.
-- Residual stresses keep the `flange_nr_data` of the template, and get a second flange curve only when it says 2.
+- Residual stresses keep the `flange_nr_data` of the template, and get a second flange curve only when it says 2. A built-up template gets the built-up QP file (18 named values), a hot-rolled one the four coefficients.
 
 The run prints how many records were usable, for example `values: from 15 real records (271 of 294 usable)`.
 
@@ -100,7 +100,8 @@ Some databases have their own checks:
 |---|---|---|
 | Ductile fracture | `has_sem=yes` | Warning: leave it NR in a contribution |
 | Ductile fracture | A list without its brackets (`loading_protocol`) | Warning |
-| Residual stresses | `flange_nr_data` says 1 but a second flange curve is there, or the other way | Warning |
+| Residual stresses | `flange_nr_data` says 2 but there is no second flange curve | Warning |
+| Residual stresses | `flange_nr_data` is not 0, 1 or 2 | Warning |
 
 When there are more problems than rows, the rest go on the first rows again, on another column. The last rows keep their range warnings too, so the file also mixes errors and warnings like a real batch.
 
@@ -154,7 +155,7 @@ The card sparkline plots column 1 against column 2 and normalizes both axes, so 
 | Ductile fracture, force vs elongation or radial | Monotonic pull to fracture. The `_simulation` twin is the same curve with fewer points |
 | Ductile fracture, plastic strain, Lode angle, triaxiality | Growth curves and the two stress-state values, simulation only |
 | Residual stress distributions | A profile along the section, not a loop. It balances to zero (flanges parabolic, web inverted, F2 tilted) |
-| QP coefficients | Four values in one column |
+| QP coefficients | Hot-rolled: four values in one column. Built-up: one row of 18 zone widths and stresses, no flame-cut tip zone |
 
 These shapes are smooth, with no noise and no drift. They are enough to test the UI and the validator, not to replace real data.
 
