@@ -42,6 +42,8 @@ export function createResidualModels(
     return
   } else {
     const coeff = qpCoefficient.map((serie) => serie[0])
+    // The saved fit of this record (four coefficients, README of the data repo).
+    const hasQpFit = coeff.length === 4 && coeff.every((value) => Number.isFinite(value))
 
     const h0 = h - 2 * tf
 
@@ -244,10 +246,15 @@ export function createResidualModels(
       ECCS_web,
       YOUNG_web_RS,
       SP_web_RS,
-      BT_web_RS
+      BT_web_RS,
+      QP_flange_RS: hasQpFit ? QP_flange_RS : undefined,
+      QP_web_RS: hasQpFit ? QP_web_RS : undefined
     }
   }
 }
+
+/** Name of the saved fit's curve, for hot-rolled and built-up records (#228). */
+export const QP_FIT_NAME = 'QP fit'
 
 export function createLineSeries(
   residual: ResidualStressModel,
@@ -295,7 +302,9 @@ export function createLineSeries(
     ECCS_web,
     YOUNG_web_RS,
     SP_web_RS,
-    BT_web_RS
+    BT_web_RS,
+    QP_flange_RS,
+    QP_web_RS
   } = models
 
   const flangeSeries = [
@@ -367,6 +376,15 @@ export function createLineSeries(
       d.name == i18n.global.t('enum.measuredResidualStressesF2') ? flange_nr_data == 2 : true
     )
     .map((d) => ({ ...d })) as LineSeriesOption[]
+  // Last, so the series above keep their palette colors.
+  if (QP_flange_RS) {
+    flangeSeries.push({
+      name: QP_FIT_NAME,
+      type: 'line',
+      lineStyle: { width: 2 },
+      data: x.map((x) => [b ? x - b / 2 : x, QP_flange_RS(x)])
+    })
+  }
 
   const webSeries = [
     {
@@ -418,6 +436,15 @@ export function createLineSeries(
       data: y3.map((y, i) => [BT_web_RS(y), h ? y + h / 2 : y])
     }
   ].map((d) => ({ ...d, encode: { tooltip: [0] } })) as LineSeriesOption[]
+  if (QP_web_RS) {
+    webSeries.push({
+      name: QP_FIT_NAME,
+      type: 'line',
+      lineStyle: { width: 2 },
+      data: y4.map((y) => [QP_web_RS(y), y]),
+      encode: { tooltip: [0] }
+    })
+  }
 
   return { flangeSeries, webSeries }
 }

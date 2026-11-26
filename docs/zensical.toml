@@ -24,6 +24,7 @@ nav = [
     # The root README of the data repo, copied by scripts/data-repo.py.
     { "Submit with a pull request" = "data/contributing.md" },
     { "Review and verify" = "contribute/review-and-verify.md" },
+    { "Roles and permissions" = "contribute/roles-and-permissions.md" },
   ] },
   # src/data/ is generated from the data repo by scripts/data-repo.py
   # (make docs runs it). A new database folder there needs a line here.

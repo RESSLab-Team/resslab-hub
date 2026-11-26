@@ -10,6 +10,7 @@ database (they seed existing data to compare against).
 import csv
 from pathlib import Path
 
+from resslab_hub.data.residual_stress_qp import BUILT_UP_QP_COLUMNS
 from resslab_hub.data.uploader import Type, get_args_all, upload_one
 from resslab_hub.data.validator import (
     PRIMARY_TYPE_MAP,
@@ -17,6 +18,7 @@ from resslab_hub.data.validator import (
     CsvFileValidator,
     DuctileFractureTableValidator,
     EccentricBracedFrameTableValidator,
+    QpCoefficientValidator,
     ResidualStressTableValidator,
     TableValidator,
     ValidationResult,
@@ -717,7 +719,8 @@ class TestResponseFileRows:
 
 
 class TestResidualStressFlanges:
-    """``flange_nr_data`` must match the presence of a second flange file."""
+    """``flange_nr_data`` counts the measured flanges (0, 1 or 2): 2 needs a
+    second flange file, 1 may come with one (a repeated F1 for the fit)."""
 
     @staticmethod
     def _validate(tmp_path: Path, declared: str, with_f2: bool):
@@ -753,15 +756,147 @@ class TestResidualStressFlanges:
             for m in messages(result.warnings, "flange_nr_data")
         )
 
-    def test_one_flange_with_the_file_warns(self, tmp_path: Path):
+    def test_one_flange_with_the_file_is_quiet(self, tmp_path: Path):
+        # The F2 file may repeat the measured flange for the fit (#228).
         result = self._validate(tmp_path, "1", with_f2=True)
+        assert messages(result.warnings, "flange_nr_data") == []
 
-        assert any("Write 2" in m for m in messages(result.warnings, "flange_nr_data"))
+    def test_no_flange_is_quiet(self, tmp_path: Path):
+        result = self._validate(tmp_path, "0", with_f2=False)
+        assert messages(result.warnings, "flange_nr_data") == []
 
     def test_other_counts_warn(self, tmp_path: Path):
         result = self._validate(tmp_path, "3", with_f2=False)
 
-        assert any("1 or 2" in m for m in messages(result.warnings, "flange_nr_data"))
+        assert any(
+            "0, 1 or 2" in m for m in messages(result.warnings, "flange_nr_data")
+        )
+
+
+BUILT_UP_ROW = {
+    "dfc_top": "60",
+    "dfe_top": "100",
+    "dffe_top": "20",
+    "sigma_fc_top": "300",
+    "sigma_fe_top": "-90",
+    "sigma_ffe_top": "120",
+    "dwc": "320",
+    "dwe_top": "40",
+    "dwe_bot": "40",
+    "sigma_wc": "-60",
+    "sigma_we_top": "300",
+    "sigma_we_bot": "300",
+    "dfc_bot": "60",
+    "dfe_bot": "100",
+    "dffe_bot": "20",
+    "sigma_fc_bot": "300",
+    "sigma_fe_bot": "-90",
+    "sigma_ffe_bot": "120",
+}
+
+
+class TestQpCoefficients:
+    """A QP file is four hot-rolled coefficients or one built-up row (#228)."""
+
+    @staticmethod
+    def _validate(tmp_path: Path, headers, rows):
+        root = tmp_path / "residual_stresses"
+        folder = root / "QP_Coefficients"
+        folder.mkdir(parents=True, exist_ok=True)
+        primary = write_main_csv(
+            root / "residual_stresses.csv", ResidualStress, [{"id": "R1"}]
+        )
+        curve = write_measurement_csv(folder / "R1.csv", headers, rows)
+        return QpCoefficientValidator(str(primary)).validate_one(str(curve))
+
+    @staticmethod
+    def _built_up(tmp_path: Path, **cells):
+        row = {**BUILT_UP_ROW, **cells}
+        return TestQpCoefficients._validate(
+            tmp_path, list(BUILT_UP_QP_COLUMNS), [[row[n] for n in BUILT_UP_QP_COLUMNS]]
+        )
+
+    def test_four_hot_rolled_coefficients_are_valid(self, tmp_path: Path):
+        rows = [["30.9"], ["-0.056"], ["26.8"], ["0.0017"]]
+        result = self._validate(tmp_path, ["qp_coefficient"], rows)
+
+        assert result.is_valid(), all_messages(result.errors)
+
+    def test_three_hot_rolled_coefficients_are_an_error(self, tmp_path: Path):
+        result = self._validate(tmp_path, ["qp_coefficient"], [["1"], ["2"], ["3"]])
+
+        assert not result.is_valid()
+        assert any(
+            "has 4 data row(s), found 3" in m for m in all_messages(result.errors)
+        )
+
+    def test_one_built_up_row_is_valid(self, tmp_path: Path):
+        result = self._built_up(tmp_path)
+
+        assert result.is_valid(), all_messages(result.errors)
+
+    def test_columns_in_another_order_are_valid(self, tmp_path: Path):
+        names = list(reversed(BUILT_UP_QP_COLUMNS))
+        row = [BUILT_UP_ROW[n] for n in names]
+        result = self._validate(tmp_path, names, [row])
+
+        assert result.is_valid(), all_messages(result.errors)
+
+    def test_no_tip_zone_allows_na_tip_stresses(self, tmp_path: Path):
+        result = self._built_up(
+            tmp_path,
+            dffe_top="0",
+            dfe_top="120",
+            sigma_ffe_top="NA",
+            dffe_bot="0",
+            dfe_bot="120",
+            sigma_ffe_bot="NA",
+        )
+
+        assert result.is_valid(), all_messages(result.errors)
+
+    def test_a_tip_zone_needs_its_stress(self, tmp_path: Path):
+        result = self._built_up(tmp_path, sigma_ffe_top="NA")
+
+        assert not result.is_valid()
+        assert any(
+            "tip zone exists" in m for m in messages(result.errors, "sigma_ffe_top")
+        )
+
+    def test_na_is_refused_in_another_column(self, tmp_path: Path):
+        result = self._built_up(tmp_path, sigma_wc="NA")
+
+        assert not result.is_valid()
+        assert messages(result.errors, "sigma_wc")
+
+    def test_a_negative_width_is_an_error(self, tmp_path: Path):
+        result = self._built_up(tmp_path, dwc="-1")
+
+        assert not result.is_valid()
+        assert any("cannot be negative" in m for m in messages(result.errors, "dwc"))
+
+    def test_two_built_up_rows_are_an_error(self, tmp_path: Path):
+        row = [BUILT_UP_ROW[n] for n in BUILT_UP_QP_COLUMNS]
+        result = self._validate(tmp_path, list(BUILT_UP_QP_COLUMNS), [row, row])
+
+        assert not result.is_valid()
+        assert any(
+            "has 1 data row(s), found 2" in m for m in all_messages(result.errors)
+        )
+
+    def test_a_missing_built_up_column_names_both_formats(self, tmp_path: Path):
+        names = [n for n in BUILT_UP_QP_COLUMNS if n != "dwc"]
+        result = self._validate(tmp_path, names, [[BUILT_UP_ROW[n] for n in names]])
+
+        assert not result.is_valid()
+        errors = all_messages(result.errors)
+        assert any("dwc" in m and "hot-rolled" in m and "built-up" in m for m in errors)
+
+    def test_other_headers_are_an_error(self, tmp_path: Path):
+        result = self._validate(tmp_path, ["coefficient"], [["1"]] * 4)
+
+        assert not result.is_valid()
+        assert any("qp_coefficient" in m for m in all_messages(result.errors))
 
 
 class TestDuctileFracture:

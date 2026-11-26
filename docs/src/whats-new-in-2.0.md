@@ -23,7 +23,8 @@ repository decides most of them (write or maintain makes a curator, admin an
 admin), an academic address grants `contributor`, and admins manage the rest
 from the new `/admin` page: role changes, invitations, access requests,
 disabled accounts. `API_PASSWORD` is now the machine credential only.
-Details: [auth.md](auth.md#roles).
+What each role can do: [Roles and permissions](contribute/roles-and-permissions.md).
+How it works: [auth.md](auth.md#roles).
 
 ## Contribution pipeline
 

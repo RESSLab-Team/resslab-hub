@@ -6,7 +6,7 @@ import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { tensileCouponApi } from '@/plugins/axios'
 import { isHttpUrl } from '@/utils/common'
 import { getTensileCouponImage } from '@/utils/component'
-import { formatNumber } from '@/utils/formatter'
+import { useRecordFormat } from '@/composables/useRecordFormat'
 import type { LineSeriesOption } from 'echarts'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -16,6 +16,8 @@ const { t } = useI18n({ useScope: 'global' })
 const props = defineProps<{
   tensileCoupon: TensileCouponModel
 }>()
+
+const formatNumber = useRecordFormat('tensile')
 const emit = defineEmits<{
   (e: 'close'): void
 }>()

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { initOptions } from '@/components/commons/charts/utils'
+import { echartsTheme } from '@/plugins/echarts-theme'
 import { useUnits } from '@/composables/unit'
 import type {
   EChartsOption,
@@ -245,6 +246,7 @@ const chartUpdateOptions = computed<SetOptionOpts>(() => {
   <div v-if="fill" class="uc-wrap uc-fill">
     <v-chart
       autoresize
+      :theme="echartsTheme"
       :init-options="initOptions"
       :option="actualOption"
       :update-options="chartUpdateOptions"
@@ -255,6 +257,7 @@ const chartUpdateOptions = computed<SetOptionOpts>(() => {
     <div class="uc-wrap">
       <v-chart
         autoresize
+        :theme="echartsTheme"
         :init-options="initOptions"
         :option="actualOption"
         :update-options="chartUpdateOptions"

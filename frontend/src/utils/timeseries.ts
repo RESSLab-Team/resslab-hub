@@ -1,5 +1,6 @@
 import { parseCsv } from '@/utils/csv'
 import type { DatabaseId } from '@/utils/navigation'
+import { BUILT_UP_QP_COLUMNS } from '@/utils/residualBuiltUp'
 
 /**
  * Measured-response files that can accompany a record.
@@ -29,6 +30,8 @@ export interface TimeSeriesColumn {
    * has no natural scale (an index).
    */
   typicalMax?: number
+  /** `NA` is a valid cell (a built-up flame-cut tip stress with no tip zone). */
+  missingOk?: boolean
 }
 
 export interface TimeSeriesKind {
@@ -38,6 +41,12 @@ export interface TimeSeriesKind {
   directory: string
   /** Columns the file must carry, in the order the README documents them. */
   columns: TimeSeriesColumn[]
+  /**
+   * Other column sets a file of this kind may carry instead, in the same
+   * folder (the built-up QP fit, #228). The headers pick the set; `columns`
+   * is the one the templates show.
+   */
+  alternatives?: TimeSeriesColumn[][]
   /**
    * Expected for every experiment of the database (the primary response the
    * component models are fitted on); the rest is welcome when measured.
@@ -59,6 +68,14 @@ const col = (name: string, unit: string, typicalMax?: number): TimeSeriesColumn 
   unit,
   typicalMax
 })
+
+// The built-up QP fit: zone widths in mm, stresses in MPa (README of the data
+// repo). A flame-cut tip stress is NA when its zone has no width.
+const BUILT_UP_QP = BUILT_UP_QP_COLUMNS.map((name) =>
+  name.startsWith('sigma_')
+    ? { ...col(name, 'MPa', 2_000), missingOk: name.startsWith('sigma_ffe_') }
+    : col(name, 'mm', 1_000)
+)
 
 const CHORD_ROTATION = col('Chord Rotation [rads]', 'rad', ROTATION)
 const MOMENT = col('Moment [kN-mm]', 'kN·mm', MOMENT_KNMM)
@@ -156,11 +173,13 @@ export const TIME_SERIES_KINDS: Partial<Record<DatabaseId, TimeSeriesKind[]>> = 
     }
   ],
   residuals: [
+    // No distribution is required: some records have no flange or no web
+    // measurement (README of the data repo, #228).
     {
       key: 'distribution_f1',
       directory: 'residual_stresses/Distributions/Distributions_F1',
       columns: [COORDINATE, RESIDUAL_STRESS],
-      required: true
+      required: false
     },
     {
       key: 'distribution_f2',
@@ -172,12 +191,13 @@ export const TIME_SERIES_KINDS: Partial<Record<DatabaseId, TimeSeriesKind[]>> = 
       key: 'distribution_w1',
       directory: 'residual_stresses/Distributions/Distributions_W1',
       columns: [COORDINATE, RESIDUAL_STRESS],
-      required: true
+      required: false
     },
     {
       key: 'qp_coefficient',
       directory: 'residual_stresses/QP_Coefficients',
       columns: [col('qp_coefficient', 'MPa', 1_000)],
+      alternatives: [BUILT_UP_QP],
       required: false
     }
   ],
@@ -249,9 +269,24 @@ export function timeSeriesKindsFor(database: DatabaseId | null): TimeSeriesKind[
   return database ? TIME_SERIES_KINDS[database] ?? [] : []
 }
 
-/** The headers a file of this kind must carry. */
-export function requiredColumns(kind: TimeSeriesKind): string[] {
-  return kind.columns.map((column) => column.name)
+/**
+ * The column set of a kind that these headers carry: `columns`, or one of
+ * the `alternatives`. `columns` when none is complete, so a check names what
+ * the usual format misses.
+ */
+export function columnSetFor(kind: TimeSeriesKind, headers?: string[]): TimeSeriesColumn[] {
+  if (!headers) return kind.columns
+  const present = new Set(headers.map((header) => header.trim()))
+  return (
+    [kind.columns, ...(kind.alternatives ?? [])].find(
+      (set) => set.length > 0 && set.every((column) => present.has(column.name))
+    ) ?? kind.columns
+  )
+}
+
+/** The headers a file of this kind must carry (the set its headers pick). */
+export function requiredColumns(kind: TimeSeriesKind, headers?: string[]): string[] {
+  return columnSetFor(kind, headers).map((column) => column.name)
 }
 
 /** Filename stem (without `.csv`) of a specimen's file of this kind. */
@@ -266,8 +301,10 @@ export function fileStemFor(kind: TimeSeriesKind, id: string): string {
  */
 export function kindsMatchingHeaders(kinds: TimeSeriesKind[], text: string): TimeSeriesKind[] {
   const headers = new Set(parseCsv(text)[0]?.map((header) => header.trim()) ?? [])
-  return kinds.filter(
-    (kind) => kind.columns.length > 0 && kind.columns.every((column) => headers.has(column.name))
+  return kinds.filter((kind) =>
+    [kind.columns, ...(kind.alternatives ?? [])].some(
+      (set) => set.length > 0 && set.every((column) => headers.has(column.name))
+    )
   )
 }
 
@@ -316,7 +353,8 @@ export function checkTimeSeriesFile(kind: TimeSeriesKind, text: string): TimeSer
   report.rows = data.length
 
   const headers = parsed[0].map((header) => header.trim())
-  const missing = kind.columns.filter((column) => !headers.includes(column.name))
+  const columns = columnSetFor(kind, headers)
+  const missing = columns.filter((column) => !headers.includes(column.name))
   if (missing.length) {
     report.errors.push(
       `Missing required column(s): ${missing.map((column) => column.name).join(', ')}`
@@ -324,7 +362,7 @@ export function checkTimeSeriesFile(kind: TimeSeriesKind, text: string): TimeSer
   }
 
   const values = new Map<string, number[]>()
-  for (const column of kind.columns) {
+  for (const column of columns) {
     const index = headers.indexOf(column.name)
     if (index === -1) continue
     const series: number[] = []
@@ -336,6 +374,10 @@ export function checkTimeSeriesFile(kind: TimeSeriesKind, text: string): TimeSer
       // Line number in the file, the header being line 1: what a contributor
       // sees when they open the file to fix it.
       const line = offset + 2
+      if (column.missingOk && raw.toUpperCase() === 'NA') {
+        series.push(NaN)
+        return
+      }
       if (raw === '') {
         if (!flagged)
           report.errors.push(`Column "${column.name}" has an empty cell (line ${line}).`)
@@ -380,7 +422,7 @@ export function checkTimeSeriesFile(kind: TimeSeriesKind, text: string): TimeSer
     }
   }
 
-  const [first, second] = kind.columns
+  const [first, second] = columns
   const xs = second ? values.get(first?.name ?? '') : data.map((_, index) => index)
   const ys = values.get((second ?? first)?.name ?? '')
   if (xs && ys) {

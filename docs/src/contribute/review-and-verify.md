@@ -13,6 +13,9 @@ You need the `curator` role. You get it in one of two ways:
   [data repository][data-repo], and you linked it to your Hub account.
 - An administrator of the Hub made you a curator.
 
+[Roles and permissions](roles-and-permissions.md) explains each role and how
+to get it.
+
 Only GitHub permissions let you approve and merge, so a curator who reviews
 also needs write access on the data repository. The Hub asks each
 administrator of the data repository to review each new pull request, so they

@@ -30,19 +30,45 @@ def test_blob_sha_matches_git_hash_object():
     assert blob_sha(text) == "756abe06d82b296c3007cfe33952672ca87847cc"
 
 
+def _bare_shared_github(factory) -> _SharedGitHub:
+    github = _SharedGitHub.__new__(_SharedGitHub)
+    github._shared_client = None
+    github._client_lock = asyncio.Lock()
+    github._create_async_client = factory
+    return github
+
+
 @pytest.mark.asyncio
-async def test_shared_client_is_built_once_and_stays_open():
-    """githubkit closes its client after every call; ours must not."""
+@pytest.mark.parametrize(
+    "is_async", [False, True], ids=["sync factory", "async factory"]
+)
+async def test_shared_client_is_built_once_and_stays_open(is_async):
+    """githubkit closes its client after every call; ours must not.
+
+    githubkit 0.12 builds its client with a sync method, 0.17 with a
+    coroutine. Both must work.
+    """
     closed = []
+    built = []
 
     class FakeAsyncClient:
         async def aclose(self):
             closed.append(self)
 
-    github = _SharedGitHub.__new__(_SharedGitHub)
-    github._shared_client = None
-    built = []
-    github._create_async_client = lambda: built.append(FakeAsyncClient()) or built[-1]
+    if is_async:
+
+        async def factory():
+            await asyncio.sleep(0)
+            built.append(FakeAsyncClient())
+            return built[-1]
+
+    else:
+
+        def factory():
+            built.append(FakeAsyncClient())
+            return built[-1]
+
+    github = _bare_shared_github(factory)
 
     async with github.get_async_client() as first:
         pass
@@ -56,6 +82,76 @@ async def test_shared_client_is_built_once_and_stays_open():
 
     await github.aclose()
     assert closed == [first]
+
+
+@pytest.mark.asyncio
+async def test_two_first_calls_at_once_build_one_client():
+    built = []
+
+    async def factory():
+        await asyncio.sleep(0.01)
+        built.append(object())
+        return built[-1]
+
+    github = _bare_shared_github(factory)
+
+    async def use():
+        async with github.get_async_client() as client:
+            return client
+
+    clients = await asyncio.gather(use(), use(), use())
+
+    assert len(built) == 1
+    assert clients[0] is clients[1] is clients[2]
+
+
+@pytest.mark.asyncio
+async def test_a_slow_call_times_out_and_the_client_is_reused():
+    """A real local server that never answers: the call must fail fast.
+
+    githubkit's default cache client ignored the timeout once (hishel 1.x),
+    so this goes through the real client, not a fake.
+    """
+    from githubkit.exception import RequestTimeout
+
+    async def never_answer(reader, writer):
+        await reader.read(1)
+        await asyncio.sleep(5)
+        writer.close()
+
+    server = await asyncio.start_server(never_answer, "127.0.0.1", 0)
+    port = server.sockets[0].getsockname()[1]
+    github = _SharedGitHub(
+        "token", base_url=f"http://127.0.0.1:{port}", timeout=0.3, http_cache=False
+    )
+    loop = asyncio.get_running_loop()
+    started = loop.time()
+    try:
+        with pytest.raises(RequestTimeout) as caught:
+            await github.arequest("GET", "/slow")
+        assert loop.time() - started < 3
+        assert public_error(caught.value) == "GitHub did not answer in time"
+        # The client survived the failure and is the one kept for next time.
+        assert github._shared_client is not None
+    finally:
+        await github.aclose()
+        server.close()
+
+
+def test_the_process_client_has_our_timeout_and_no_cache(monkeypatch):
+    from resslab_hub.contributions import github as module
+
+    monkeypatch.setattr(module, "_shared_github", None)
+    monkeypatch.setattr(module.settings, "github_app_id", "1", raising=False)
+    monkeypatch.setattr(
+        module.settings, "github_app_installation_id", "2", raising=False
+    )
+    monkeypatch.setattr(
+        module.settings, "github_app_private_key", "not a real key", raising=False
+    )
+    client = module._github()
+    assert client.config.timeout.read == module.REQUEST_TIMEOUT
+    assert client.config.http_cache is False
 
 
 class FakeGit:

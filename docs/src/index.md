@@ -16,6 +16,8 @@ your files to the public dashboards.
   repository yourself.
 - [Review and verify](contribute/review-and-verify.md): for the members of
   the lab who accept the submissions and verify the data.
+- [Roles and permissions](contribute/roles-and-permissions.md): what each
+  role lets you do, and how to get a higher one.
 
 ## I want to know what a database expects
 

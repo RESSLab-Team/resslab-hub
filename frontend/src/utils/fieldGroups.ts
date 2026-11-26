@@ -58,6 +58,7 @@ export type FieldGroupId =
   | 'cyclic_material_model_parameters' // Cyclic material model parameters
   | 'measured_quantities_at_fracture' // Measured quantities at fracture
   | 'fracture_model_parameters' // Fracture model parameters
+  | 'fabrication_details' // Fabrication details (built-up residual stresses)
   | 'measured_residual_stresses' // Measured residual stresses
   | 'plot_properties' // Plot properties
   /** Nothing claimed it. Asserted empty by fieldGroups.spec.ts. */
@@ -853,6 +854,7 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'experimental_program',
         'date',
         'spec_var',
+        'region',
         'reference',
         'link',
         'latitude',
@@ -861,9 +863,34 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
       ]
     },
     { id: 'steel_profile', match: ['profile_type', 'profile'] },
-    { id: 'material_properties', match: ['steel', 'fy_n', 'fy_e', 'fy_mf', 'fy_mw'] },
-    { id: 'section_properties', match: ['h', 'b', 'tw', 'tf', 'r', 'a'] },
-    { id: 'measured_residual_stresses', match: ['sigma_0_f', 'sigma_0_w', 'flange_nr_data'] },
+    {
+      id: 'material_properties',
+      match: ['steel', 'fy_n', 'fy_e', 'fy_mf', 'fy_mw', 'steel_web', 'fy_nw', 'fy_ew']
+    },
+    { id: 'section_properties', match: ['h', 'b', 'tw', 'tf', 'r', 'a', 'b2', 'tf2', 'sym'] },
+    // The welding and plate cutting of the built-up sections (#228).
+    {
+      id: 'fabrication_details',
+      match: [
+        'plt_cut_f',
+        'plt_cut_w',
+        'weld_type',
+        'fillet_size',
+        'weld_cur',
+        'weld_vol',
+        'weld_vel',
+        'preheat_c',
+        'interpass_c',
+        'holding_c',
+        'holding_t',
+        'n_weld_pass',
+        'heat_inp'
+      ]
+    },
+    {
+      id: 'measured_residual_stresses',
+      match: ['sigma_0_f', 'sigma_0_w', 'flange_nr_data', 'mea_met', 'webdata', 'sigma_0_b_f']
+    },
     { id: 'plot_properties', match: ['plot_sf'] }
   ]
 }

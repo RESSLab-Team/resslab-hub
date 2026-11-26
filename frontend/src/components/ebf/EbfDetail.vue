@@ -4,7 +4,7 @@ import CommonDetail, { type DetailCarouselItem } from '@/components/commons/Comm
 import PropertyItem from '@/components/commons/PropertyItem.vue'
 import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { ebfApi } from '@/plugins/axios'
-import { formatNumber } from '@/utils/formatter'
+import { useRecordFormat } from '@/composables/useRecordFormat'
 import { computed, ref, watch } from 'vue'
 import { linkConfigurationMapping } from '@/utils/ebf'
 import { getEbfImage } from '@/utils/component'
@@ -15,6 +15,8 @@ const { t } = useI18n({ useScope: 'global' })
 const props = defineProps<{
   eccentricBracedFrame: EccentricBracedFrameModel
 }>()
+
+const formatNumber = useRecordFormat('ebf')
 const emit = defineEmits<{
   (e: 'close'): void
 }>()

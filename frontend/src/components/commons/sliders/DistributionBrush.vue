@@ -17,6 +17,7 @@
  */
 import { initOptions, stackBrushSeries } from '@/components/commons/charts/utils'
 import { isBrushDragging } from '@/composables/interactionState'
+import { echartsTheme } from '@/plugins/echarts-theme'
 import { blendHex } from '@/utils/palette'
 import type { EChartsOption } from 'echarts'
 import { BarChart, LineChart } from 'echarts/charts'
@@ -324,7 +325,11 @@ const option = computed<EChartsOption>(() => {
       type: 'value',
       min: axisLo.value,
       max: axisHi.value,
-      show: false
+      show: false,
+      // ECharts 6 widens a value axis so the bars fit inside it. That moves the
+      // bars away from their slots and from the bars of the main chart. Keep the
+      // range we set.
+      containShape: false
       // No boundaryGap: it's invalid (boolean) on a value axis and moot here
       // anyway since min/max pin the range explicitly.
     },
@@ -518,6 +523,7 @@ const displayMax = computed(() =>
     <div ref="chartEl" class="dist-brush__chart">
       <v-chart
         class="dist-brush__canvas"
+        :theme="echartsTheme"
         :init-options="initOptions"
         :option="option"
         :update-options="{ notMerge: false }"

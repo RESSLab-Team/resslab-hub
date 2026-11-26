@@ -19,17 +19,23 @@ import {
 import { fieldDisplay } from '@/utils/contribution'
 import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
 import type { DatabaseId } from '@/utils/navigation'
-import { missingLabel } from '@/utils/formatter'
+import { formatFloat, isIntegerType, missingLabel } from '@/utils/formatter'
 import { formatValue } from '@/utils/queryEngine'
 import { mdiChevronRight } from '@mdi/js'
 import { computed, ref } from 'vue'
 
-const props = defineProps<{
-  database: DatabaseId
-  /** The specimen model. Typed loosely: the generated API interfaces carry no
-   *  index signature, and this reads them by dictionary column name. */
-  record: object
-}>()
+const props = withDefaults(
+  defineProps<{
+    database: DatabaseId
+    /** The specimen model. Typed loosely: the generated API interfaces carry no
+     *  index signature, and this reads them by dictionary column name. */
+    record: object
+    /** Groups that do not apply to this record, left out (the fabrication of a
+     *  built-up section on a hot-rolled one, #228). */
+    hiddenGroups?: FieldGroupId[]
+  }>(),
+  { hiddenGroups: () => [] }
+)
 
 const cells = computed(() => props.record as Record<string, unknown>)
 
@@ -38,15 +44,31 @@ const dictionary = useDictionaryStore()
 interface PropertyRow {
   column: DictColumn
   label: string
+  isDescription: boolean
   unit?: string
   value: string
 }
 
 // An empty cell says why it is empty: not reported or not applicable (#427).
-function valueText(field: string): string {
-  const value = cells.value[field]
-  if (value === null || value === undefined) return missingLabel(props.record, field)
+// A float gets the same rule as the top of the drawer (#454); an integer
+// column stays an integer.
+function valueText(column: DictColumn): string {
+  const value = cells.value[column.name]
+  if (value === null || value === undefined) return missingLabel(props.record, column.name)
+  if (typeof value === 'number' && !isIntegerType(column.type)) return formatFloat(value)
   return formatValue(value)
+}
+
+/** The dictionary description is the label (#454): it is the same kind of
+ *  text in every database, with no unit (the unit is next to the value).
+ *  With no description, the old label: translation, symbol or column name. */
+function labelFor(column: DictColumn): { label: string; isDescription: boolean } {
+  const description = column.description.trim()
+  if (description && description !== '-') return { label: description, isDescription: true }
+  return {
+    label: fieldDisplay(props.database, column.name, displaySymbol(column)),
+    isDescription: false
+  }
 }
 
 const groups = computed(() => {
@@ -55,14 +77,16 @@ const groups = computed(() => {
     .filter((column) => column.name in cells.value)
     .map((column) => ({
       column,
-      label: fieldDisplay(props.database, column.name, displaySymbol(column)),
+      ...labelFor(column),
       unit: displayUnit(column),
-      value: valueText(column.name)
+      value: valueText(column)
     }))
-  return groupBy(props.database, rows, (row) => row.column).map((group) => ({
-    id: group.id,
-    rows: group.items
-  }))
+  return groupBy(props.database, rows, (row) => row.column)
+    .filter((group) => !props.hiddenGroups.includes(group.id))
+    .map((group) => ({
+      id: group.id,
+      rows: group.items
+    }))
 })
 
 const open = ref<Set<FieldGroupId>>(new Set())
@@ -100,6 +124,7 @@ function toggle(id: FieldGroupId): void {
           :name="row.label"
           :unit="row.unit"
           :column="row.column.name"
+          :label-is-description="row.isDescription"
         >
           {{ row.value }}
         </property-item>

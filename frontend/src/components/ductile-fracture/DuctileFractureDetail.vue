@@ -11,13 +11,15 @@ import {
   getDuctileFractureSpecimenImage
 } from '@/utils/component'
 import type { DuctileFracturePlotId } from '@/utils/ductile_fracture'
-import { formatNumber } from '@/utils/formatter'
+import { useRecordFormat } from '@/composables/useRecordFormat'
 import { mdiMagnifyPlusOutline } from '@mdi/js'
 import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
   ductileFracture: DuctileFractureModel
 }>()
+
+const formatNumber = useRecordFormat('ductile-fracture')
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
