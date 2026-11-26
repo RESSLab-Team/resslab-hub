@@ -5,7 +5,7 @@ import PropertyItem from '@/components/commons/PropertyItem.vue'
 import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { residualsApi } from '@/plugins/axios'
 import { publicPath } from '@/utils/common'
-import { formatNumber } from '@/utils/formatter'
+import { useRecordFormat } from '@/composables/useRecordFormat'
 import { computed, ref, watch } from 'vue'
 
 import { createLineSeries, validateResidualModelParams } from '@/utils/residual'
@@ -17,6 +17,8 @@ const { t } = useI18n({ useScope: 'global' })
 const props = defineProps<{
   residual: ResidualStressModel
 }>()
+
+const formatNumber = useRecordFormat('residuals')
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
@@ -212,7 +214,7 @@ watch(
             <property-item
               column="A"
               :name="$t('detail.residual.area_of_the_cross_section')"
-              unit="mm"
+              unit="mm²"
             >
               {{ formatNumber(residual, 'A') }}
             </property-item>

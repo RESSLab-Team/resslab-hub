@@ -2,6 +2,7 @@ import type { BraceModel } from '@/backend'
 import BraceDetail from '@/components/braces/BraceDetail.vue'
 import i18n from '@/plugins/i18n'
 import { mount } from '@vue/test-utils'
+import { createPinia } from 'pinia'
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/plugins/axios', () => ({
@@ -12,7 +13,7 @@ const render = (brace: Partial<BraceModel>) =>
   mount(BraceDetail, {
     props: { brace: brace as BraceModel },
     global: {
-      plugins: [i18n],
+      plugins: [i18n, createPinia()],
       stubs: {
         CommonDetail: { template: '<div><slot name="body" /></div>' },
         PropertyItem: { template: '<p><slot /></p>' },
@@ -44,6 +45,12 @@ describe('BraceDetail', () => {
     })
     expect(text).toContain('Not applicable')
     expect(text).not.toContain('Not reported')
+  })
+
+  it('gives one decimal to the other stresses (#454)', () => {
+    const text = render({ f_yn: 345, fy_m: 400.04, f_um: 500 })
+    expect(text).toContain('345.0')
+    expect(text).toContain('400.0')
   })
 
   it('keeps 2 decimals on the measured gusset stresses', () => {

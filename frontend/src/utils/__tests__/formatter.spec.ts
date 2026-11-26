@@ -1,5 +1,11 @@
 import i18n from '@/plugins/i18n'
-import { formatNumber, formatString, missingLabel } from '@/utils/formatter'
+import {
+  formatFloat,
+  formatNumber,
+  formatString,
+  isIntegerType,
+  missingLabel
+} from '@/utils/formatter'
 import { describe, expect, it } from 'vitest'
 
 const notApplicable = i18n.global.t('enum.notApplicable')
@@ -37,9 +43,15 @@ describe('formatter.formatNumber', () => {
     expect(formatNumber(record, 'bad')).toBe(notReported)
   })
 
-  it('formats numbers with the default of zero fraction digits', () => {
-    expect(formatNumber(record, 'ratio')).toBe('3')
-    expect(formatNumber(record, 'f_yn')).toBe('345')
+  it('formats a float with one decimal by default (#454)', () => {
+    expect(formatNumber(record, 'ratio')).toBe('3.1')
+    expect(formatNumber(record, 'f_yn')).toBe('345.0')
+  })
+
+  it('keeps an integer column an integer, from the dictionary type', () => {
+    expect(formatNumber(record, 'f_yn', 1, 'SmallInteger')).toBe('345')
+    expect(formatNumber(record, 'f_yn', 1, 'Integer')).toBe('345')
+    expect(formatNumber(record, 'f_yn', 1, 'DecimalFloat')).toBe('345.0')
   })
 
   it('honours the requested number of fraction digits', () => {
@@ -48,6 +60,47 @@ describe('formatter.formatNumber', () => {
 
   it('coerces numeric strings (Pydantic v2 serializes Decimal as a string)', () => {
     expect(formatNumber(record, 'text', 1)).toBe('2.5')
+  })
+})
+
+describe('formatter.formatFloat (#454)', () => {
+  it('gives one decimal to a value of 1 or more', () => {
+    expect(formatFloat(345)).toBe('345.0')
+    expect(formatFloat(40.608028)).toBe('40.6')
+    expect(formatFloat(-75.376194)).toBe('-75.4')
+    expect(formatFloat(6.35)).toBe('6.3')
+    expect(formatFloat(0)).toBe('0.0')
+  })
+
+  it('keeps two significant digits for a value under 1', () => {
+    expect(formatFloat(0.003)).toBe('0.003')
+    expect(formatFloat(0.0456)).toBe('0.046')
+    expect(formatFloat(-0.0021)).toBe('-0.0021')
+    expect(formatFloat(0.5)).toBe('0.5')
+    expect(formatFloat(0.25)).toBe('0.25')
+    expect(formatFloat(0.999)).toBe('1.0')
+  })
+
+  it('takes the digits asked as a minimum', () => {
+    expect(formatFloat(3.14159, 3)).toBe('3.142')
+    expect(formatFloat(0.00213, 5)).toBe('0.00213')
+    expect(formatFloat(0.003, 2)).toBe('0.003')
+    expect(formatFloat(0.5, 2)).toBe('0.50')
+  })
+
+  it('stops at six decimals', () => {
+    expect(formatFloat(0.0000001234)).toBe('0.0')
+  })
+})
+
+describe('formatter.isIntegerType', () => {
+  it('knows the integer types of the dictionaries', () => {
+    for (const type of ['SmallInteger', 'Integer', 'BigInteger', 'SmallSmallInteger']) {
+      expect(isIntegerType(type)).toBe(true)
+    }
+    for (const type of ['DecimalFloat', 'Numeric', 'String', undefined]) {
+      expect(isIntegerType(type)).toBe(false)
+    }
   })
 })
 

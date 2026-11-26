@@ -5,7 +5,7 @@ import PropertyItem from '@/components/commons/PropertyItem.vue'
 import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { materialsApi } from '@/plugins/axios'
 import { publicPath } from '@/utils/common'
-import { formatNumber } from '@/utils/formatter'
+import { useRecordFormat } from '@/composables/useRecordFormat'
 import { uvcModelCurve, uvcParametersFrom } from '@/utils/material'
 import type { LineSeriesOption } from 'echarts'
 import { computed, ref, watch } from 'vue'
@@ -16,6 +16,8 @@ const { t } = useI18n({ useScope: 'global' })
 const props = defineProps<{
   material: MaterialModel
 }>()
+
+const formatNumber = useRecordFormat('cyclic')
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
