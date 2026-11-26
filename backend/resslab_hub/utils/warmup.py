@@ -1,12 +1,13 @@
 """
 Response-cache warming — no visitor ever pays the cold path.
 
-The data API's cold path is expensive: the dataset queries run per-row
-correlated ``*_count`` subqueries against the multi-hundred-MB time-series
-tables, and on a cold Postgres (fresh pod, restarted database, evicted
-buffers) the first request per URL costs seconds (measured up to 9 s on
-stage). The response cache (utils/caching.py) hides that from every visitor
-except the first one per URL per hour.
+The data API's cold path used to be expensive: the dataset queries ran
+per-row correlated ``*_count`` subqueries against the multi-hundred-MB
+time-series tables, and on a cold Postgres the first request per URL cost
+seconds (measured up to 9 s on stage). The ``*_count`` flags are columns now
+(migration 2a42de2d3438, data/count_flags.py), so that cost is mostly gone;
+nobody measured it again since (#265). The response cache (utils/caching.py)
+hides what is left from every visitor except the first one per URL per hour.
 
 This module removes the "first visitor" case. On startup the app renders the
 known hot URL space through its own ASGI stack — storing the bodies in the
