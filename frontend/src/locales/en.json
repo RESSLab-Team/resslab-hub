@@ -1004,8 +1004,8 @@
       "staleTooltip": "Archived value from {date} — live data currently unavailable"
     },
     "hero": {
-      "title": "Open data for {emphasis}{break}steel structures.",
-      "titleEmphasis": "seismic-resilient",
+      "title": "Open data for {emphasis} structures.",
+      "titleEmphasis": "steel",
       "lede": "Curated experimental databases and state-of-the-art component models for performance-based earthquake engineering — assembled worldwide since the 1970s, fully digitized, freely accessible.",
       "browseDatabases": "Browse databases",
       "aboutProject": "About the project"
