@@ -6,6 +6,8 @@ your role: [submit with the Hub](submit-with-the-hub.md),
 [submit with a pull request](../data/contributing.md),
 [review and verify](review-and-verify.md) or
 [run the data pipeline](../run-the-pipeline.md).
+[Roles and permissions](roles-and-permissions.md) tells you what your role
+lets you do.
 
 The data does not live in the Hub. It lives in CSV files in the public
 repository [RESSLab-Team/resslab-hub-data][data-repo] (the data repository).
@@ -71,6 +73,7 @@ explains this second step.
 | A researcher with data to share | [Submit with the Hub](submit-with-the-hub.md), or [submit with a pull request](../data/contributing.md) |
 | A researcher who prepares the files | The page of the database in [Databases](../data/index.md) |
 | A member of the lab who reviews submissions | [Review and verify](review-and-verify.md) |
+| Anyone who wants a role, or a higher one | [Roles and permissions](roles-and-permissions.md) |
 | A maintainer of the Hub or of the data repository | [Run the data pipeline](../run-the-pipeline.md) |
 | A developer who changes the code | [Contribution internals](../contributing-data.md) and [Curation internals](../curation.md) |
 

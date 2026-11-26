@@ -354,16 +354,10 @@ needs the dev App, only worth it to test the link flow and the @mention.
 
 ## Roles
 
-Four roles, weakest first:
-
-| Role | What it adds |
-|---|---|
-| `viewer` | Everyone signed in. Can check data with `/validate` and ask for contributor access. |
-| `contributor` | Opens and updates their own submissions (`POST`/`PUT /contributions`). |
-| `curator` | The review queue, every submission, and editing anyone's open one. |
-| `admin` | The admin page: members, invitations and access requests. |
-
-Browsing the databases needs no account at all.
+Four roles, weakest first: `viewer`, `contributor`, `curator`, `admin`.
+[Roles and permissions](contribute/roles-and-permissions.md) is the page for
+the people who use the Hub: what each role can do and how to get it. This
+section is how it works, for the people who run the Hub.
 
 ### Where a role comes from
 
@@ -502,6 +496,9 @@ Three ways, from the fastest:
 
 ### What the role gates
 
+The same table as in [Roles and permissions](contribute/roles-and-permissions.md#who-can-do-what),
+with the routes.
+
 | | viewer | contributor | curator | admin |
 |---|---|---|---|---|
 | `/validate` | yes | yes | yes | yes |
@@ -564,10 +561,9 @@ needed.
 
 ### Asking for access
 
-A viewer with a verified address can ask for `contributor` from the account
-page, or from the "not open to your account" page they land on when they try
-to submit. One pending request at a time, and five tries an hour. The
-admins get a mail: every address in `ADMIN_EMAILS`, plus every account whose
+How a person asks is in [Roles and permissions](contribute/roles-and-permissions.md#get-a-higher-role).
+The request page is also shown on the "not open to your account" page, when
+someone tries to submit. Five tries an hour. The admins get a mail: every address in `ADMIN_EMAILS`, plus every account whose
 role is admin, has a verified address and is not disabled. Most admins come
 from GitHub, so `ADMIN_EMAILS` alone would miss them.
 
@@ -577,8 +573,9 @@ invitation mail fails, the page says so and the invitation stays valid.
 
 ### When a change shows
 
-- An admin's decision: at once.
-- A GitHub permission: within the hour, or at the next sign-in.
+An admin's decision and a GitHub permission: see
+[Roles and permissions](contribute/roles-and-permissions.md#when-a-change-shows).
+
 - A new `CONTRIBUTOR_DOMAINS` or `ADMIN_EMAILS` entry, or a new swot
   snapshot: at the person's next sign-in, or within the hour when their
   GitHub is linked. Sessions last 30 days, so tell them to sign out and

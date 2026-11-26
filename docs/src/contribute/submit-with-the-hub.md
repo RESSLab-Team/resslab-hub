@@ -12,6 +12,7 @@ the full path.
 - The `contributor` role. An address of a university or a research institute
   gets it at sign-in. With a different address, ask for access from your
   account page. An administrator of the lab then decides.
+  [Roles and permissions](roles-and-permissions.md) explains each role.
 - A name and a confirmed email address on the account. The Hub writes both on
   the pull request. Without them, the submit is refused.
 - Your files: one CSV with one row for each experiment, and one curve file for
