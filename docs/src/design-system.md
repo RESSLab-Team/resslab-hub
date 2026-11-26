@@ -184,8 +184,8 @@ The page-level scaffolds are `DashboardShell.vue`, `PageHeader.vue` and
   grey, thinner). Never a raw red or grey. Canvas code takes `SUBMITTED_COLOR`
   and `EXISTING_COLOR` from `components/curation/curves.ts`, and
   `DataLegend.vue` names the pair.
-- **Categorical chart colours** come from the eight slots of the designer's
-  palette (#388, Option 1) in `utils/palette.ts`, handed out once per field by
+- **Categorical chart colours** come from the eight slots of Option F of #388
+  (IBM Carbon) in `utils/palette.ts`, handed out once per field by
   `useDataset(...).colorFor(field)`. Never colour a series from its position in
   the filtered data. The full rule is in
   [dashboard-architecture.md](dashboard-architecture.md).

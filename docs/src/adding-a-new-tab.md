@@ -514,7 +514,7 @@ The overview map needs no field list here any more, see Step 12.
 Two things the test suite and the UI expect from every new column:
 
 - **A scientific category.** `frontend/src/utils/fieldGroups.ts` maps every column of every database to a group id; `groupFor()` prefers the `group` column of the data dictionary (Step 1.2) and falls back to the per-database patterns in that file. A column with neither lands in `other`, and `fieldGroups.spec.ts` fails: it reads the real column list from `database-columns.json` (add the database to `DATABASE_MODELS` in `backend/resslab_hub/data/columns.py`, then `make api`). Add the database to `FIELD_GROUPS` there, mirroring the dictionary. Tables of the existing groups: [variable-categories.md](variable-categories.md).
-- **Stable colours.** `frontend/src/utils/categoryColors.ts` gives the palette slots (#388, Option 1) per field by frequency in the unfiltered dataset, so the treemap, the stacked histogram and the brush agree and a value keeps its colour when filters change. Nothing to add for a new tab; pin a value with `CATEGORY_COLOR_OVERRIDES` (`'<dataset key>:<field>'`) only if a colour people learnt gets reshuffled by a data upload.
+- **Stable colours.** `frontend/src/utils/categoryColors.ts` gives the palette slots (#388, Option F) per field by frequency in the unfiltered dataset, so the treemap, the stacked histogram and the brush agree and a value keeps its colour when filters change. Nothing to add for a new tab; pin a value with `CATEGORY_COLOR_OVERRIDES` (`'<dataset key>:<field>'`) only if a colour people learnt gets reshuffled by a data upload.
 
 ---
 
