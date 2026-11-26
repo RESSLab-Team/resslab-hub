@@ -15,6 +15,12 @@ const props = defineProps<{
    * Leave it out for a row that shows a computed or combined value.
    */
   column?: string
+  /**
+   * The name is already the column description (All recorded properties,
+   * #454). The tooltip then shows the symbol and the column name, so the same
+   * text does not show twice.
+   */
+  labelIsDescription?: boolean
 }>()
 
 const database = inject(DETAIL_DATABASE_KEY, undefined)
@@ -24,9 +30,12 @@ const dictionary = useDictionaryStore()
 const definition = computed(() => {
   if (!props.column || !database?.value) return undefined
   const column = dictionary.columnFor(database.value, props.column)
-  const description = column?.description.trim()
-  if (!column || !description || description === '-') return undefined
-  return { description, symbol: displaySymbol(column) }
+  if (!column) return undefined
+  const symbol = displaySymbol(column)
+  if (props.labelIsDescription) return { description: undefined, symbol, name: column.name }
+  const description = column.description.trim()
+  if (!description || description === '-') return undefined
+  return { description, symbol, name: undefined }
 })
 </script>
 
@@ -46,10 +55,11 @@ const definition = computed(() => {
       offset="2"
       open-delay="200"
     >
-      <span class="prop-def">{{ definition.description }}</span>
+      <span v-if="definition.description" class="prop-def">{{ definition.description }}</span>
       <span v-if="definition.symbol" class="prop-def-meta">
         <text-subscript :text="definition.symbol" />
       </span>
+      <span v-if="definition.name" class="prop-def-meta prop-def-name">{{ definition.name }}</span>
     </v-tooltip>
     <!-- The name can be a dictionary symbol with <sub>/<sup> (#328). -->
     <span class="prop-name"><text-subscript :text="props.name" /></span>
@@ -96,5 +106,11 @@ const definition = computed(() => {
   display: block;
   margin-top: 4px;
   color: var(--fg-muted);
+}
+.prop-tip .prop-def-meta:first-child {
+  margin-top: 0;
+}
+.prop-tip .prop-def-name {
+  font-family: var(--font-mono);
 }
 </style>

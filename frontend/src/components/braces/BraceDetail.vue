@@ -5,7 +5,8 @@ import PropertyItem from '@/components/commons/PropertyItem.vue'
 import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { bracesApi } from '@/plugins/axios'
 import { publicPath } from '@/utils/common'
-import { formatNumber, formatString } from '@/utils/formatter'
+import { formatString } from '@/utils/formatter'
+import { useRecordFormat } from '@/composables/useRecordFormat'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -14,6 +15,8 @@ const { t } = useI18n({ useScope: 'global' })
 const props = defineProps<{
   brace: BraceModel
 }>()
+
+const formatNumber = useRecordFormat('braces')
 const emit = defineEmits<{
   (e: 'close'): void
 }>()

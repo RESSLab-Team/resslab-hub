@@ -6,7 +6,8 @@ import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { connectionsApi } from '@/plugins/axios'
 import { isHttpUrl } from '@/utils/common'
 import { getConnectionSpecimenImage, getConnectionTypeImage } from '@/utils/component'
-import { formatNumber, formatString } from '@/utils/formatter'
+import { formatString } from '@/utils/formatter'
+import { useRecordFormat } from '@/composables/useRecordFormat'
 import { mdiOpenInNew } from '@mdi/js'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -16,6 +17,8 @@ const { t } = useI18n({ useScope: 'global' })
 const props = defineProps<{
   connection: ConnectionModel
 }>()
+
+const formatNumber = useRecordFormat('connections')
 const emit = defineEmits<{
   (e: 'close'): void
 }>()

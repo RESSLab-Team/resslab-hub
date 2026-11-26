@@ -5,7 +5,7 @@ import PropertyItem from '@/components/commons/PropertyItem.vue'
 import ZoomableImage from '@/components/commons/ZoomableImage.vue'
 import { columnsApi } from '@/plugins/axios'
 import { getColumnImage } from '@/utils/component'
-import { formatNumber } from '@/utils/formatter'
+import { useRecordFormat } from '@/composables/useRecordFormat'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -14,6 +14,8 @@ const { t } = useI18n({ useScope: 'global' })
 const props = defineProps<{
   column: ColumnModel
 }>()
+
+const formatNumber = useRecordFormat('columns')
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
