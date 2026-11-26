@@ -124,10 +124,6 @@ def write_table(path: Path, headers: list[str], rows: list[list[str]]) -> None:
     path.write_text(buffer.getvalue(), encoding="utf-8", newline="")
 
 
-def with_final_newline(text: str) -> str:
-    return text if text.endswith("\n") else text + "\n"
-
-
 class Base:
     """The data repo at its base commit, read through git."""
 

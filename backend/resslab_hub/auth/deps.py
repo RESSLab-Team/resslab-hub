@@ -135,23 +135,3 @@ async def require_user_or_service(
     if user is not None or check_service_credentials(credentials):
         return
     raise _unauthorized("Sign in to continue", basic=credentials is not None)
-
-
-def require_role_or_service(minimum: str):
-    """``require_role``, but the machine credential also passes."""
-
-    async def dependency(
-        user: Optional[User] = Depends(get_current_user),
-        credentials: Optional[HTTPBasicCredentials] = Depends(basic_scheme),
-    ) -> None:
-        if check_service_credentials(credentials):
-            return
-        if user is None:
-            raise _unauthorized("Sign in to continue", basic=credentials is not None)
-        if not roles.at_least(user.role, minimum):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"This action needs the {minimum} role.",
-            )
-
-    return dependency
