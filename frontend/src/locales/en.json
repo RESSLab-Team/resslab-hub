@@ -91,7 +91,30 @@
     "tf": "tf [mm]",
     "h": "Height of the cross section [mm]",
     "date": "Date",
-    "thickness": "Thickness [mm]"
+    "thickness": "Thickness [mm]",
+    "steel_web": "Web steel grade",
+    "fy_nw": "Nominal web yield strength",
+    "fy_ew": "Expected web yield strength",
+    "b2": "Width of flange F2",
+    "tf2": "Thickness of flange F2",
+    "plt_cut_f": "Flange plate cutting",
+    "plt_cut_w": "Web plate cutting",
+    "mea_met": "Measurement method",
+    "weld_type": "Weld type",
+    "fillet_size": "Fillet weld throat",
+    "weld_cur": "Welding current",
+    "weld_vol": "Welding voltage",
+    "weld_vel": "Welding speed",
+    "preheat_c": "Preheat temperature",
+    "interpass_c": "Interpass temperature",
+    "holding_c": "Holding temperature",
+    "holding_t": "Holding time",
+    "n_weld_pass": "Number of weld passes",
+    "heat_inp": "Heat input",
+    "region": "Region",
+    "webdata": "Web measured",
+    "sym": "Symmetry",
+    "sigma_0_b_f": "Characteristic stress of flange F2"
   },
   "hss": {
     "id": "Specimen Designation",
@@ -588,7 +611,8 @@
     "fracture_model_parameters": "Fracture model parameters",
     "measured_residual_stresses": "Measured residual stresses",
     "plot_properties": "Plot properties",
-    "other": "Other"
+    "other": "Other",
+    "fabrication_details": "Fabrication details"
   },
   "detail": {
     "connection": {
@@ -764,7 +788,16 @@
       "flange_thickness_of_the_cross_section": "Flange thickness of the cross section",
       "fillet_radii_of_the_cross_section": "Fillet radii of the cross section",
       "area_of_the_cross_section": "Area of the cross section",
-      "figure_alt": "Residual stress pattern"
+      "figure_alt": "Residual stress pattern",
+      "flange_1_distribution": "Flange 1 distribution",
+      "flange_2_distribution": "Flange 2 distribution",
+      "width_of_flange_f1": "Width of flange F1",
+      "width_of_flange_f2": "Width of flange F2",
+      "thickness_of_flange_f1": "Thickness of flange F1",
+      "thickness_of_flange_f2": "Thickness of flange F2",
+      "symmetry": "Symmetry",
+      "symmetry_mono": "Monosymmetric",
+      "symmetry_doubly": "Doubly-symmetric"
     },
     "tensile_coupon": {
       "engineering_stress_strain": "Engineering stress-strain",
@@ -1218,7 +1251,7 @@
         "distribution_f1": "Coordinate along the flange in mm and residual stress, tension positive.",
         "distribution_f2": "Second flange, when measured separately from F1.",
         "distribution_w1": "Coordinate along the web in mm and residual stress, tension positive.",
-        "qp_coefficient": "One coefficient per row, when you computed the fit.",
+        "qp_coefficient": "Hot-rolled: one column qp_coefficient with the four coefficients. Built-up: the 18 zone widths and stresses on one row (see the README). Only when you computed the fit.",
         "processed_data": "Sample index, total link rotation and link shear force.",
         "force_elongation": "Measured elongation and load.",
         "force_elongation_simulation": "Simulated elongation and load.",
