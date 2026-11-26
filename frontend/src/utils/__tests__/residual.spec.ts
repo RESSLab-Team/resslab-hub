@@ -5,6 +5,7 @@ import {
   createResidualModels,
   validateResidualModelParams
 } from '@/utils/residual'
+import { colorPalette } from '@/utils/palette'
 import type { LineSeriesOption } from 'echarts'
 import { describe, expect, it } from 'vitest'
 
@@ -148,7 +149,16 @@ describe('residual.createLineSeries keeps the hot-rolled curves', () => {
       copy(fixture.w1),
       copy(fixture.f2)
     )
-    const old = (series: LineSeriesOption[]) => series.filter((s) => s.name !== QP_FIT_NAME)
+    // A color is pinned as its palette slot, so a new palette (#481) keeps the
+    // snapshot: what matters is that a series keeps its slot.
+    const old = (series: LineSeriesOption[]) =>
+      series
+        .filter((s) => s.name !== QP_FIT_NAME)
+        .map((s) =>
+          typeof s.color === 'string' && colorPalette.includes(s.color)
+            ? { ...s, color: `palette[${colorPalette.indexOf(s.color)}]` }
+            : s
+        )
     expect({ flange: old(flangeSeries), web: old(webSeries) }).toMatchSnapshot()
   })
 })
