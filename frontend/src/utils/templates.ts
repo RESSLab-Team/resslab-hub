@@ -143,6 +143,9 @@ function readmeText(database: DatabaseId, kinds: TimeSeriesKind[]): string {
       const columns = kind.columns.map((column) => column.name).join(', ')
       lines.push(`   ${kind.directory}/   (${kind.required ? 'required' : 'optional'})`)
       lines.push(`     ${columns}`)
+      for (const alternative of kind.alternatives ?? []) {
+        lines.push(`     or: ${alternative.map((column) => column.name).join(', ')}`)
+      }
     }
     lines.push('')
   }

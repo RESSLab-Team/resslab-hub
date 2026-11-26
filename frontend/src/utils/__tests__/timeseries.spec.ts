@@ -1,3 +1,4 @@
+import { BUILT_UP_QP_COLUMNS } from '@/utils/residualBuiltUp'
 import { sparkline } from '@/utils/sparkline'
 import {
   TIME_SERIES_KINDS,
@@ -124,6 +125,48 @@ describe('checkTimeSeriesFile', () => {
     const report = checkTimeSeriesFile(qp, 'qp_coefficient\n10\n-20\n30\n')
     expect(report.x).toEqual([0, 1, 2])
     expect(report.y).toEqual([10, -20, 30])
+  })
+})
+
+describe('the built-up QP format (#228)', () => {
+  const qp = timeSeriesKindsFor('residuals').find((kind) => kind.key === 'qp_coefficient')!
+  const names = [...BUILT_UP_QP_COLUMNS]
+  const row = (cells: Record<string, string> = {}) =>
+    names.map((name) => cells[name] ?? (name.startsWith('d') ? '20' : '-50')).join(',')
+
+  it('accepts one row of the 18 named values', () => {
+    const report = checkTimeSeriesFile(qp, `${names.join(',')}\n${row()}\n`)
+    expect(report.errors).toEqual([])
+    expect(requiredColumns(qp, names)).toEqual(names)
+  })
+
+  it('accepts NA for a flame-cut tip stress only', () => {
+    const tip = checkTimeSeriesFile(
+      qp,
+      `${names.join(',')}\n${row({ sigma_ffe_top: 'NA', sigma_ffe_bot: 'NA' })}\n`
+    )
+    expect(tip.errors).toEqual([])
+    const web = checkTimeSeriesFile(qp, `${names.join(',')}\n${row({ sigma_wc: 'NA' })}\n`)
+    expect(web.errors.some((error) => error.includes('sigma_wc'))).toBe(true)
+  })
+
+  it('reads either header set as a QP file', () => {
+    const kinds = timeSeriesKindsFor('residuals')
+    expect(kindsMatchingHeaders(kinds, names.join(',')).map((kind) => kind.key)).toEqual([
+      'qp_coefficient'
+    ])
+    expect(kindsMatchingHeaders(kinds, 'qp_coefficient').map((kind) => kind.key)).toEqual([
+      'qp_coefficient'
+    ])
+  })
+
+  it('names the usual column when neither set is complete', () => {
+    const report = checkTimeSeriesFile(qp, 'dfc_top\n1\n')
+    expect(report.errors[0]).toContain('qp_coefficient')
+  })
+
+  it('requires no residual stress distribution', () => {
+    expect(timeSeriesKindsFor('residuals').filter((kind) => kind.required)).toEqual([])
   })
 })
 
