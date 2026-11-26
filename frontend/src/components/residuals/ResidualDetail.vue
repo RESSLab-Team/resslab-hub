@@ -287,7 +287,9 @@ watch(
             >
               {{ formatNumber(residual, 'tf2') }}
             </property-item>
+            <!-- A welded section has no root radius. -->
             <property-item
+              v-if="!builtUp"
               column="r"
               :name="$t('detail.residual.fillet_radii_of_the_cross_section')"
               unit="mm"
