@@ -5,6 +5,7 @@ Handle / requests
 from logging import exception, warning
 from os import path
 from tempfile import TemporaryDirectory
+from typing import Optional
 
 from fastapi import (
     APIRouter,
@@ -52,11 +53,11 @@ router = APIRouter()
 MAX_REQUEST_BYTES = 50 * 2**20  # 50 MB
 
 
-def enforce_request_size(request: Request) -> None:
+def check_content_length(request: Request, limit: int) -> None:
     content_length = request.headers.get("content-length")
     if content_length is not None:
         try:
-            if int(content_length) > MAX_REQUEST_BYTES:
+            if int(content_length) > limit:
                 raise HTTPException(
                     status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                     detail="Upload exceeds the maximum allowed size.",
@@ -65,7 +66,11 @@ def enforce_request_size(request: Request) -> None:
             pass
 
 
-def reject_oversized(file: UploadFile) -> None:
+def enforce_request_size(request: Request) -> None:
+    check_content_length(request, MAX_REQUEST_BYTES)
+
+
+def reject_oversized(file: UploadFile, limit: Optional[int] = None) -> None:
     """Refuse an uploaded file over the cap, once the body is parsed (#264 M3).
 
     The header check above only stops an honest client. A chunked body has
@@ -73,7 +78,10 @@ def reject_oversized(file: UploadFile) -> None:
     really received. Starlette spools the file to disk while it parses, so
     the size of that spool is bounded only by the ingress body limit.
     """
-    if file.size is not None and file.size > MAX_REQUEST_BYTES:
+    # Read at call time, not as a default argument: tests lower the cap.
+    if limit is None:
+        limit = MAX_REQUEST_BYTES
+    if file.size is not None and file.size > limit:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail="Upload exceeds the maximum allowed size.",
@@ -257,22 +265,48 @@ async def validate_data(
     check_duplicates: bool = Query(False),
     _: None = Depends(enforce_request_size),
 ):
-    try:
-        reject_oversized(file)
-        with TemporaryDirectory() as tmpdir:
-            safe_extract_targz(file.file, tmpdir)
+    return await validate_upload(file, type, check_duplicates=check_duplicates)
 
-            # cpu=1 forces inline validation in the request path. A large
-            # contribution can exceed validate_all's parallel threshold, and the
-            # spawn pool re-imports the whole app per worker -- which OOM-kills a
-            # memory-capped pod. See _PARALLEL_MIN_TASKS in validator.py.
-            results = validate_all(
-                type, [tmpdir], cpu=1, check_duplicate_ids=check_duplicates
-            )
+
+async def validate_upload(
+    file: UploadFile,
+    type: Type,
+    *,
+    check_duplicates: bool,
+    limit: Optional[int] = None,
+    repo_duplicates: bool = True,
+    in_thread: bool = False,
+) -> ValidationResponse:
+    """Extract an uploaded archive and validate it: the work of ``/validate``.
+
+    ``limit`` defaults to ``MAX_REQUEST_BYTES``. ``/agent/validate``
+    (routers/agent.py) calls it too, with a smaller ``limit``, no GitHub call
+    (``repo_duplicates``) and the validation in a thread (``in_thread``), so
+    an anonymous caller does not block the event loop.
+    """
+    try:
+        reject_oversized(file, limit)
+        with TemporaryDirectory() as tmpdir:
+
+            def extract_and_validate():
+                safe_extract_targz(file.file, tmpdir)
+                # cpu=1 forces inline validation in the request path. A large
+                # contribution can exceed validate_all's parallel threshold,
+                # and the spawn pool re-imports the whole app per worker --
+                # which OOM-kills a memory-capped pod. See _PARALLEL_MIN_TASKS
+                # in validator.py.
+                return validate_all(
+                    type, [tmpdir], cpu=1, check_duplicate_ids=check_duplicates
+                )
+
+            if in_thread:
+                results = await run_in_threadpool(extract_and_validate)
+            else:
+                results = extract_and_validate()
             # Same repo-level duplicate check the submission enforces, so a
             # contributor learns about a clash while editing, not on submit.
             # Best effort: GitHub being unreachable must not fail the check.
-            if check_duplicates and configured():
+            if repo_duplicates and check_duplicates and configured():
                 try:
                     await flag_repo_duplicates(tmpdir, type, results)
                 except Exception as exc:  # noqa: BLE001

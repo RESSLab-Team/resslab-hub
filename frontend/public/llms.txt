@@ -1,0 +1,12 @@
+# RESSLab Hub
+
+> An open database of tests on structural steel components (braces, columns, connections, HSS columns, eccentrically braced frame links, cyclic and tensile coupons, ductile fracture, residual stresses), run by the Resilient Steel Structures Laboratory (RESSLab) at EPFL. Researchers can add their own tests.
+
+## Prepare a submission for a researcher
+
+- [Agent guide](/api/agent/guide): how to convert a researcher's files to the hub template, check them with `POST /api/agent/validate` (no account needed), and hand back a folder for the submission form at /contribute/new. Start here, then read the page of the right database.
+
+## API
+
+- [OpenAPI schema](/api/openapi.json): every endpoint of the hub, including the read-only data endpoints.
+- [Data dictionaries](/api/dictionary): the columns of each database, with unit, type and description.

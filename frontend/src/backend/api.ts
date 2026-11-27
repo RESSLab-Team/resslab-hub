@@ -120,6 +120,22 @@ export const AdminUserPatchRoleOverrideEnum = {
 export type AdminUserPatchRoleOverrideEnum = typeof AdminUserPatchRoleOverrideEnum[keyof typeof AdminUserPatchRoleOverrideEnum];
 
 
+export const AgentDatabase = {
+    Braces: 'braces',
+    Columns: 'columns',
+    Connections: 'connections',
+    Hss: 'hss',
+    Ebf: 'ebf',
+    Cyclic: 'cyclic',
+    Tensile: 'tensile',
+    DuctileFracture: 'ductile-fracture',
+    Residuals: 'residuals',
+} as const;
+
+export type AgentDatabase = typeof AgentDatabase[keyof typeof AgentDatabase];
+
+
+
 export const BraceField = {
     Id: 'id',
     Investigator: 'investigator',
@@ -2924,6 +2940,15 @@ export interface ValidationIssue {
     'value'?: string | null;
     'message': string;
 }
+/**
+ * The report without the legacy arrays: what ``/agent/validate`` returns.
+ */
+export interface ValidationReport {
+    'valid': boolean;
+    'message': string;
+    'error_count': number;
+    'results'?: Array<FileValidationResult>;
+}
 export interface ValidationResponse {
     'valid': boolean;
     'message': string;
@@ -3621,6 +3646,252 @@ export class AdminApi extends BaseAPI {
      */
     public updateUser(userId: string, adminUserPatch: AdminUserPatch, options?: RawAxiosRequestConfig) {
         return AdminApiFp(this.configuration).updateUser(userId, adminUserPatch, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * AgentApi - axios parameter creator
+ */
+export const AgentApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Check a folder prepared for a submission, without an account.  The same checks as the contribution form, ids already in the hub included. Data problems answer 200 with ``valid: false``; 4xx is for the transport.
+         * @summary Agent Validate
+         * @param {AgentDatabase} database 
+         * @param {File} file 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        agentValidate: async (database: AgentDatabase, file: File, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'database' is not null or undefined
+            assertParamExists('agentValidate', 'database', database)
+            // verify required parameter 'file' is not null or undefined
+            assertParamExists('agentValidate', 'file', file)
+            const localVarPath = `/agent/validate`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+            const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)();
+
+            if (database !== undefined) {
+                localVarQueryParameter['database'] = database;
+            }
+
+
+            if (file !== undefined) { 
+                localVarFormParams.append('file', file as any);
+            }
+            localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = localVarFormParams;
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Everything an agent needs for one database, on one page.
+         * @summary Get Agent Database Guide
+         * @param {string} database 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAgentDatabaseGuide: async (database: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'database' is not null or undefined
+            assertParamExists('getAgentDatabaseGuide', 'database', database)
+            const localVarPath = `/agent/guide/{database}`
+                .replace('{database}', encodeURIComponent(String(database)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'text/markdown,application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * The start page of the agent guide: the method and the databases.
+         * @summary Get Agent Guide
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAgentGuide: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/agent/guide`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'text/markdown';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * AgentApi - functional programming interface
+ */
+export const AgentApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = AgentApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Check a folder prepared for a submission, without an account.  The same checks as the contribution form, ids already in the hub included. Data problems answer 200 with ``valid: false``; 4xx is for the transport.
+         * @summary Agent Validate
+         * @param {AgentDatabase} database 
+         * @param {File} file 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async agentValidate(database: AgentDatabase, file: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ValidationReport>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.agentValidate(database, file, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AgentApi.agentValidate']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Everything an agent needs for one database, on one page.
+         * @summary Get Agent Database Guide
+         * @param {string} database 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getAgentDatabaseGuide(database: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getAgentDatabaseGuide(database, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AgentApi.getAgentDatabaseGuide']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * The start page of the agent guide: the method and the databases.
+         * @summary Get Agent Guide
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getAgentGuide(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getAgentGuide(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AgentApi.getAgentGuide']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * AgentApi - factory interface
+ */
+export const AgentApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = AgentApiFp(configuration)
+    return {
+        /**
+         * Check a folder prepared for a submission, without an account.  The same checks as the contribution form, ids already in the hub included. Data problems answer 200 with ``valid: false``; 4xx is for the transport.
+         * @summary Agent Validate
+         * @param {AgentDatabase} database 
+         * @param {File} file 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        agentValidate(database: AgentDatabase, file: File, options?: RawAxiosRequestConfig): AxiosPromise<ValidationReport> {
+            return localVarFp.agentValidate(database, file, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Everything an agent needs for one database, on one page.
+         * @summary Get Agent Database Guide
+         * @param {string} database 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAgentDatabaseGuide(database: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.getAgentDatabaseGuide(database, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * The start page of the agent guide: the method and the databases.
+         * @summary Get Agent Guide
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAgentGuide(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.getAgentGuide(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * AgentApi - object-oriented interface
+ */
+export class AgentApi extends BaseAPI {
+    /**
+     * Check a folder prepared for a submission, without an account.  The same checks as the contribution form, ids already in the hub included. Data problems answer 200 with ``valid: false``; 4xx is for the transport.
+     * @summary Agent Validate
+     * @param {AgentDatabase} database 
+     * @param {File} file 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public agentValidate(database: AgentDatabase, file: File, options?: RawAxiosRequestConfig) {
+        return AgentApiFp(this.configuration).agentValidate(database, file, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Everything an agent needs for one database, on one page.
+     * @summary Get Agent Database Guide
+     * @param {string} database 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getAgentDatabaseGuide(database: string, options?: RawAxiosRequestConfig) {
+        return AgentApiFp(this.configuration).getAgentDatabaseGuide(database, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * The start page of the agent guide: the method and the databases.
+     * @summary Get Agent Guide
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getAgentGuide(options?: RawAxiosRequestConfig) {
+        return AgentApiFp(this.configuration).getAgentGuide(options).then((request) => request(this.axios, this.basePath));
     }
 }
 
