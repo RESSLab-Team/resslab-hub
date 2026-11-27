@@ -65,9 +65,10 @@ def check_service_credentials(
     expected_password: str = str(settings.api_password or "")
     if not expected_password:
         return False
-    return compare_digest(credentials.username, expected_user) and compare_digest(
-        credentials.password, expected_password
-    )
+    # Bytes, not str: compare_digest raises on a non-ASCII str (#265).
+    return compare_digest(
+        credentials.username.encode(), expected_user.encode()
+    ) and compare_digest(credentials.password.encode(), expected_password.encode())
 
 
 def require_service(
@@ -134,23 +135,3 @@ async def require_user_or_service(
     if user is not None or check_service_credentials(credentials):
         return
     raise _unauthorized("Sign in to continue", basic=credentials is not None)
-
-
-def require_role_or_service(minimum: str):
-    """``require_role``, but the machine credential also passes."""
-
-    async def dependency(
-        user: Optional[User] = Depends(get_current_user),
-        credentials: Optional[HTTPBasicCredentials] = Depends(basic_scheme),
-    ) -> None:
-        if check_service_credentials(credentials):
-            return
-        if user is None:
-            raise _unauthorized("Sign in to continue", basic=credentials is not None)
-        if not roles.at_least(user.role, minimum):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"This action needs the {minimum} role.",
-            )
-
-    return dependency

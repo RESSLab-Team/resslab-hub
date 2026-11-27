@@ -70,7 +70,7 @@ const {
     :eyebrow="$t('dashboards.common.eyebrow_materials')"
     :title="$t('dashboards.material.title')"
     :count="countsStore.counts.cyclic"
-    count-label="coupons"
+    :count-label="$t('commons.dash_count_coupons')"
     :description="$t('dashboards.material.description')"
     database-id="cyclic"
     i18n-prefix="material."

@@ -50,8 +50,13 @@ PostgreSQL container, which gets only that one and not the app secrets.
 ```bash
 mkdir -p secrets
 echo POSTGRES_PASSWORD=changeit > secrets/.env
+echo API_PASSWORD=local-machine-credential >> secrets/.env
 echo POSTGRES_PASSWORD=changeit > secrets/db.env
 ```
+
+`API_PASSWORD` is the machine credential. Locally, `make -C backend
+validate-<type>` needs it. When it is empty, `/upload` and `/user` refuse
+every call.
 
 The password in `secrets/db.env` is only read the first time the database
 volume is created. An existing volume keeps its password.

@@ -499,6 +499,8 @@
     "clear_all": "Clear all",
     "remove_filter": "Remove filter {label}",
     "dash_count_label": "tests",
+    "dash_count_coupons": "coupons",
+    "dash_count_specimens": "specimens",
     "dash_search_placeholder": "Search all columns…",
     "download_master_data": "Master data",
     "download_test_data": "Test data",
@@ -1004,8 +1006,8 @@
       "staleTooltip": "Archived value from {date} — live data currently unavailable"
     },
     "hero": {
-      "title": "Open data for {emphasis}{break}steel structures.",
-      "titleEmphasis": "seismic-resilient",
+      "title": "Open data for {emphasis} structures.",
+      "titleEmphasis": "steel",
       "lede": "Curated experimental databases and state-of-the-art component models for performance-based earthquake engineering — assembled worldwide since the 1970s, fully digitized, freely accessible.",
       "browseDatabases": "Browse databases",
       "aboutProject": "About the project"
@@ -1108,7 +1110,13 @@
       "layout_title": "Expected layout",
       "layout_hint": "What the submission folder looks like; drop it whole on the editor.",
       "layout_primary": "one row per experiment",
-      "layout_kit": "Download the starter kit"
+      "layout_kit": "Download the starter kit",
+      "agent_title": "Format your data with an AI agent",
+      "agent_hint": "Your data is in another format? Give this prompt to your own AI agent (Claude, ChatGPT, Copilot…). It reads our guide, converts your files, checks them with the hub and asks you about anything odd. Then drop the folder it gives you here.",
+      "agent_copy": "Copy the prompt",
+      "agent_copied": "Copied",
+      "agent_open": "Open the agent guide",
+      "agent_offline": "If your agent can’t open web pages, open the agent guide, save it and attach it to the conversation."
     },
     "editor": {
       "title": "Experiments",

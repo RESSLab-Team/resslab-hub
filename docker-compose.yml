@@ -49,6 +49,9 @@ services:
       - "traefik.http.routers.frontend.tls=true"
       - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
       - "traefik.http.routers.frontend.middlewares=secureHeaders@docker,compress@docker"
+      # The images run as non-root and listen on 8080 (#456). The port is
+      # written here, so Traefik does not have to guess it from the image.
+      - "traefik.http.services.frontend.loadbalancer.server.port=8080"
     restart: unless-stopped
 
   backend:
@@ -75,6 +78,7 @@ services:
       - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
       - "traefik.http.routers.backend.middlewares=backend-stripprefix,secureHeaders@docker,compress@docker"
       - "traefik.http.middlewares.backend-stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.services.backend.loadbalancer.server.port=8080"
     restart: unless-stopped
 
   database:

@@ -1810,6 +1810,115 @@
         }
       }
     },
+    "/agent/guide": {
+      "get": {
+        "tags": [
+          "agent"
+        ],
+        "summary": "Get Agent Guide",
+        "description": "The start page of the agent guide: the method and the databases.",
+        "operationId": "get_agent_guide",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/markdown": {}
+            }
+          }
+        }
+      }
+    },
+    "/agent/guide/{database}": {
+      "get": {
+        "tags": [
+          "agent"
+        ],
+        "summary": "Get Agent Database Guide",
+        "description": "Everything an agent needs for one database, on one page.",
+        "operationId": "get_agent_database_guide",
+        "parameters": [
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Database"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/markdown": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/validate": {
+      "post": {
+        "tags": [
+          "agent"
+        ],
+        "summary": "Agent Validate",
+        "description": "Check a folder prepared for a submission, without an account.\n\nThe same checks as the contribution form, ids already in the hub included.\nData problems answer 200 with ``valid: false``; 4xx is for the transport.",
+        "operationId": "agent_validate",
+        "parameters": [
+          {
+            "name": "database",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/AgentDatabase"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_agent_validate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/braces": {
       "get": {
         "tags": [
@@ -8293,6 +8402,35 @@
         "type": "object",
         "title": "AdminUserPatch",
         "description": "Only the fields that are sent change.\n\n``role_override: null`` goes back to the automatic role."
+      },
+      "AgentDatabase": {
+        "type": "string",
+        "enum": [
+          "braces",
+          "columns",
+          "connections",
+          "hss",
+          "ebf",
+          "cyclic",
+          "tensile",
+          "ductile-fracture",
+          "residuals"
+        ],
+        "title": "AgentDatabase"
+      },
+      "Body_agent_validate": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_agent_validate"
       },
       "Body_create_contribution": {
         "properties": {
@@ -19680,6 +19818,38 @@
         ],
         "title": "ValidationIssue",
         "description": "A single error or warning, anchored to a cell where possible."
+      },
+      "ValidationReport": {
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "title": "Valid"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "error_count": {
+            "type": "integer",
+            "title": "Error Count"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/FileValidationResult"
+            },
+            "type": "array",
+            "title": "Results",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "valid",
+          "message",
+          "error_count"
+        ],
+        "title": "ValidationReport",
+        "description": "The report without the legacy arrays: what ``/agent/validate`` returns."
       },
       "ValidationResponse": {
         "properties": {

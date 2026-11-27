@@ -69,7 +69,7 @@ const {
     :eyebrow="$t('dashboards.common.eyebrow_materials')"
     :title="$t('dashboards.residual.title')"
     :count="countsStore.counts.residuals"
-    count-label="specimens"
+    :count-label="$t('commons.dash_count_specimens')"
     :description="$t('dashboards.residual.description')"
     database-id="residuals"
     i18n-prefix="residual."

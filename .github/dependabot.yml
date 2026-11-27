@@ -58,6 +58,7 @@ updates:
         patterns: ["*"]
 
   # Base images in backend/Dockerfile, frontend/Dockerfile, docs/Dockerfile.
+  # They are pinned by digest (#456): a PR here moves the tag and the digest.
   - package-ecosystem: docker
     directories:
       - "/backend"

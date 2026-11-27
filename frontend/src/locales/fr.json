@@ -614,6 +614,8 @@
     "clear_all": "Tout effacer",
     "remove_filter": "Supprimer le filtre {label}",
     "dash_count_label": "essais",
+    "dash_count_coupons": "éprouvettes",
+    "dash_count_specimens": "éprouvettes",
     "dash_search_placeholder": "Rechercher dans toutes les colonnes…",
     "download_master_data": "Données principales",
     "download_test_data": "Données d'essai",
@@ -1004,8 +1006,8 @@
       "staleTooltip": "Valeur archivée du {date} — données en direct actuellement indisponibles"
     },
     "hero": {
-      "title": "Données ouvertes pour des structures en acier {emphasis}{break}.",
-      "titleEmphasis": "résilientes aux séismes",
+      "title": "Données ouvertes pour des structures en {emphasis}.",
+      "titleEmphasis": "acier",
       "lede": "Bases de données expérimentales sélectionnées et modèles de composants à l'état de l'art pour le génie parasismique basé sur la performance — réunies dans le monde entier depuis les années 1970, entièrement numérisées et librement accessibles.",
       "browseDatabases": "Parcourir les bases de données",
       "aboutProject": "À propos du projet"
@@ -1108,7 +1110,13 @@
       "layout_title": "Organisation attendue",
       "layout_hint": "À quoi ressemble le dossier de soumission ; déposez-le entier dans l’éditeur.",
       "layout_primary": "une ligne par essai",
-      "layout_kit": "Télécharger le kit de départ"
+      "layout_kit": "Télécharger le kit de départ",
+      "agent_title": "Mettre vos données en forme avec un agent IA",
+      "agent_hint": "Vos données sont dans un autre format ? Donnez ce prompt à votre propre agent IA (Claude, ChatGPT, Copilot…). Il lit notre guide, convertit vos fichiers, les vérifie avec le hub et vous interroge sur tout ce qui semble étrange. Déposez ensuite ici le dossier qu’il vous rend.",
+      "agent_copy": "Copier le prompt",
+      "agent_copied": "Copié",
+      "agent_open": "Ouvrir le guide pour agents",
+      "agent_offline": "Si votre agent ne peut pas ouvrir de pages web, ouvrez le guide pour agents, enregistrez-le et joignez-le à la conversation."
     },
     "editor": {
       "title": "Expériences",

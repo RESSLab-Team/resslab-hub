@@ -4,7 +4,7 @@
 # request, so a warning or a dead link fails there.
 
 # Stage 1: build the site
-FROM python:3.13-slim AS build-stage
+FROM python:3.13-slim@sha256:7249d5587b78209a006dc4a3b5340678f84ea729239193aa559962cd8c1fce50 AS build-stage
 WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:0.13.7 /uv /usr/local/bin/uv
 ENV UV_LINK_MODE=copy
@@ -32,7 +32,7 @@ RUN python scripts/data-repo.py /data-repo HEAD \
     && python scripts/check-orphans.py
 
 # Stage 2: serve it. The unprivileged image listens on 8080.
-FROM nginxinc/nginx-unprivileged:stable-alpine-slim AS production-stage
+FROM nginxinc/nginx-unprivileged:stable-alpine-slim@sha256:5d8bb9437d74a600ec5dbf90c035451c724dc33eac8d3a71078f6f8612c345f6 AS production-stage
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build-stage /app/site /usr/share/nginx/html/docs
 EXPOSE 8080

@@ -51,12 +51,17 @@ class LegacyFileResult(BaseModel):
     warnings: List[str] = []
 
 
-class ValidationResponse(BaseModel):
+class ValidationReport(BaseModel):
+    """The report without the legacy arrays: what ``/agent/validate`` returns."""
+
     valid: bool
     message: str
     error_count: int
     #: Structured results — the contribution wizard consumes these.
     results: List[FileValidationResult] = []
+
+
+class ValidationResponse(ValidationReport):
     #: Legacy string arrays, kept until the data-repo CI is migrated.
     error_results: List[LegacyFileResult] = []
     valid_results: List[LegacyFileResult] = []

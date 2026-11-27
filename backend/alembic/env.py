@@ -4,7 +4,7 @@ from sqlalchemy import create_engine, pool
 
 import resslab_hub.models.database  # noqa: F401
 from alembic import context
-from resslab_hub.utils.database import Base, url
+from resslab_hub.utils.database import Base, migration_lock, url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -19,10 +19,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name, disable_existing_loggers=False)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
+# The metadata of every model, for autogenerate.
 target_metadata = Base.metadata
 
 # The URL is passed straight to SQLAlchemy, never through the config: the
@@ -62,7 +59,9 @@ def run_migrations_online():
     """
     connectable = create_engine(url, poolclass=pool.NullPool)
 
-    with connectable.connect() as connection:
+    # One process at a time: the others wait for the lock, then see the
+    # new head and do nothing (#479).
+    with migration_lock(connectable), connectable.connect() as connection:
         context.configure(
             connection=connection,
             target_metadata=target_metadata,

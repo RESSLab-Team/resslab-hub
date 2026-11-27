@@ -24,6 +24,7 @@ from resslab_hub.config import refuse_default_secrets, settings
 from resslab_hub.contributions.github import aclose_github, describe_error
 from resslab_hub.routers import (
     admin,
+    agent,
     analytics,
     auth,
     braces,
@@ -197,6 +198,7 @@ app.include_router(verification.router)
 app.include_router(admin.router)
 app.include_router(analytics.router)
 app.include_router(dictionary.router)
+app.include_router(agent.router)
 app.include_router(braces.router)
 app.include_router(columns.router)
 app.include_router(connections.router)

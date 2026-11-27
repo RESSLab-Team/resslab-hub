@@ -412,6 +412,14 @@ onMounted(() => {
             alt="Swiss National Science Foundation"
           />
         </a>
+        <a href="https://www.swissuniversities.ch" target="_blank" rel="noopener noreferrer">
+          <!-- The official SVG has a viewBox but no width or height, so it needs one here. -->
+          <img
+            :src="publicPath + 'logo/swissuniversities_logo.svg'"
+            alt="swissuniversities"
+            width="160"
+          />
+        </a>
       </div>
     </div>
 
