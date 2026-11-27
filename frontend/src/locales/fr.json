@@ -614,6 +614,8 @@
     "clear_all": "Tout effacer",
     "remove_filter": "Supprimer le filtre {label}",
     "dash_count_label": "essais",
+    "dash_count_coupons": "éprouvettes",
+    "dash_count_specimens": "éprouvettes",
     "dash_search_placeholder": "Rechercher dans toutes les colonnes…",
     "download_master_data": "Données principales",
     "download_test_data": "Données d'essai",
