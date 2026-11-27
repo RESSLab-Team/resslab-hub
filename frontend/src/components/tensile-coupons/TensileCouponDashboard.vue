@@ -90,7 +90,7 @@ const {
     :eyebrow="$t('dashboards.common.eyebrow_materials')"
     :title="$t('dashboards.tensile_coupon.title')"
     :count="countsStore.counts.tensile"
-    count-label="coupons"
+    :count-label="$t('commons.dash_count_coupons')"
     :description="$t('dashboards.tensile_coupon.description')"
     database-id="tensile"
     i18n-prefix="tensile_coupon."

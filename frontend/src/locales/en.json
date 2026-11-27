@@ -499,6 +499,8 @@
     "clear_all": "Clear all",
     "remove_filter": "Remove filter {label}",
     "dash_count_label": "tests",
+    "dash_count_coupons": "coupons",
+    "dash_count_specimens": "specimens",
     "dash_search_placeholder": "Search all columns…",
     "download_master_data": "Master data",
     "download_test_data": "Test data",

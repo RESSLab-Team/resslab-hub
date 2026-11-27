@@ -130,3 +130,42 @@ describe('DashboardShell search placeholder', () => {
     expect(placeholder()).toBe('Search all columns…')
   })
 })
+
+describe('DashboardShell count label', () => {
+  function countText(props: Record<string, unknown> = {}): string {
+    const wrapper = mount(DashboardShell, {
+      props: {
+        eyebrow: 'Database',
+        title: 'Braces',
+        count: 12,
+        i18nPrefix: 'brace.',
+        filters: [],
+        filterGroups: [],
+        searches: {},
+        ...props
+      },
+      global: {
+        plugins: [i18n.value, createVuetify()],
+        stubs: { 'v-icon': true, AutoFilterRail: true }
+      }
+    })
+    const value = wrapper.find('.dash-title-count').text()
+    wrapper.unmount()
+    return value
+  }
+
+  it('translates the default and keeps a given one as is', () => {
+    const global = i18n.value.global as unknown as Composer
+    global.setLocaleMessage('fr', { commons: { dash_count_label: 'essais' } })
+    global.locale.value = 'fr'
+    try {
+      expect(countText()).toBe('12 essais')
+      // The English default passed on purpose is not swapped for the translation.
+      expect(countText({ countLabel: 'tests' })).toBe('12 tests')
+      expect(countText({ countLabel: 'éprouvettes' })).toBe('12 éprouvettes')
+    } finally {
+      global.locale.value = 'en'
+    }
+    expect(countText()).toBe('12 tests')
+  })
+})

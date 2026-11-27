@@ -45,7 +45,7 @@ const props = withDefaults(
   }>(),
   {
     count: undefined,
-    countLabel: 'tests',
+    countLabel: undefined,
     filtersLoading: false,
     description: undefined,
     databaseId: undefined,
@@ -162,7 +162,7 @@ function shareView(): void {
                   {{ title }}
                   <span v-if="count != null" class="dash-title-count">
                     {{ count.toLocaleString('en-CH') }}
-                    {{ countLabel === 'tests' ? $t('commons.dash_count_label') : countLabel }}
+                    {{ countLabel ?? $t('commons.dash_count_label') }}
                   </span>
                 </h1>
                 <div class="dash-head-actions">
