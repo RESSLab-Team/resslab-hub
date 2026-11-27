@@ -1,4 +1,4 @@
-FROM python:3.12-slim AS build-stage
+FROM python:3.12-slim@sha256:191083cdf6c7bda8c76158983163ead5d5cf7b77cf3033e805bb0f5296f51b4b AS build-stage
 WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:0.13.7 /uv /usr/local/bin/uv
 ENV UV_LINK_MODE=copy UV_COMPILE_BYTECODE=1
@@ -14,7 +14,7 @@ RUN uv pip install --no-deps . \
     && test -d /app/.venv/lib/python3.12/site-packages/resslab_hub
 
 
-FROM python:3.12-slim AS production-stage
+FROM python:3.12-slim@sha256:191083cdf6c7bda8c76158983163ead5d5cf7b77cf3033e805bb0f5296f51b4b AS production-stage
 EXPOSE 8080
 WORKDIR /app
 
