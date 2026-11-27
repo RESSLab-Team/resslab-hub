@@ -21,13 +21,21 @@ import {
   useDictionaryStore,
   type DictColumn
 } from '@/stores/dictionary'
+import { agentGuideUrl, agentPrompt } from '@/utils/agentPrompt'
 import { contributionGuideUrl, dataDictionaryUrl } from '@/utils/contribution'
 import { MANAGED_COLUMNS } from '@/utils/curationStatus'
 import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
 import type { DatabaseId } from '@/utils/navigation'
 import { downloadStarterKit, layoutEntries, layoutRoot } from '@/utils/templates'
 import { timeSeriesKindsFor } from '@/utils/timeseries'
-import { mdiChevronRight, mdiMagnify, mdiOpenInNew, mdiPackageVariantClosed } from '@mdi/js'
+import {
+  mdiCheck,
+  mdiChevronRight,
+  mdiContentCopy,
+  mdiMagnify,
+  mdiOpenInNew,
+  mdiPackageVariantClosed
+} from '@mdi/js'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { computed, ref, watch } from 'vue'
@@ -84,6 +92,30 @@ const html = computed(() => {
 const kinds = computed(() => timeSeriesKindsFor(props.database))
 const layout = computed(() => layoutEntries(props.database, kinds.value))
 const root = computed(() => layoutRoot(props.database))
+
+// --- AI agent ---------------------------------------------------------------
+// A prompt for the researcher's own agent, which reads the agent guide of the
+// backend (routers/agent.py) and checks its output with POST /agent/validate.
+
+const prompt = computed(() => agentPrompt(props.database))
+const agentUrl = computed(() => agentGuideUrl(props.database))
+const promptBox = ref<HTMLElement | null>(null)
+const copied = ref(false)
+let copiedTimer: ReturnType<typeof setTimeout> | undefined
+
+/** Copy the prompt; without clipboard access, select it for a manual copy. */
+async function copyPrompt(): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(prompt.value)
+    copied.value = true
+    clearTimeout(copiedTimer)
+    copiedTimer = setTimeout(() => (copied.value = false), 2000)
+  } catch {
+    const box = promptBox.value
+    const selection = window.getSelection()
+    if (box && selection) selection.selectAllChildren(box)
+  }
+}
 
 // --- Dictionary -----------------------------------------------------------
 
@@ -219,6 +251,22 @@ defineExpose({ show })
           <v-icon :icon="mdiPackageVariantClosed" size="14" />
           {{ $t('contribute.guide.layout_kit') }}
         </button>
+      </section>
+      <section class="layout agent">
+        <h4>{{ $t('contribute.guide.agent_title') }}</h4>
+        <p class="state">{{ $t('contribute.guide.agent_hint') }}</p>
+        <pre ref="promptBox" class="agent-prompt">{{ prompt }}</pre>
+        <div class="agent-actions">
+          <button class="kit" type="button" @click="copyPrompt">
+            <v-icon :icon="copied ? mdiCheck : mdiContentCopy" size="14" />
+            {{ $t(copied ? 'contribute.guide.agent_copied' : 'contribute.guide.agent_copy') }}
+          </button>
+          <a class="kit" :href="agentUrl" rel="noopener noreferrer" target="_blank">
+            <v-icon :icon="mdiOpenInNew" size="14" />
+            {{ $t('contribute.guide.agent_open') }}
+          </a>
+        </div>
+        <p class="state agent-note">{{ $t('contribute.guide.agent_offline') }}</p>
       </section>
       <p v-if="readme === undefined" class="state">{{ $t('contribute.guide.loading') }}</p>
       <p v-else-if="readme === null" class="state">
@@ -661,6 +709,25 @@ defineExpose({ show })
 .tree-tag.required {
   border-color: var(--epfl-red);
   color: var(--epfl-red);
+}
+.agent-prompt {
+  margin: 8px 0 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.agent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.agent-note {
+  margin: 10px 0 0;
 }
 .kit {
   display: inline-flex;

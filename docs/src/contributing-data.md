@@ -82,6 +82,45 @@ Data problems come back as `200` with `valid: false` and a `results` list per
 file and row. `4xx` is for transport only: bad archive, too big, too many
 requests.
 
+## Formatting with an AI agent
+
+Most researchers have their data in another format. Converting it by hand
+takes days. So the guide rail of the form has a block "Format your data with
+an AI agent": a short prompt the researcher copies into their own agent
+(Claude, ChatGPT, Copilot...). We don't run a chatbot. The agent works on the
+researcher's machine, and stops at a folder: the researcher drops it on the
+form and submits under their own name, like any other submission.
+
+The prompt (`frontend/src/utils/agentPrompt.ts`) only points to the agent
+guide. Everything else is in `backend/resslab_hub/routers/agent.py`, behind
+`CONTRIBUTIONS_ENABLED` like the rest of the pipeline:
+
+| Route | What |
+| --- | --- |
+| `GET /agent/guide` | Markdown: the method, the CSV rules, the list of databases. |
+| `GET /agent/guide/{database}` | Markdown: the method, the folder layout, the README and the data dictionary of one database, on one page. |
+| `POST /agent/validate?database=` | The same checks as `/validate`, without an account. |
+
+- The method is the only hand-written part: `backend/resslab_hub/agent/guide.md`.
+  Edit it when you see an agent go wrong. It tells the agent to show its
+  column mapping first, never invent a value, fix format errors alone, and
+  ask the researcher about every warning instead of changing a measured value.
+- The rest of the page is built from what the hub already uses, in
+  `agent/guide.py`: the folder layout and the response headers from
+  `get_args_all` and `validate_one_file`, the README and the dictionary from
+  the database. A new column or a renamed header shows up with no edit.
+- "In the hub now" in the dictionary table: for numbers, the range the range
+  warning compares with; for text, the values in use (30 at most, no numbers,
+  no `NA`/`NR` words), so the agent reuses the same vocabulary. Kept in memory
+  per data version, like the response cache.
+- `/agent/validate` is open to anybody, so it is smaller than `/validate`:
+  10 MB, 10 a minute per address, one check at a time for the whole process
+  (a second caller gets a `429` with `Retry-After`), the check in a thread,
+  ids already in the database are errors, and no call to GitHub. The answer
+  has no legacy arrays. An archive where nothing is found at the expected path
+  (`output/braces/...` instead of `braces/...`) is an error, not an empty pass.
+- `frontend/public/llms.txt` points agents that land on the site to the guide.
+
 ## From submission to pull request
 
 `POST /contributions` (`routers/contributions.py`), `contributor` role, an

@@ -1110,7 +1110,13 @@
       "layout_title": "Organisation attendue",
       "layout_hint": "À quoi ressemble le dossier de soumission ; déposez-le entier dans l’éditeur.",
       "layout_primary": "une ligne par essai",
-      "layout_kit": "Télécharger le kit de départ"
+      "layout_kit": "Télécharger le kit de départ",
+      "agent_title": "Mettre vos données en forme avec un agent IA",
+      "agent_hint": "Vos données sont dans un autre format ? Donnez ce prompt à votre propre agent IA (Claude, ChatGPT, Copilot…). Il lit notre guide, convertit vos fichiers, les vérifie avec le hub et vous interroge sur tout ce qui semble étrange. Déposez ensuite ici le dossier qu’il vous rend.",
+      "agent_copy": "Copier le prompt",
+      "agent_copied": "Copié",
+      "agent_open": "Ouvrir le guide pour agents",
+      "agent_offline": "Si votre agent ne peut pas ouvrir de pages web, ouvrez le guide pour agents, enregistrez-le et joignez-le à la conversation."
     },
     "editor": {
       "title": "Expériences",

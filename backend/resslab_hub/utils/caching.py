@@ -53,6 +53,11 @@ def bump_data_version() -> None:
     _data_version = token_hex(8)
 
 
+def data_version() -> str:
+    """The current data version, for caches kept outside this middleware."""
+    return _data_version
+
+
 def data_etag() -> str:
     return f'W/"{_data_version}"'
 
@@ -157,6 +162,9 @@ def _excluded(path: str) -> bool:
     # with `max-age` a browser would keep the old answer after a restart.
     #
     # /user answers who holds the machine credential (#264 M1).
+    #
+    # /agent serves Markdown, which this middleware never stores; the guide
+    # keeps its own cache of the data it shows (routers/agent.py).
     return path in (
         "/",
         "/healthz",
@@ -174,5 +182,6 @@ def _excluded(path: str) -> bool:
             "/account",
             "/admin",
             "/verification",
+            "/agent",
         )
     )
