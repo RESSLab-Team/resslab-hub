@@ -19,10 +19,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name, disable_existing_loggers=False)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
+# The metadata of every model, for autogenerate.
 target_metadata = Base.metadata
 
 # The URL is passed straight to SQLAlchemy, never through the config: the

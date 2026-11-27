@@ -689,10 +689,9 @@ class TableValidator(Validator):
                         )
 
         except Exception as e:
-            print(
-                f"Validation error missing type: {str(e)}"
-                f"for column {column.key} with value {value}"
-                f"and type {column.type}"
+            error(
+                f"Validation error: {e} for column {column.key} "
+                f"with value {value} and type {column.type}"
             )
             result.add_error(row, column.key, value, f"Validation error: {str(e)}")
 
