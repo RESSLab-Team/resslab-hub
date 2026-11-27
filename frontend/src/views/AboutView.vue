@@ -258,6 +258,9 @@ function initials(name: string): string {
             <a href="https://www.snf.ch" target="_blank" rel="noopener noreferrer">
               Swiss National Science Foundation
             </a>
+            <a href="https://www.swissuniversities.ch" target="_blank" rel="noopener noreferrer">
+              swissuniversities
+            </a>
             <a href="https://www.epfl.ch/schools/enac/" target="_blank" rel="noopener noreferrer">
               EPFL ENAC
             </a>

@@ -1006,8 +1006,8 @@
       "staleTooltip": "Valeur archivée du {date} — données en direct actuellement indisponibles"
     },
     "hero": {
-      "title": "Données ouvertes pour des structures en acier {emphasis}{break}.",
-      "titleEmphasis": "résilientes aux séismes",
+      "title": "Données ouvertes pour des structures en {emphasis}.",
+      "titleEmphasis": "acier",
       "lede": "Bases de données expérimentales sélectionnées et modèles de composants à l'état de l'art pour le génie parasismique basé sur la performance — réunies dans le monde entier depuis les années 1970, entièrement numérisées et librement accessibles.",
       "browseDatabases": "Parcourir les bases de données",
       "aboutProject": "À propos du projet"
