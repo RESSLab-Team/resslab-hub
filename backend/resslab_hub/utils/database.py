@@ -2,12 +2,15 @@
 Database Service
 """
 
+import logging
+from contextlib import contextmanager
 from pathlib import Path
-from typing import AsyncIterator
+from typing import AsyncIterator, Iterator
 from urllib.parse import quote_plus
 
 from alembic.command import upgrade
 from alembic.config import Config
+from sqlalchemy import Engine, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
 
@@ -69,6 +72,41 @@ def alembic_config() -> Config:
     raise FileNotFoundError(
         "alembic.ini not found, looked in: " + ", ".join(map(str, candidates))
     )
+
+
+# Any fixed number works, as long as every process uses the same one.
+MIGRATION_LOCK_ID = 479_000_001
+
+# Under "alembic", so the logging config of alembic.ini shows it (INFO).
+_lock_logger = logging.getLogger("alembic.lock")
+
+
+@contextmanager
+def migration_lock(engine: Engine) -> Iterator[None]:
+    """
+    Run the migrations one process at a time (#479).
+
+    Each backend runs "alembic upgrade head" when it starts. With several
+    replicas, two of them used to apply the same migration and one crashed.
+    This takes a PostgreSQL advisory lock for the session: the other
+    processes wait here, then find nothing left to do.
+
+    The lock is on its own connection, in autocommit, so it holds whatever
+    the migrations do with their own transactions. The lock goes away when
+    the connection closes, also when the process dies.
+    """
+    params = {"id": MIGRATION_LOCK_ID}
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+        if not conn.scalar(text("SELECT pg_try_advisory_lock(:id)"), params):
+            _lock_logger.info(
+                "Another process runs the migrations, waiting for the lock"
+            )
+            conn.execute(text("SELECT pg_advisory_lock(:id)"), params)
+            _lock_logger.info("Got the migration lock")
+        try:
+            yield
+        finally:
+            conn.execute(text("SELECT pg_advisory_unlock(:id)"), params)
 
 
 def upgrade_database():
