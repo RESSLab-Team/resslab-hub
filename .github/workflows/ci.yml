@@ -126,6 +126,8 @@ jobs:
         run: |
           docker run -d --name docs -p 8080:8080 resslab-hub-docs
           sleep 2
+          # Not root (#456): 101 is the nginx user of the unprivileged image.
+          test "$(docker exec docs id -u)" = 101
           curl -fsS -o /dev/null http://127.0.0.1:8080/docs/
           curl -fsS -o /dev/null http://127.0.0.1:8080/docs/contribute/
           curl -fsS -o /dev/null http://127.0.0.1:8080/docs/data/braces/
@@ -144,3 +146,28 @@ jobs:
       # ghcr.io/resslab-team/epfl-resslab/resslab-hub/, nothing reads the
       # compose ones, and the push to GHCR failed on flaky "unknown blob" errors.
       - run: docker compose build --parallel --pull
+      # Both images must run as a non-root user and listen on 8080 (#456): the
+      # k8s manifests count on the two. No Traefik here, it needs a certificate.
+      - name: The images run as non-root on 8080
+        run: |
+          echo POSTGRES_PASSWORD=changeit > secrets/db.env
+          echo POSTGRES_PASSWORD=changeit > secrets/.env
+          test "$(docker compose run --rm --no-deps -T --entrypoint id backend -u)" = 10001
+          docker compose up -d database backend frontend
+          sleep 2
+          test "$(docker compose exec -T frontend id -u)" = 101
+          docker compose exec -T frontend wget -q -O /dev/null http://127.0.0.1:8080/
+          # The backend first waits for the database and migrates it.
+          ok=
+          for i in $(seq 60); do
+            if docker compose exec -T backend python -c "import urllib.request as r; r.urlopen('http://127.0.0.1:8080/healthz')" 2>/dev/null; then
+              ok=1
+              break
+            fi
+            sleep 2
+          done
+          if [ -z "$ok" ]; then
+            docker compose logs backend
+            exit 1
+          fi
+          test "$(docker compose exec -T backend id -u)" = 10001

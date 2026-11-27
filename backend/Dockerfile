@@ -15,8 +15,13 @@ RUN uv pip install --no-deps . \
 
 
 FROM python:3.12-slim AS production-stage
-EXPOSE 80
+EXPOSE 8080
 WORKDIR /app
+
+# The user that runs the app (#456). A fixed uid, so the k8s manifests can
+# name it. It gets a home folder, so a library that writes a cache in ~ does
+# not fail. /app stays owned by root: the app reads its code, it can't change it.
+RUN useradd --system --uid 10001 --create-home appuser
 
 COPY --from=build-stage /app/.venv /app/.venv
 COPY ./alembic.ini /app/
@@ -25,4 +30,8 @@ COPY ./alembic /app/alembic
 ENV PATH="/app/.venv/bin:${PATH}" \
     PYTHONUNBUFFERED=1
 
-CMD [ "uvicorn", "resslab_hub.main:app", "--host", "0.0.0.0", "--port", "80" ]
+# By number, not by name: k8s can only check runAsNonRoot on a numeric user.
+# Not root, so no port under 1024: the app listens on 8080.
+USER 10001:10001
+
+CMD [ "uvicorn", "resslab_hub.main:app", "--host", "0.0.0.0", "--port", "8080" ]

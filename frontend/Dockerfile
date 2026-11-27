@@ -8,8 +8,11 @@ RUN pnpm install --frozen-lockfile
 COPY ./ .
 RUN pnpm run build
 
-FROM nginx:1.31-alpine AS production-stage
-RUN mkdir /app
+# nginx as a non-root user (uid 101), on 8080 (#456). Same image family as
+# docs/Dockerfile. COPY writes the files as root: nginx reads them, it can't
+# change them.
+FROM nginxinc/nginx-unprivileged:1.31-alpine AS production-stage
+EXPOSE 8080
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY nginx-security-headers.conf /etc/nginx/security-headers.conf
 COPY --from=build-stage /app/dist /app
