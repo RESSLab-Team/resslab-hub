@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.7.0](https://github.com/RESSLab-Team/resslab-hub/compare/v2.6.0...v2.7.0) (2026-11-27)
+
+
+### Features
+
+* **contribute:** let researchers format their data with their own AI agent ([#498](https://github.com/RESSLab-Team/resslab-hub/issues/498)) ([03169ce](https://github.com/RESSLab-Team/resslab-hub/commit/03169cec3f35d5fd8361abea85e3de6bf85a2f9f))
+
+
+### Bug Fixes
+
+* **auth:** compare the machine credential as bytes ([610bf52](https://github.com/RESSLab-Team/resslab-hub/commit/610bf52fdbb58c244fd6b0bb4f256e524240842a)), closes [#265](https://github.com/RESSLab-Team/resslab-hub/issues/265)
+* **backend:** take an advisory lock around the migrations ([265dc9e](https://github.com/RESSLab-Team/resslab-hub/commit/265dc9ede01289219cf3c42b4b7ec1ebbde3249c)), closes [#479](https://github.com/RESSLab-Team/resslab-hub/issues/479)
+* **backend:** take an advisory lock around the migrations ([#486](https://github.com/RESSLab-Team/resslab-hub/issues/486)) ([3572850](https://github.com/RESSLab-Team/resslab-hub/commit/357285034d740aff61d8e0441cc6516e127abe8c)), closes [#479](https://github.com/RESSLab-Team/resslab-hub/issues/479)
+* **dashboard:** translate the count label ([8e28b5c](https://github.com/RESSLab-Team/resslab-hub/commit/8e28b5c3657c2a51d05f5dcbfcdd2dec14dd7efa)), closes [#265](https://github.com/RESSLab-Team/resslab-hub/issues/265)
+* **dashboard:** translate the count label ([#489](https://github.com/RESSLab-Team/resslab-hub/issues/489)) ([9d86a65](https://github.com/RESSLab-Team/resslab-hub/commit/9d86a65c935b1bb62bb25dbaead7f530bbf8e4e7))
+* **docker:** run the backend and frontend images as non-root, on port 8080 ([6d79e36](https://github.com/RESSLab-Team/resslab-hub/commit/6d79e36afc98426a2e44a2f1fcf86199068f05d8))
+* **home:** put "steel" in red in the title and add swissuniversities ([68ef0c5](https://github.com/RESSLab-Team/resslab-hub/commit/68ef0c5fc793d0411f874478f397e3101984ffae))
+* **home:** put "steel" in red in the title and add swissuniversities ([#490](https://github.com/RESSLab-Team/resslab-hub/issues/490)) ([8645888](https://github.com/RESSLab-Team/resslab-hub/commit/864588874a63422619578d2a07c726d2f20e12ab))
+* **validator:** log the unexpected field error instead of print ([3da5ec7](https://github.com/RESSLab-Team/resslab-hub/commit/3da5ec76e88bb4d0de2cc0b87ae85aa37c7d7d22)), closes [#265](https://github.com/RESSLab-Team/resslab-hub/issues/265)
+
 ## [2.6.0](https://github.com/RESSLab-Team/resslab-hub/compare/v2.5.0...v2.6.0) (2026-11-26)
 
 
