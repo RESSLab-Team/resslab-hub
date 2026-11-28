@@ -723,15 +723,15 @@ wheels = [
 
 [[package]]
 name = "google-auth"
-version = "2.63.0"
+version = "2.63.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cryptography" },
     { name = "pyasn1-modules" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/04/0c/d09755ddb3fb67dcba41f35c04ba33377e5bcf73af6c022de33c3241532b/google_auth-2.63.0.tar.gz", hash = "sha256:f198b99dd49e81f96f54abce2c03d4dd28fb7e3c77702eb6ae1c5bf25435054c", size = 406302, upload-time = "2026-11-20T23:24:00.618Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/35/0e/e8125c650f126f8703feabca892277f258af7c761fd93f7d51a404e56d75/google_auth-2.63.1.tar.gz", hash = "sha256:f69f387dba9abe536fec87483a749485f2ef0c81bfa79f609d9873e57054a1a5", size = 409098, upload-time = "2026-11-21T20:36:15.511Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5e/78/1c31250140faba4206c557b2bb16e8b1f1e42202864f0dbe0a8f4bc8dab2/google_auth-2.63.0-py3-none-any.whl", hash = "sha256:cbc065325f67511946d1a66672e4f47e71ed162ef1abd2bb8404ceec407c86ba", size = 270723, upload-time = "2026-11-20T23:23:59.008Z" },
+    { url = "https://files.pythonhosted.org/packages/10/21/868ddea6de119b3e47ee0ae8de70bffabb6c0fe8a6f395ea62bdfb2ec062/google_auth-2.63.1-py3-none-any.whl", hash = "sha256:3c977ca57114a302c2589f3a24be7ca1b6862d30da7619f4230a78809f58a0e9", size = 271264, upload-time = "2026-11-21T20:36:13.886Z" },
 ]
 
 [[package]]
@@ -1477,11 +1477,11 @@ wheels = [
 
 [[package]]
 name = "pyswot"
-version = "0.6.2"
+version = "0.6.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/60/3d/67da01e2476e390e08b2c07826dc873384e87a563a84428c372ec0f0d6e6/pyswot-0.6.2.tar.gz", hash = "sha256:616bb98cddf66a7ebaf2930bd13a3e80fb64475cee5bb837528922c09456a4ba", size = 581048, upload-time = "2026-11-16T07:21:33.622Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c4/df/0c8ed91886ee3cff45b1cde8b113e1cda77ae29ebf0e42148ee369e07dc5/pyswot-0.6.3.tar.gz", hash = "sha256:3b8dc58c59860ad779cb2aaffc17e2960080843a9ac8db49da2f97eec4681167", size = 579189, upload-time = "2026-11-23T07:27:30.9Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b1/8b/503f1a15165ead5bbbc4bfbd8d287ed396a0c5a33a1f19ef92c45de76c22/pyswot-0.6.2-py3-none-any.whl", hash = "sha256:e964fc4b8c86f835926be6387431040647a00573d7e6a283aada5aa058cbb20b", size = 584618, upload-time = "2026-11-16T07:21:31.812Z" },
+    { url = "https://files.pythonhosted.org/packages/2e/29/c471b04943d595e21d905ef7a7800a4f08408d5d8834805cea2d69d2bc0d/pyswot-0.6.3-py3-none-any.whl", hash = "sha256:174a3ebbcacee17693b5aedae6d698f5acbfe4f197f76fcc8c20d1883455ca2f", size = 582752, upload-time = "2026-11-23T07:27:29.337Z" },
 ]
 
 [[package]]
